@@ -1,0 +1,49 @@
+{
+  "manifest": [
+    {
+      "type": "manifest_version",
+      "value": 1.2
+    },
+    {
+      "key": "BASEDIR",
+      "type": "dir",
+      "spec": "."
+    },
+    {
+      "key": "STRUCTURE_TREE",
+      "type": "file",
+      "spec": "structures.json",
+      "parent_key": "BASEDIR"
+    },
+    {
+      "key": "REFERENCE_SPACE_VERSION",
+      "type": "dir",
+      "spec": "%s",
+      "parent_key": "BASEDIR"
+    },
+    {
+      "key": "ANNOTATION",
+      "type": "file",
+      "spec": "annotation_%d.nrrd",
+      "parent_key": "REFERENCE_SPACE_VERSION"
+    },
+    {
+      "key": "TEMPLATE",
+      "type": "file",
+      "spec": "average_template_%d.nrrd",
+      "parent_key": "BASEDIR"
+    },
+    {
+      "key": "STRUCTURE_MASK",
+      "type": "file",
+      "spec": "structure_masks/resolution_%d/structure_%d.nrrd",
+      "parent_key": "REFERENCE_SPACE_VERSION"
+    },
+    {
+      "key": "STRUCTURE_MESH",
+      "type": "file",
+      "spec": "structure_meshes/structure_%d.obj",
+      "parent_key": "REFERENCE_SPACE_VERSION"
+    }
+  ]
+}

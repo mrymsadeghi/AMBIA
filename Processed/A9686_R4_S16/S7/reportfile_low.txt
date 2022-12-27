@@ -1,0 +1,18 @@
+
+ 
+ 
+ Red blobs:	10 
+ 
+ MO _L:	1
+ PL _R:	1
+ ORB _L:	1
+ AI _R:	1
+ AI _L:	5
+ TT _L:	1
+ OLF _L:	1
+ CTX _R:	2
+ CTX _L:	8
+ 
+ 
+ Green blobs:	0 
+ 
