@@ -25,15 +25,15 @@ or you can use \
 ## Structure of files and folders
 The files and folders in the Ambia Git repository consists of the following folers:
 - Gui Atlases
-- mb_gui
+- Ambia_core
 - models
 - Processed
 Keep this folder structure in your system for Ambia to work correctly. \
 Here is an explanation of the content and functionality of each folder:
 #### Gui Atlases folder
-This folder contains the color coded coronal atlases of adult mouse brain or P56 mouse brain. In the file `Static_Switches.py` if you choose `atlas_type = Adult`, Ambia will use Adult atlases in this folder. Also it is noteworthy that the color codes of each atlas is contained in the folder `mb_gui/src/atlas_codes`.
-#### mb_gui folder
-This folder contains all the python code for the Cell detection, Localization, Atlas generator and Registration Module, as well as the GUI. The file `mb_gui/src/Switches_Static.py` contatins parameters that are editable by the users. Parameters such as for choosing the atlas type (`atlas_type`), turning auto registration on or off (`auto_registration`) and etc. 
+This folder contains the color coded coronal atlases of adult mouse brain or P56 mouse brain. In the file `Static_Switches.py` if you choose `atlas_type = Adult`, Ambia will use Adult atlases in this folder. Also it is noteworthy that the color codes of each atlas is contained in the folder `Ambia_core/src/atlas_codes`.
+#### Ambia_core folder
+This folder contains all the python code for the Cell detection, Localization, Atlas generator and Registration Module, as well as the GUI. The file `Ambia_core/src/Switches_Static.py` contatins parameters that are editable by the users. Parameters such as for choosing the atlas type (`atlas_type`), turning auto registration on or off (`auto_registration`) and etc. 
 #### models folder
 This folder contains three different type of data
 - Deep learning trained models for the localization module. Including the SL predictor, QL predictor, Group A segmentation modes
