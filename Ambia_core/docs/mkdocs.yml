@@ -1,0 +1,8 @@
+site_name: Mouse-Brain
+repo_url: https://gitlab.com/maryams88/mb_gui
+# nav:
+#     - Home: index.md
+#     - About: about.md
+theme: yeti
+
+# theme: readthedocs

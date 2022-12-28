@@ -1,0 +1,30 @@
+funcBlobDetection
+    """
+    [summary]
+    Args:
+        slide_fullpath ([type]): [description]
+        prepath ([type]): [description]
+        brnum ([type]): [description]
+        blobs_parameters ([Dictionary]):keys are
+            [red_blob_type]: [description]
+            [red_blob_min_size]: [description]
+            [red_blob_thresh]: [description]
+            [red_blob_correlation]: [description]
+            [red_blob_stride]: [description]
+            [red_blob_min_sigma]: [description]
+            [red_blob_max_sigma]: [description]
+            [red_blob_num_sigma]: [description]
+            [red_blob_thresh2]: [description]
+
+            [green_blob_type]: [description]
+            [green_blob_min_size]: [description]
+            [green_blob_thresh]: [description]
+            [green_blob_correlation]: [description]
+            [green_blob_stride]: [description]
+            [green_blob_min_sigma]: [description]
+            [green_blob_max_sigma]: [description]
+            [green_blob_num_sigma]: [description]
+            [green_blob_thresh2]: [description]
+    Returns:
+        [type]: [description]
+    """

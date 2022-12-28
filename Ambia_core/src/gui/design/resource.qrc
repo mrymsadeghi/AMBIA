@@ -1,0 +1,35 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>Icons/flip.svg</file>
+    <file>Icons/browse.svg</file>
+    <file>Icons/accept.svg</file>
+    <file>Icons/accept-blue.svg</file>
+    <file>Icons/auto detect.svg</file>
+    <file>Icons/auto detect - blue.svg</file>
+    <file>Icons/back.svg</file>
+    <file>Icons/Blob Detecting.svg</file>
+    <file>Icons/brain.svg</file>
+    <file>Icons/check.svg</file>
+    <file>Icons/check-lighblue.svg</file>
+    <file>Icons/check-sign-in-a-rounded-black-square.svg</file>
+    <file>Icons/clean up.svg</file>
+    <file>Icons/clean up - blue.svg</file>
+    <file>Icons/delete.svg</file>
+    <file>Icons/detection.svg</file>
+    <file>Icons/grid.svg</file>
+    <file>Icons/load2.svg</file>
+    <file>Icons/load image.svg</file>
+    <file>Icons/move.svg</file>
+    <file>Icons/next.svg</file>
+    <file>Icons/progress.svg</file>
+    <file>Icons/progress-blue.svg</file>
+    <file>Icons/reload.svg</file>
+    <file>Icons/rubbish.svg</file>
+    <file>Icons/save.svg</file>
+    <file>Icons/select.svg</file>
+    <file>Icons/taget.svg</file>
+    <file>Icons/trash.svg</file>
+    <file>Icons/Undo.svg</file>
+    <file>Icons/wait.svg</file>
+  </qresource>
+</RCC>
