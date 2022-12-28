@@ -75,4 +75,8 @@ You can find video tutorials on how to install and use Ambia in the following li
 link of AMBIA publication
 
 ## Other resources
+Development of AMBIA on Gitlab since 2020
+[Ambia's history](https://gitlab.com/maryams88/mb_gui)
+
 Ardent package Github
+[Ardent package Github](https://github.com/neurodata/ardent)
