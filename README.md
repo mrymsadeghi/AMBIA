@@ -1,6 +1,6 @@
 # AMBIA
 
-AMBIA (**A**utomated **M**ouse **B**rain **I**mage **A**nalysis) is a tool to fascilitate the analysis of 2D histological Mouse brain images. It has a modular design and consists of the following modules:
+AMBIA (**A**utomated **M**ouse **B**rain **I**mage **A**nalysis) is a tool to fascilitate the analysis of 2D histological Mouse brain images. It is written purely in python and has a modular design and consists of the following modules:
 - Cell detection Module
 - Localization Module
 - Atlas generator module
@@ -8,7 +8,7 @@ AMBIA (**A**utomated **M**ouse **B**rain **I**mage **A**nalysis) is a tool to fa
 
 ## Requirements
 
-AMBIA is intentionally designed with few requirements. You can easily run Ambia on your local computer. Ofcourse computers with higher ram and stronger CPUs make Ambia run faster. Following a the requirements befor you install Ambia:
+AMBIA is intentionally designed with few requirements. You can easily run Ambia on your local computer. Ofcourse computers with higher ram and stronger CPUs make Ambia run faster. Following a the requirements before you install Ambia:
 - Python > 3.7
 
 
@@ -41,3 +41,38 @@ This folder contains three different type of data
 - Files required for generating tilted 2D allen mouse brain atlas from the 3D atlas in the Allen_files folder
 #### Processed folder
 This is where the files and reports of the analysis of your mouse brain slices will be saved. Also as an example, we provide analysis of two mouse brain slices from two different slides are in this folder.
+
+
+## GUI screenshots
+Here are some screenshots of AMBIA GUI showing different stages of analysis with a mrxs format slide image.
+**Loading the Slide image**
+Slide image is loaded. Ambia detects different mouse brain slices, and now the user can choose which slice to analyse.
+![AMBIA loading slide](models/AMBIA_GUI_01.png)
+**Cell Detection**
+Different methods can be implemented in the cell detection module. Here as default two methods for each channel is provided. The user can choose between methods for each of the green and red channels and parameters can be adjusted in the GUI
+![AMBIA loading slide](models/AMBIA_GUI_02.png)
+**Localization**
+The selected slice can now be registered to a mouse brain atlas. The user can either choose a standard coronal allen atlas based on its number. Or by toggling the "Tilted atlas" switch in the GUI, you can use the deep learning localization module to detect the position of the slice and generate a custom atlas.
+![AMBIA loading slide](models/AMBIA_GUI_03.png)
+![AMBIA loading slide](models/AMBIA_GUI_ql.png)
+
+**Registration**
+After choosing or generating an atlas, you can toggle auto registration switch on to perform automatic ardent registration. And later choose landmarks to refine the registration.
+![AMBIA loading slide](models/AMBIA_GUI_04.png)
+**Analysis Report**
+Ambia demostrates visually where the detected cells are located in the registered mouse brain slice on the annotated atlas. Also a report is generated in the form of an Excel sheet and a text file which reports the number of detected cells in each brain region.
+![AMBIA loading slide](models/AMBIA_GUI_05.png)
+
+
+## Video Tutorial
+You can find video tutorials on how to install and use Ambia in the following links:
+
+[Installation and how to start](https://www.example.com)
+[How to Use AMBIA](https://www.example.com)
+[How to modify the code of AMBIA](https://www.example.com)
+
+## Publication
+link of AMBIA publication
+
+## Other resources
+Ardent package Github
