@@ -15,10 +15,10 @@ AMBIA is intentionally designed with few requirements. You can easily run Ambia 
 ## Installation
 
 1. Install python, ideally version 3.7.9, on your system. 
-2. Download Ambia package files from this Git repository
-or you can use
-`Git clone https://github.com/mrymsadeghi/AMBIA.git`
-3. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions
+2. Download Ambia package files from this Git repository \
+or you can use \
+`Git clone https://github.com/mrymsadeghi/AMBIA.git` \
+3. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions \
 `pip install -r requirements.txt`
 4. Run the Main.py file to run Ambia
 
@@ -28,8 +28,8 @@ The files and folders in the Ambia Git repository consists of the following fole
 - mb_gui
 - models
 - Processed
-Keep this folder structure in your system for Ambia to work correctly.
-Here is an explanation of the content and functionality of each folder
+Keep this folder structure in your system for Ambia to work correctly. \
+Here is an explanation of the content and functionality of each folder \
 #### Gui Atlases folder
 This folder contains the color coded coronal atlases of adult mouse brain or P56 mouse brain. In the file `Static_Switches.py` if you choose `atlas_type = Adult`, Ambia will use Adult atlases in this folder. Also it is noteworthy that the color codes of each atlas is contained in the folder `mb_gui/src/atlas_codes`.
 #### mb_gui folder
@@ -44,39 +44,37 @@ This is where the files and reports of the analysis of your mouse brain slices w
 
 
 ## GUI screenshots
-Here are some screenshots of AMBIA GUI showing different stages of analysis with a mrxs format slide image.
-**Loading the Slide image**
-Slide image is loaded. Ambia detects different mouse brain slices, and now the user can choose which slice to analyse.
-![AMBIA loading slide](models/AMBIA_GUI_01.png)
-**Cell Detection**
-Different methods can be implemented in the cell detection module. Here as default two methods for each channel is provided. The user can choose between methods for each of the green and red channels and parameters can be adjusted in the GUI
-![AMBIA loading slide](models/AMBIA_GUI_02.png)
-**Localization**
-The selected slice can now be registered to a mouse brain atlas. The user can either choose a standard coronal allen atlas based on its number. Or by toggling the "Tilted atlas" switch in the GUI, you can use the deep learning localization module to detect the position of the slice and generate a custom atlas.
-![AMBIA loading slide](models/AMBIA_GUI_03.png)
-![AMBIA loading slide](models/AMBIA_GUI_ql.png)
+Here are some screenshots of AMBIA GUI showing different stages of analysis with a mrxs format slide image. \
+**Loading the Slide image** \
+Slide image is loaded. Ambia detects different mouse brain slices, and now the user can choose which slice to analyse. \
+![AMBIA loading slide](models/AMBIA_GUI_01.png) \
+**Cell Detection** \
+Different methods can be implemented in the cell detection module. Here as default two methods for each channel is provided. The user can choose between methods for each of the green and red channels and parameters can be adjusted in the GUI \
+![AMBIA loading slide](models/AMBIA_GUI_02.png) \
+**Localization** \
+The selected slice can now be registered to a mouse brain atlas. The user can either choose a standard coronal allen atlas based on its number. Or by toggling the "Tilted atlas" switch in the GUI, you can use the deep learning localization module to detect the position of the slice and generate a custom atlas. \
+![AMBIA loading slide](models/AMBIA_GUI_03.png) \
+![AMBIA loading slide](models/AMBIA_GUI_ql.png) \
 
-**Registration**
-After choosing or generating an atlas, you can toggle auto registration switch on to perform automatic ardent registration. And later choose landmarks to refine the registration.
-![AMBIA loading slide](models/AMBIA_GUI_04.png)
-**Analysis Report**
+**Registration** \
+After choosing or generating an atlas, you can toggle auto registration switch on to perform automatic ardent registration. And later choose landmarks to refine the registration. \
+![AMBIA loading slide](models/AMBIA_GUI_04.png) \
+**Analysis Report** \
 Ambia demostrates visually where the detected cells are located in the registered mouse brain slice on the annotated atlas. Also a report is generated in the form of an Excel sheet and a text file which reports the number of detected cells in each brain region.
-![AMBIA loading slide](models/AMBIA_GUI_05.png)
+![AMBIA loading slide](models/AMBIA_GUI_05.png) \
 
 
 ## Video Tutorial
-You can find video tutorials on how to install and use Ambia in the following links:
+You can find video tutorials on how to install and use Ambia in the following links: \
 
-[Installation and how to start](https://www.example.com)
-[How to Use AMBIA](https://www.example.com)
-[How to modify the code of AMBIA](https://www.example.com)
+[Installation and how to start](https://www.example.com) \
+[How to Use AMBIA](https://www.example.com) \
+[How to modify the code of AMBIA](https://www.example.com) \
 
 ## Publication
-link of AMBIA publication
+link of AMBIA publication \
 
 ## Other resources
-Development of AMBIA on Gitlab since 2020
-[Ambia's history](https://gitlab.com/maryams88/mb_gui)
+Development of AMBIA on Gitlab since 2020 [here](https://gitlab.com/maryams88/mb_gui)
 
-Ardent package Github
-[Ardent package Github](https://github.com/neurodata/ardent)
+Ardent package Github [here](https://github.com/neurodata/ardent)
