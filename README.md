@@ -1,6 +1,6 @@
 # AMBIA
 
-AMBIA (**A**utomated **M**ouse **B**rain **I**mage **A**nalysis) is a tool to fascilitate the analysis of 2D histological Mouse brain images. It is written purely in python and has a modular design and consists of the following modules:
+AMBIA (**A**ccurate **M**ouse **B**rain **I**mage **A**nalysis) is a tool to fascilitate the analysis of 2D histological Mouse brain images. It is written purely in python and has a modular design and consists of the following modules:
 - Cell detection Module
 - Localization Module
 - Atlas generator module
