@@ -64,7 +64,7 @@ def funcReadSlide(slide_fullpath, prepath0):
         os.makedirs(savepath)
     #Reportxls_Initialize(slidename, savepath, Experiment_num, Animal_num, slide_num)
     #### Report Dataframe
-    template_path =  os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), "models")
+    template_path =  os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), "models", "templates")
     report_xls_path = os.path.join(savepath, f'Report_{slidename}.xlsx')
     if os.path.exists(report_xls_path):
         Report_df = pd.read_excel(report_xls_path)
