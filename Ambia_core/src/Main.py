@@ -443,7 +443,7 @@ def registration_preview_accept():
     reg_code_status = dy_switches.get_reg_code()
     atlas_path = MainWindow.get_atlas_preview_name()
     atlasnum = os.path.split(atlas_path)[-1].split(".")[0]
-    mappingimgpath, report_image_file_name = Project_Slide.section.funcAnalysis(atlasnum, brnum, atlas_prepath, red_converted_coords, green_converted_coords, colocalized_converted_coords)
+    mappingimgpath, report_image_file_name = Project_Slide.section.funcAnalysis(atlasnum, brnum, red_converted_coords, green_converted_coords, colocalized_converted_coords)
     if report_image_file_name == "em2":
         error_msg_2.exec_()
         return

@@ -450,15 +450,11 @@ class Section:
         return number_of_blobs_r, number_of_blobs_g, matchcount, screenimg_path, self.blobs_log_r, self.blobs_log_g, blob_locs_co
 
     def save_to_pkl(self , filename, data):
-         
         b_file = open(os.path.join(self.section_savepath, filename), "wb")
         pickle.dump(data, b_file)
         b_file.close()
 
     def funcLandmarkDetection(self , imgpath, midheight):
-        # midh = 200 for tissue
-        # midh = 400 for atlas
-
         LandmarksT = []
         return LandmarksT
 
@@ -480,18 +476,99 @@ class Section:
         #save_to_pkl("blobs_coords_fp_fn.pkl", blobs_fp_fn)
         return
 
+    def visualize_blobs_on_image(self, blobs_coords, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg, color):
+        for point in blobs_coords:
+            co2, ro2 = point  # Level 3  c, r = xo1, yo1
+            coords = (co2, ro2)
+            cv.circle(mappedatlas_unlabled_showimg, coords, 4, color, -1)
+            cv.circle(mappedatlas_unlabled_showimg, coords, 4, (0, 0, 0), 1)
+            cv.circle(mappedatlas_labled_showimg, coords, 4, color, -1)
+            cv.circle(mappedatlas_labled_showimg, coords, 4, (0, 0, 0), 1)
+        return mappedatlas_unlabled_showimg, mappedatlas_labled_showimg
 
-    def funcAnalysis(self, atlasnum, brnum, atlas_prepath, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords) :
+    def blob_coords_to_colortags(self, blobs_coords, mappedatlas_detection, regmargin, atlas_width):
+        pointtags = []
+        for point in blobs_coords:
+            co2, ro2 = point  # Level 3  c, r = xo1, yo1
+            bb,gg,rr = mappedatlas_detection[ro2, co2]
+            pointcolor_rgb = (rr,gg,bb) 
+            colorindex = coords_to_colorindex(pointcolor_rgb , self)
+            if colorindex==0:
+                region = mappedatlas_detection[ro2-regmargin:ro2+regmargin, co2-regmargin:co2+regmargin]
+                pointcolor2 = get_region_color(regmargin, region)
+                colorindex = coords_to_colorindex(pointcolor2 , self )
+            if co2 <= int(atlas_width/2):
+                pointtags.append((colorindex,1))  ## 1 for left side
+            if co2 > int(atlas_width/2):
+                pointtags.append((colorindex,2))  ## 2 for right side
+        return pointtags
+    
 
-         
+    def colortag_to_region_name(self, segcountedr, Regions_n_colors_list, dict_color):
+        dict_regs_n_colors = {}
+        for colortag, count in segcountedr.items():
+            pointcolor = self.Bgr_Color_list[colortag[0]]
+            if colortag[1]==1:
+                label = Regions_n_colors_list[colortag[0]][-3] + " _L"
+            elif colortag[1]==2:
+                label = Regions_n_colors_list[colortag[0]][-3] + " _R"       
+            dict_regs_n_colors[label] = [pointcolor, count]
+            dict_color[label] = count
+        return dict_regs_n_colors, dict_color
+
+
+    def fill_empty_cells_with_zero(self, atlasnum, row_of_color):
+        for regname in regs_per_section[int(atlasnum)]:
+            regname_l = regname + " _L"
+            regname_r = regname + " _R"
+            if regname_l not in row_of_color:
+                row_of_color[regname_l]=0
+            if regname_r not in row_of_color:
+                row_of_color[regname_r]=0
+        return row_of_color
+        
+
+    def calculate_area_n_density(self, unlabeled_atlas_filepath, dict_regs_n_colors_g):
+        atlas_pil = Image.open(unlabeled_atlas_filepath)
+        atlas_colors = Counter(atlas_pil.getdata())
+        dict_density = {'type': 'Density', 'Total': '__'}
+        dict_area = {'type': 'Area', 'Total': '__'}
+        for regname, value  in dict_regs_n_colors_g.items():
+            if 'not detected' not in regname:
+                region_cfos_count = value[1] 
+                region_area = atlas_colors[value[0]]
+                region_density =  region_cfos_count / region_area 
+                dict_area[regname] = region_area 
+                dict_density[regname] = region_density
+        return dict_area, dict_density
+    
+    def write_txt_report_file(self, all_blobs_dict, atlasnum):
+        reportfile = open(os.path.join(self.section_savepath, "reportfile.txt"), 'w')  
+        for celltype, blobs_list in all_blobs_dict.items():
+            reportfile.write(f'\n{str(len(blobs_list))} {celltype} in:\n')
+            for label, count in blobs_list:
+                reportfile.write(f'{label} \t {str(count)} \n')
+        reportfile.write(f'\n \n Atlas number: {atlasnum} ')
+        reportfile.close()
+
+    def perform_analysis(self, colorname, color_blobs_coords, idnum, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base):
+        num_red_blobs = len(color_blobs_coords)
+        redpointtags = Section.blob_coords_to_colortags(color_blobs_coords, mappedatlas_detection, regmargin, atlas_width)
+        mappedatlas_unlabled_showimg, mappedatlas_labled_showimg = Section.visualize_blobs_on_image(color_blobs_coords, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg, (0, 0, 255))
+        segcountedr = Counter(redpointtags)
+        dict_color_base  = {'type': colorname, 'Total': num_red_blobs}
+        dict_regs_n_colors, dict_color = Section.colortag_to_region_name(segcountedr, Regions_n_colors_list, dict_color_base)
+        row_of_color = dict(list(dict_base.items()) + list(dict_color.items())+list({'id': idnum}.items()))
+        row_of_color = Section.fill_empty_cells_with_zero(atlasnum, row_of_color)
+        return row_of_color, dict_regs_n_colors
+
+    def funcAnalysis(self, atlasnum, brnum, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords) :         
         """ Inputs red/green_blobs_modified as a list of blob coords (c, r)
         these include detected blob coords after user modification
         red/green_blobs_modified coords are in blevel
         Intermediate variable blob_locs_r/g np array  [r,c]
         """
         self.brnum = brnum
-
-
         regmargin = 5  #for color averaging
 
         if self.slideformat == "mrxs":
@@ -501,7 +578,7 @@ class Section:
             dict_base = {'Experiment': self.Experiment_num, 'Animal': self.rack_num, 'Slide': self.slide_num, 'Section': self.brnum}
             self.Report_subdf = pd.DataFrame(columns=['id', 'Experiment', 'Animal', 'Slide', 'Section', 'type', 'Total'] + Region_names)
 
-        Regions_n_colors_list, self.Bgr_Color_list, Rgb_Color_list =  create_regs_n_colors_per_sec_list(atlasnum)
+        Regions_n_colors_list, self.Bgr_Color_list, _ =  create_regs_n_colors_per_sec_list(atlasnum)
 
         self.savepath = os.path.join(self.prepath, self.slidename)
         labeled_atlas_filepath = os.path.join(self.section_savepath,"atlas_labeled.png")
@@ -514,195 +591,42 @@ class Section:
         mappedatlas_detection = cv.imread(unlabeled_atlas_filepath)
         mappedatlas_unlabled_showimg = cv.imread(unlabeled_atlas_filepath)
         mappedatlas_labled_showimg = cv.imread(labeled_atlas_filepath)
-
-        num_red_blobs = len(red_blobs_modified)
-        num_gr_blobs = len(green_blobs_modified)
         atlas_width = mappedatlas_labled_showimg.shape[1]
 
-        redpointcolors = []
-        redpointtags = []
+        ### Red blobs analysis
+        red_blobs_coords = red_blobs_modified #(c,r)
+        row_red, _ = Section.perform_analysis(self, 'Red', red_blobs_coords, 1, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base)
 
-        atlas_pil = Image.open(unlabeled_atlas_filepath)
-        atlas_colors = Counter(atlas_pil.getdata())
-        red_blobs_coords = red_blobs_modified #(c,r
-
-        for point in red_blobs_coords:
-            co2, ro2 = point  # Level 3  c, r = xo1, yo1
-            bb,gg,rr = mappedatlas_detection[ro2, co2]
-            pointcolor = (bb,gg,rr) 
-            pointcolor_rgb = (rr,gg,bb) 
-            cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 255), -1)
-            cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-            cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 255), -1)
-            cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-            redpointcolors.append(pointcolor_rgb)
-            colorindex = coords_to_colorindex(pointcolor_rgb , self)
-            if colorindex==0:
-                region = mappedatlas_detection[ro2-regmargin:ro2+regmargin, co2-regmargin:co2+regmargin]
-                pointcolor2 = get_region_color(regmargin, region)
-                colorindex = coords_to_colorindex(pointcolor2 , self )
-            if co2 <= int(atlas_width/2):
-                redpointtags.append((colorindex,1))  ## 1 for left side
-            if co2 > int(atlas_width/2):
-                redpointtags.append((colorindex,2))  ## 2 for right side
-        segcountedr = Counter(redpointtags)
-        cv.imwrite(os.path.join(self.section_savepath, "mappedatlas_unlabled_showimg.jpg"), mappedatlas_unlabled_showimg)
-        blobs_coords_registered = {'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
-        
-        self.saved_data_pickle['blobs_coords_registered'] = blobs_coords_registered
-        reportfile = open(os.path.join(self.section_savepath, "reportfile.txt"), 'w')
-        reportfile.write('{} Red Blobs in:\n'.format(len(red_blobs_modified)))
-        reportfile.write('\n')
-
-        dict_red  = {'type': 'Red', 'Total': num_red_blobs}
-        for colortag, count in segcountedr.items():
-            pointcolor = self.Bgr_Color_list[colortag[0]]
-            if colortag[1]==1:
-                label = Regions_n_colors_list[colortag[0]][-3] + " _L"
-            elif colortag[1]==2:
-                label = Regions_n_colors_list[colortag[0]][-3] + " _R"       
-
-            dict_red[label] = count
-            reportfile.write(label + '\t' + str(count) + '\n')
-            
-        reportfile.write('\n')
-        row_red = dict(list(dict_base.items()) + list(dict_red.items())+list({'id':1}.items()))
-        
-        for regname in regs_per_section[int(atlasnum)]:
-            regname_l = regname + " _L"
-            regname_r = regname + " _R"
-            if regname_l not in row_red:
-                row_red[regname_l]=0
-            if regname_r not in row_red:
-                row_red[regname_r]=0
-
-        self.Report_subdf = self.Report_subdf.append(row_red, ignore_index=True)
+        ### Green blobs analysis
         green_blobs_coords = green_blobs_modified #(c,r)
+        row_green, dict_regs_n_colors_g = Section.perform_analysis(self, 'Green', green_blobs_coords, 2, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base)
+        dict_area, dict_density = Section.calculate_area_n_density(unlabeled_atlas_filepath, dict_regs_n_colors_g)
+        row_area = dict(list(dict_base.items()) + list(dict_area.items())+list({'id':4}.items()))
+        row_density = dict(list(dict_base.items()) + list(dict_density.items())+list({'id':5}.items()))
 
-        greenpointcolors = []
-        greenpointtags = []
-        for point in green_blobs_coords:
-            co2, ro2 = point  # bLevel
-            bb,gg,rr = mappedatlas_detection[ro2, co2]
-            pointcolor = (bb,gg,rr)
-            pointcolor_rgb = (rr,gg,bb) 
-            cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 255, 0), -1)
-            cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-            cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 255, 0), -1)
-            cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-            greenpointcolors.append(pointcolor_rgb)
-            colorindex = coords_to_colorindex(pointcolor_rgb , self)
-            if colorindex==0:
-                region = mappedatlas_detection[ro2-regmargin:ro2+regmargin, co2-regmargin:co2+regmargin]
-                pointcolor2 = get_region_color(regmargin, region) #RGB
-                colorindex = coords_to_colorindex(pointcolor2 , self)
-                #print("+++",pointcolor2, colorindex)
-            if co2 <= int(atlas_width/2):
-                greenpointtags.append((colorindex,1))  ## 1 for left side
-            if co2 > int(atlas_width/2):
-                greenpointtags.append((colorindex,2))  ## 2 for right side
-        segcountedg = Counter(greenpointtags)
-        reportfile.write('{} Green Blobs in:\n'.format(len(green_blobs_modified)))
-        reportfile.write('\n')
-
-        dict_green = {'type': 'Green', 'Total': num_gr_blobs}
-        dict_regs_n_colors_g = {}
-        for colortag, count in segcountedg.items():
-            pointcolor = self.Bgr_Color_list[colortag[0]]
-            if colortag[1]==1:
-                label = Regions_n_colors_list[colortag[0]][-3] + " _L"
-            elif colortag[1]==2:
-                label = Regions_n_colors_list[colortag[0]][-3] + " _R"               
-
-            dict_regs_n_colors_g[label] = [pointcolor, count]
-            reportfile.write(label + '\t' + str(count) + '\n')
-            dict_green[label] = count
-        row_green = dict(list(dict_base.items()) + list(dict_green.items())+list({'id':2}.items()))
-        for regname in regs_per_section[int(atlasnum)]:
-            regname_l = regname + " _L"
-            regname_r = regname + " _R"
-            if regname_l not in row_green:
-                row_green[regname_l]=0
-            if regname_r not in row_green:
-                row_green[regname_r]=0
-
-        self.Report_subdf = self.Report_subdf.append(row_green, ignore_index=True)
-
+        ### Colocalized analysis        
         colocalized_blobs = colocalized_blobs_coords
         matchcount = len(colocalized_blobs)
-        blob_colocs = np.array(colocalized_blobs)
-        reportfile.write('\n')
-        reportfile.write('{} Co-localization in:\n'.format(matchcount))
-        matchpointtags = []
+        row_coloc = {}
         if matchcount > 0:
-            for point in colocalized_blobs:
-                co2, ro2 = point
-                cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 255, 255), -1)
-                cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 150, 150), 1)
-                cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 255, 255), -1)
-                cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-                bb,gg,rr = mappedatlas_detection[ro2, co2]
-                pointcolor = (bb,gg,rr)
-                pointcolor_rgb = (rr,gg,bb) 
-                colorindex = coords_to_colorindex(pointcolor_rgb , self)
-                #colorindex = recheck_colorindex(colorindex, mappedatlas_detection, yo2, xo2)
-                if colorindex == 0:
-                    region = mappedatlas_detection[ro2-regmargin:ro2+regmargin, co2-regmargin:co2+regmargin]
-                    pointcolor2 = get_region_color(regmargin, region)
-                    colorindex = coords_to_colorindex(pointcolor2 , self)
-                if co2 <= int(atlas_width/2):
-                    matchpointtags.append((colorindex,1))  ## 1 for left side
-                if co2 > int(atlas_width/2):
-                    matchpointtags.append((colorindex,2))  ## 2 for right side
-            segcountedm = Counter(matchpointtags)
-        else:
-            segcountedm = {}
+            row_coloc, _ = Section.perform_analysis(self, 'CoLoc', colocalized_blobs, 3, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base)
 
-        reportfile.write('\n')
-        dict_co = {'type': 'CoLoc', 'Total': matchcount}
 
-        if len(matchpointtags)>0:
-            for colortag, count in segcountedm.items():
-                pointcolor = self.Bgr_Color_list[colortag[0]]
-                if colortag[1]==1:
-                    label = Regions_n_colors_list[colortag[0]][-3] + " _L"
-                elif colortag[1]==2:
-                    label = Regions_n_colors_list[colortag[0]][-3] + " _R"      
+        #Writing and Saving Anylysis reports
+        all_blobs_dict = {'Red Cells': red_blobs_modified, 'Green Cells': green_blobs_modified, 'Co-localization': colocalized_blobs}
+        Section.write_txt_report_file(all_blobs_dict, atlasnum)
 
-                reportfile.write(label + '\t' + str(count) + '\n')
-                dict_co[label] = count
-        row_coloc = dict(list(dict_base.items()) + list(dict_co.items())+list({'id':3}.items()))
-        for regname in regs_per_section[int(atlasnum)]:
-            regname_l = regname + " _L"
-            regname_r = regname + " _R"
-            if regname_l not in row_coloc:
-                row_coloc[regname_l]=0
-            if regname_r not in row_coloc:
-                row_coloc[regname_r]=0
-        self.Report_subdf = self.Report_subdf.append(row_coloc, ignore_index=True)
+        all_rows = [row_red, row_green, row_coloc, row_area, row_density]
+        for rower in all_rows:
+            self.Report_subdf = self.Report_subdf.append(rower, ignore_index=True)
 
-        dict_density = {'type': 'Density', 'Total': '__'}
-        dict_area = {'type': 'Area', 'Total': '__'}
-
-        for regname, value  in dict_regs_n_colors_g.items():
-            if 'not detected' not in regname:
-                region_cfos_count = value[1] 
-                region_area = atlas_colors[value[0]]
-                region_density =  region_cfos_count / region_area 
-                dict_area[regname] = region_area 
-                dict_density[regname] = region_density
-
-        row_area = dict(list(dict_base.items()) + list(dict_area.items())+list({'id':4}.items()))
-        self.Report_subdf = self.Report_subdf.append(row_area, ignore_index=True)
-        row_density = dict(list(dict_base.items()) + list(dict_density.items())+list({'id':5}.items()))
-        self.Report_subdf = self.Report_subdf.append(row_density, ignore_index=True)
         if 'id' in self.Report_df:
             self.Report_df = self.Report_df.set_index('id')
 
         self.Report_subdf = self.Report_subdf.set_index('id')
+
         for i in range (1,6):
             self.Report_df.loc[((self.brnum-1)*num_rows+i)+8] = self.Report_subdf.loc[i]
-
         try:
             writer = pd.ExcelWriter(os.path.join(self.savepath, f'Report_{self.slidename}.xlsx'), engine='openpyxl')
             self.Report_df.to_excel(writer, sheet_name='Sheet 1', index=False)
@@ -713,12 +637,10 @@ class Section:
         except:
             return self.section_savepath, "em2"
 
-        #np.save(os.path.join(self.section_savepath, 'bloblocs_co_modified.npy'), blob_colocs)
-        reportfile.write(f'\n \n Atlas number: {atlasnum} ')
-        reportfile.close()
+        blobs_coords_registered = {'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
+        self.saved_data_pickle['blobs_coords_registered'] = blobs_coords_registered
         cv.imwrite(os.path.join(self.section_savepath, "Analysis_labeled.jpg"), mappedatlas_labled_showimg)
         cv.imwrite(os.path.join(self.section_savepath, "Analysis_unlabeled.jpg"), mappedatlas_unlabled_showimg)
-
         analyzedimgpath = os.path.join(self.section_savepath, "Analysis_labeled.jpg")
         return self.section_savepath, analyzedimgpath
     
