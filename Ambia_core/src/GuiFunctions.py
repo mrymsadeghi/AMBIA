@@ -22,14 +22,11 @@ else:
     import openslide
 
 
-
 settings = EasySettings("myconfigfile.conf")
 if st_switches.atlas_type == "Adult":
     from atlas_codes.Regions_n_colors_adult import Region_names, general_Region_names, create_regs_n_colors_per_sec_list
 elif st_switches.atlas_type == "P56":
     from atlas_codes.Regions_n_colors_p56 import Region_names, general_Region_names, create_regs_n_colors_per_sec_list
-
-
 
 
 num_rows = st_switches.num_rows
@@ -41,7 +38,7 @@ global MARGIN
 MARGIN = st_switches.MARGIN
 
 #Global Functions
-def coords_to_colorindex(pointcolor , section):
+def coords_to_colorindex(pointcolor, section):
     if pointcolor in section.Bgr_Color_list:
         colorindex = section.Bgr_Color_list.index(pointcolor)
     else:
@@ -67,7 +64,7 @@ def save_the_pickle(section):
 
 # Slide Class
 class Slide:
-    def __init__(self , section=None , prepath=None ,  slidename=None , slidepath = None , Experiment_num = None , rack_num = None , slide_num = None , slideformat = None , savepath = None , brnum = None , Report_df = None , channel_types = None , slideimgpath = None , tissuemask_fullpath = None ,brainboundcoords = None ,):
+    def __init__(self, section=None, prepath=None,  slidename=None, slidepath = None, Experiment_num = None, rack_num = None, slide_num = None, slideformat = None, savepath = None, brnum = None, Report_df = None, channel_types = None, slideimgpath = None, tissuemask_fullpath = None, brainboundcoords = None):
         self.section = section
         self.prepath = prepath
         self.slidename = slidename
@@ -152,8 +149,7 @@ class Slide:
         dfba = 2 ** (alevel - blevel)
         return self.slideimgpath
 
-    def funcSectionDetection(self):
-         
+    def funcSectionDetection(self):  
         """
         Detects individual sections
         Outputs bounding box corrds for each section in brainboundcoords
@@ -222,7 +218,7 @@ class Slide:
 
 # Section Class
 class Section:
-    def __init__(self , slideformat , slidepath , prepath , slidename ,  num_channels , Experiment_num   , Report_df , savepath  , rack_num , slide_num , saved_data_pickle = {} , brnum = None , blobs_log_g = None , blobs_log_r = None , section_savepath = None , Bgr_Color_list = None , Report_subdf = None ):
+    def __init__(self, slideformat, slidepath, prepath, slidename,  num_channels, Experiment_num, Report_df, savepath, rack_num, slide_num, saved_data_pickle = {}, brnum = None, blobs_log_g = None, blobs_log_r = None, section_savepath = None, Bgr_Color_list = None, Report_subdf = None):
         self.slideformat = slideformat
         self.slidepath = slidepath
         self.prepath = prepath
@@ -310,8 +306,7 @@ class Section:
         return blob_detection_file_name, tissue_lm_detection_filename
 
     def section_flip_operation(self):
-
-         
+ 
         section_alevel = cv.flip(cv.imread(os.path.join(self.section_savepath,"alevel.png")), 1)
         section_blevel = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel.png")), 1)
         section_alevel_eq = cv.flip(cv.imread(os.path.join(self.section_savepath,"alevel_eq.png")), 1)
@@ -338,6 +333,29 @@ class Section:
         blob_detection_file_name = os.path.join(self.section_savepath,"blevel_eq.png")
         tissue_lm_detection_filename = os.path.join(self.section_savepath,"alevel_eq.png")
         return blob_detection_file_name, tissue_lm_detection_filename
+ 
+    def detect_blobs(self, channel, colorname, blob_type, blobs_parameters, brain_mask_eroded, blobs_parameters_dict):
+        if blob_type == "Rabies":
+            minsize = blobs_parameters['{}_blob_min_size'.format(colorname)]
+            blobs_thresh = blobs_parameters["{}_blob_thresh".format(colorname)]
+            blobs_log = m1.rabies_detection(channel, blobs_thresh, minsize, brain_mask_eroded)
+            blobs_parameters_dict[colorname] = [minsize, blobs_thresh]
+
+        elif blob_type == "MoG":
+            min_corr = blobs_parameters['{}_blob_correlation'.format(colorname)]
+            stride = blobs_parameters['{}_blob_stride'.format(colorname)]
+            blobs_log = m1.MoG_detection(channel, min_corr, stride, brain_mask_eroded)
+
+        elif blob_type == "cFos":
+            minsigma = blobs_parameters['{}_blob_min_sigma'.format(colorname)]
+            maxsigma = blobs_parameters['{}_blob_max_sigma'.format(colorname)]
+            numsigma = blobs_parameters['{}_blob_num_sigma'.format(colorname)]
+            blobs_thresh = blobs_parameters['{}_blob_thresh2'.format(colorname)] / 100
+            blobs_log = m1.pool_cell_detetcion(channel, brain_mask_eroded, minsigma, maxsigma, numsigma, blobs_thresh)
+            blobs_parameters_dict[colorname] = [minsigma, maxsigma, numsigma, blobs_thresh]
+
+        return blobs_log, blobs_parameters_dict
+
 
     def funcBlobDetection(self , brnum, blobs_parameters):
          
@@ -347,8 +365,6 @@ class Section:
         this also include blob coords (r,c) before adding the blobs added/removed manually by user
         Saves  r_params_for_save, g_params_for_save as npy
         """
-
-
 
         tempMARGIN = 50  # temporary margin just to avoid the borders when applying thresh, adding the margin is reversed in the parameter brain_mask_eroded
 
@@ -371,85 +387,30 @@ class Section:
             img_channel_g = cv.imread(os.path.join(self.section_savepath, 'blevel_1.png'), 0)
 
         closing = cv.morphologyEx(brain_mask, cv.MORPH_CLOSE, kernel2)
-        #cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_closed.jpg'), closing)
         brain_mask_eroded_uncut = cv.erode(closing, kernel2, iterations=3)
-        #cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_eroded.jpg'), brain_mask_eroded_uncut)
-
         brain_mask_eroded = brain_mask_eroded_uncut[tempMARGIN:-tempMARGIN, tempMARGIN:-tempMARGIN]
-        cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_eroded_cut.jpg'), brain_mask_eroded)
 
         img_channel_g = cv.medianBlur(img_channel_g, 3)
-        img_not_r = cv.medianBlur(img_channel_r, 3)
 
         ### Parameters
-        red_blob_type = blobs_parameters["red_blob_type"]
-        green_blob_type = blobs_parameters["green_blob_type"]
-        green_blobs_thresh = blobs_parameters["green_blob_thresh"]
-        number_of_blobs_g = 0
-        number_of_blobs_r = 0
         blobs_parameters_dict_to_save = {}
+        
         ######### Red blobs detection
-
-        if red_blob_type == "Rabies":
-            minsize = blobs_parameters['red_blob_min_size']
-            red_blobs_thresh = blobs_parameters["red_blob_thresh"]
-            self.blobs_log_r = m1.rabies_detection(img_channel_r, red_blobs_thresh, minsize, brain_mask_eroded)
-            #r_params_for_save = np.array([minsize,red_blobs_thresh])
-            blobs_parameters_dict_to_save['red'] = [minsize, red_blobs_thresh]
-            #np.save(os.path.join(self.section_savepath, 'blobparams_r.npy'), r_params_for_save)
-
-        if red_blob_type == "MoG":
-            min_corr = blobs_parameters['red_blob_correlation']
-            stride = blobs_parameters['red_blob_stride']
-            self.blobs_log_r = m1.MoG_detection(img_channel_r, min_corr, stride, brain_mask_eroded)
-
-        elif red_blob_type == "cFos":
-            minsigma = blobs_parameters['red_blob_min_sigma']
-            maxsigma = blobs_parameters['red_blob_max_sigma']
-            numsigma = blobs_parameters['red_blob_num_sigma']
-            red_blobs_thresh = blobs_parameters['red_blob_thresh2'] /100
-            #self.blobs_log_r = cfos_detection(img_channel_r, minsigma, maxsigma, numsigma, red_blobs_thresh, brain_mask_eroded)
-            self.blobs_log_r = m1.pool_cell_detetcion(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh)
-            blobs_parameters_dict_to_save['red'] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
-        blob_locs_r = np.array(self.blobs_log_r)
+        red_blob_type = blobs_parameters['red_blob_type']
+        self.blobs_log_r, blobs_parameters_dict_to_save = self.detect_blobs(img_channel_r, 'red', red_blob_type, blobs_parameters, brain_mask_eroded, blobs_parameters_dict_to_save)
         number_of_blobs_r = len(self.blobs_log_r)
+        
         ####### Green blobs detection
-        if green_blob_type == "Rabies":
-            minsize = blobs_parameters['green_blob_min_size']
-            green_blobs_thresh = blobs_parameters['green_blob_thresh']
-            self.blobs_log_g = m1.rabies_detection(img_channel_g, green_blobs_thresh, minsize, brain_mask_eroded)
-            #g_params_for_save = np.array()
-            blobs_parameters_dict_to_save['green'] = [minsize,green_blobs_thresh]
-
-        elif green_blob_type == "MoG":
-            min_corr = blobs_parameters['green_blob_correlation']
-            stride = blobs_parameters['green_blob_stride']
-            self.blobs_log_g = m1.MoG_detection(img_channel_g, min_corr, stride, brain_mask_eroded)
-
-        elif green_blob_type == "cFos":
-            minsigma = blobs_parameters['green_blob_min_sigma']
-            maxsigma = blobs_parameters['green_blob_max_sigma']
-            numsigma = blobs_parameters['green_blob_num_sigma']
-            green_blobs_thresh = blobs_parameters['green_blob_thresh2']/100
-            
-            self.blobs_log_g = m1.pool_cell_detetcion(img_channel_g, brain_mask_eroded, minsigma, maxsigma, numsigma, green_blobs_thresh)
-
-
-            blobs_parameters_dict_to_save['green'] = [minsigma, maxsigma, numsigma, green_blobs_thresh]
-            #np.save(os.path.join(self.section_savepath, 'blobparams_g.npy'), g_params_for_save)
-        matchcount, blob_locs_co = m1.calculate_colocalized_blobs(self.blobs_log_r, self.blobs_log_g)
-        blob_locs_g = np.array(self.blobs_log_g)
+        green_blob_type = blobs_parameters['green_blob_type']
+        self.blobs_log_g, blobs_parameters_dict_to_save = self.detect_blobs(img_channel_g, 'green', green_blob_type, blobs_parameters, brain_mask_eroded, blobs_parameters_dict_to_save)
         number_of_blobs_g = len(self.blobs_log_g)
-        #save_to_pkl("blobs_parameters", blobs_parameters)
+
+        matchcount, blob_locs_co = m1.calculate_colocalized_blobs(self.blobs_log_r, self.blobs_log_g)
         self.saved_data_pickle['blobs_parameters'] = blobs_parameters_dict_to_save
-        ####### colocalized
         screenimg_path = os.path.join(self.section_savepath, 'blevel_eq.png')
-        #np.save(os.path.join(self.section_savepath, "bloblocs_g_auto.npy"), blob_locs_g)
-        #np.save(os.path.join(self.section_savepath, "bloblocs_r_auto.npy"), blob_locs_r)
-        #np.save(os.path.join(self.section_savepath, "bloblocs_co_auto.npy"), blob_locs_co)
         return number_of_blobs_r, number_of_blobs_g, matchcount, screenimg_path, self.blobs_log_r, self.blobs_log_g, blob_locs_co
 
-    def save_to_pkl(self , filename, data):
+    def save_to_pkl(self, filename, data):
         b_file = open(os.path.join(self.section_savepath, filename), "wb")
         pickle.dump(data, b_file)
         b_file.close()
@@ -457,8 +418,16 @@ class Section:
     def funcLandmarkDetection(self , imgpath, midheight):
         LandmarksT = []
         return LandmarksT
+    
+    def write_txt_report_file_fp_fn(self, blobs_fp_fn):
+        reportfile = open(os.path.join(self.section_savepath, "reportfile_fpfn.txt"), 'w')
+        reportfile.write(f'\n Red FP: {len(blobs_fp_fn["red_fp"])} and FN: {len(blobs_fp_fn["red_fn"])}')
+        reportfile.write(f'\n Green FP: {len(blobs_fp_fn["green_fp"])} and FN: {len(blobs_fp_fn["green_fn"])}')
+        reportfile.close()
+        return
 
-    def calculate_fp_fn_blobs(self , red_blobs_modified, green_blobs_modified):
+
+    def calculate_fp_fn_blobs(self, red_blobs_modified, green_blobs_modified):
         blobs_fp_fn = {}
         red_blobs_modified2 = [(sub[1], sub[0]) for sub in red_blobs_modified] 
         green_blobs_modified2 = [(sub[1], sub[0]) for sub in green_blobs_modified] 
@@ -466,15 +435,10 @@ class Section:
         blobs_fp_fn['red_fp'] = [item for item in self.blobs_log_r if item not in red_blobs_modified2]  #Removed red points
         blobs_fp_fn['green_fn'] = [item for item in green_blobs_modified2 if item not in self.blobs_log_g]   #Added_green_points
         blobs_fp_fn['green_fp'] = [item for item in self.blobs_log_g if item not in green_blobs_modified2]  #Removed green points
-        reportfile = open(os.path.join(self.section_savepath, "reportfile_fpfn.txt"), 'w')
-        reportfile.write(f'\n Red FP: {len(blobs_fp_fn["red_fp"])} and FN: {len(blobs_fp_fn["red_fn"])}')
-        reportfile.write(f'\n Green FP: {len(blobs_fp_fn["green_fp"])} and FN: {len(blobs_fp_fn["green_fn"])}')
-        reportfile.close()
-        #blob_locs_r = np.array(red_blobs_modified2)
-        #blob_locs_g = np.array(green_blobs_modified2)
+        self.write_txt_report_file_fp_fn(blobs_fp_fn)
         self.saved_data_pickle['blobs_fp_fn'] = blobs_fp_fn
-        #save_to_pkl("blobs_coords_fp_fn.pkl", blobs_fp_fn)
         return
+
 
     def visualize_blobs_on_image(self, blobs_coords, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg, color):
         for point in blobs_coords:
@@ -485,6 +449,7 @@ class Section:
             cv.circle(mappedatlas_labled_showimg, coords, 4, color, -1)
             cv.circle(mappedatlas_labled_showimg, coords, 4, (0, 0, 0), 1)
         return mappedatlas_unlabled_showimg, mappedatlas_labled_showimg
+
 
     def blob_coords_to_colortags(self, blobs_coords, mappedatlas_detection, regmargin, atlas_width):
         pointtags = []
@@ -542,25 +507,28 @@ class Section:
                 dict_density[regname] = region_density
         return dict_area, dict_density
     
+
     def write_txt_report_file(self, all_blobs_dict, atlasnum):
         reportfile = open(os.path.join(self.section_savepath, "reportfile.txt"), 'w')  
         for celltype, blobs_list in all_blobs_dict.items():
             reportfile.write(f'\n{str(len(blobs_list))} {celltype} in:\n')
-            for label, count in blobs_list:
+            for label, count in blobs_list.items():
                 reportfile.write(f'{label} \t {str(count)} \n')
         reportfile.write(f'\n \n Atlas number: {atlasnum} ')
         reportfile.close()
 
-    def perform_analysis(self, colorname, color_blobs_coords, idnum, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base):
+
+    def perform_analysis(self, colorname, color_blobs_coords, idnum, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg):
         num_red_blobs = len(color_blobs_coords)
-        redpointtags = Section.blob_coords_to_colortags(color_blobs_coords, mappedatlas_detection, regmargin, atlas_width)
-        mappedatlas_unlabled_showimg, mappedatlas_labled_showimg = Section.visualize_blobs_on_image(color_blobs_coords, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg, (0, 0, 255))
+        redpointtags = self.blob_coords_to_colortags(color_blobs_coords, mappedatlas_detection, regmargin, atlas_width)
+        mappedatlas_unlabled_showimg, mappedatlas_labled_showimg = self.visualize_blobs_on_image(color_blobs_coords, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg, (0, 0, 255))
         segcountedr = Counter(redpointtags)
         dict_color_base  = {'type': colorname, 'Total': num_red_blobs}
-        dict_regs_n_colors, dict_color = Section.colortag_to_region_name(segcountedr, Regions_n_colors_list, dict_color_base)
+        dict_regs_n_colors, dict_color = self.colortag_to_region_name(segcountedr, Regions_n_colors_list, dict_color_base)
         row_of_color = dict(list(dict_base.items()) + list(dict_color.items())+list({'id': idnum}.items()))
-        row_of_color = Section.fill_empty_cells_with_zero(atlasnum, row_of_color)
-        return row_of_color, dict_regs_n_colors
+        row_of_color = self.fill_empty_cells_with_zero(atlasnum, row_of_color)
+        return row_of_color, dict_color, dict_regs_n_colors, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg
+
 
     def funcAnalysis(self, atlasnum, brnum, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords) :         
         """ Inputs red/green_blobs_modified as a list of blob coords (c, r)
@@ -595,12 +563,12 @@ class Section:
 
         ### Red blobs analysis
         red_blobs_coords = red_blobs_modified #(c,r)
-        row_red, _ = Section.perform_analysis(self, 'Red', red_blobs_coords, 1, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base)
+        row_red, row_red0, _, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg = self.perform_analysis('Red', red_blobs_coords, 1, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg)
 
         ### Green blobs analysis
         green_blobs_coords = green_blobs_modified #(c,r)
-        row_green, dict_regs_n_colors_g = Section.perform_analysis(self, 'Green', green_blobs_coords, 2, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base)
-        dict_area, dict_density = Section.calculate_area_n_density(unlabeled_atlas_filepath, dict_regs_n_colors_g)
+        row_green, row_green0, dict_regs_n_colors_g, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg = self.perform_analysis('Green', green_blobs_coords, 2, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg)
+        dict_area, dict_density = self.calculate_area_n_density(unlabeled_atlas_filepath, dict_regs_n_colors_g)
         row_area = dict(list(dict_base.items()) + list(dict_area.items())+list({'id':4}.items()))
         row_density = dict(list(dict_base.items()) + list(dict_density.items())+list({'id':5}.items()))
 
@@ -608,13 +576,16 @@ class Section:
         colocalized_blobs = colocalized_blobs_coords
         matchcount = len(colocalized_blobs)
         row_coloc = {}
+        dict_co = {'type': 'CoLoc', 'Total': matchcount}
+        row_coloc = dict(list(dict_base.items()) + list(dict_co.items())+list({'id':3}.items()))
+        row_coloc0 = {}
         if matchcount > 0:
-            row_coloc, _ = Section.perform_analysis(self, 'CoLoc', colocalized_blobs, 3, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base)
+            row_coloc, row_coloc0, _, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg = self.perform_analysis('CoLoc', colocalized_blobs, 3, mappedatlas_detection, regmargin, atlas_width, atlasnum, Regions_n_colors_list, dict_base, mappedatlas_unlabled_showimg, mappedatlas_labled_showimg)
 
 
         #Writing and Saving Anylysis reports
-        all_blobs_dict = {'Red Cells': red_blobs_modified, 'Green Cells': green_blobs_modified, 'Co-localization': colocalized_blobs}
-        Section.write_txt_report_file(all_blobs_dict, atlasnum)
+        all_blobs_dict = {'Red Cells': row_red0, 'Green Cells': row_green0, 'Co-localization': row_coloc0}
+        self.write_txt_report_file(all_blobs_dict, atlasnum)
 
         all_rows = [row_red, row_green, row_coloc, row_area, row_density]
         for rower in all_rows:
@@ -644,5 +615,6 @@ class Section:
         analyzedimgpath = os.path.join(self.section_savepath, "Analysis_labeled.jpg")
         return self.section_savepath, analyzedimgpath
     
+
     def get_levels_n_factors(self): 
         return MARGIN, dfba, self.section_savepath

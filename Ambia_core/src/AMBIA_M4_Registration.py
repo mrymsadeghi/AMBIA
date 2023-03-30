@@ -20,8 +20,8 @@ def transform_target_img(target_img_path):
     image = cv.imread(target_img_path)
     image2 = image.copy()
     image2[np.all(image != [0,0,0], axis=-1)] = (49, 165, 4)
-    image2[np.all(image == [139,249,128], axis=-1)] = (0,0,0)
-    image2[np.all(image == [46,103,136], axis=-1)] = (164,215,143)
+    image2[np.all(image == [209,117,79], axis=-1)] = (0,0,0)
+    image2[np.all(image == [188,222,67], axis=-1)] = (164,215,143)
     image2[np.all(image == [255,0,0], axis=-1)] = (49, 165, 4)
     return image2
 
@@ -40,7 +40,7 @@ def func_ardent_registration(section_savepath, source_img_path, target_img_path)
 
     #target_rgb = cv.imread(target_img_path)
     source_rgb = cv.imread(source_img_path)
-
+    print("target_img_path ", target_img_path)
     target_rgb = transform_target_img(target_img_path)
     target = cv.cvtColor(target_rgb, cv.COLOR_BGR2GRAY)
     source = cv.cvtColor(source_rgb, cv.COLOR_BGR2GRAY)
