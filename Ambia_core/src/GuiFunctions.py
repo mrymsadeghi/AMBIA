@@ -479,8 +479,9 @@ class Section:
         self.saved_data_pickle['blobs_fp_fn'] = blobs_fp_fn
         #save_to_pkl("blobs_coords_fp_fn.pkl", blobs_fp_fn)
         return
-    
-    def funcAnalysis(self , atlasnum, brnum, atlas_prepath, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords) :
+
+
+    def funcAnalysis(self, atlasnum, brnum, atlas_prepath, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords) :
 
          
         """ Inputs red/green_blobs_modified as a list of blob coords (c, r)
@@ -500,8 +501,6 @@ class Section:
             dict_base = {'Experiment': self.Experiment_num, 'Animal': self.rack_num, 'Slide': self.slide_num, 'Section': self.brnum}
             self.Report_subdf = pd.DataFrame(columns=['id', 'Experiment', 'Animal', 'Slide', 'Section', 'type', 'Total'] + Region_names)
 
-        if int(atlasnum) > 200:
-            atlasnum = atlasnum[:-1]
         Regions_n_colors_list, self.Bgr_Color_list, Rgb_Color_list =  create_regs_n_colors_per_sec_list(atlasnum)
 
         self.savepath = os.path.join(self.prepath, self.slidename)
@@ -551,10 +550,6 @@ class Section:
         blobs_coords_registered = {'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
         
         self.saved_data_pickle['blobs_coords_registered'] = blobs_coords_registered
-        #save_to_pkl("blobs_coords_registered.pkl", blobs_coords_registered)
-
-        #np.save(os.path.join(self.section_savepath, "red_blobs_registered.npy"), red_blobs_modified)
-        #np.save(os.path.join(self.section_savepath, "green_blobs_registered.npy"), green_blobs_modified)
         reportfile = open(os.path.join(self.section_savepath, "reportfile.txt"), 'w')
         reportfile.write('{} Red Blobs in:\n'.format(len(red_blobs_modified)))
         reportfile.write('\n')
