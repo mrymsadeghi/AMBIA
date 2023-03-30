@@ -3,11 +3,10 @@ import os
 import cv2 as cv
 import ardent
 import numpy as np
-from GuiFunctions import get_levels_n_factors, save_to_pkl, save_to_saved_data_pickle
 import Switches_Static as st_switches
 from Switches_Dynamic import set_reg_code
 import time
-
+from GuiFunctions import save_to_saved_data_pickle
 ACC_DF = st_switches.ACC_DF                  #Accelarating factor for ardent registration. Downscales both images by this factor to speed up the registration process
 TEMP_DF = st_switches.TEMP_DF
 TARG_DF = st_switches.TARG_DF
@@ -179,7 +178,7 @@ def convert_lm_points_scale(source_lms, target_lms):
     return converted_source_lm_points, converted_target_lm_points
 
 
-def func_delauney_registration(section_savepath, source_lms, target_lms, source_img_path, target_img_path, reg_code):
+def func_delauney_registration(section_savepath, source_lms, target_lms, source_img_path, target_img_path, reg_code, section):
     """ 
       Inputs img1coords and img2coords  are list of Landmark coords (c,r)
       these are only landmarks chosen by the user manually through GUI
@@ -330,7 +329,7 @@ def func_delauney_registration(section_savepath, source_lms, target_lms, source_
     #cv.imwrite(os.path.join(section_savepath, 'target_nohull.png'), target_nohull)
     landmarks_coords = {'source': save_source_lm_points, 'target': save_target_lm_points}
     #save_to_pkl("landmarks_coords.pkl", landmarks_coords)
-    save_to_saved_data_pickle(landmarks_coords, 'landmarks_coords')
+    save_to_saved_data_pickle(landmarks_coords, 'landmarks_coords', section)
     delauney_reg_img_path = os.path.join(section_savepath, 'reg_delauney_img.png')
     cv.imwrite(delauney_reg_img_path, registered_img)
 
@@ -367,7 +366,7 @@ def resize_images_for_registration(source_img_path,labeled_atlas_LM_filepath,unl
     return source_img_path, target_img_path
 
 
-def func_ambia_registration(sectionpath, source_img_path, target_img_path, source_lms0, target_lms0, Ardent_reg_done, target_show_img_path0,auto_reg_switch=False):
+def func_ambia_registration(sectionpath, source_img_path, target_img_path, source_lms0, target_lms0, Ardent_reg_done, target_show_img_path0, section, auto_reg_switch=False):
     
     global source_lms
     global target_lms
@@ -393,12 +392,12 @@ def func_ambia_registration(sectionpath, source_img_path, target_img_path, sourc
     # Check to see if there are any LMs selected by the user (len of lms we know are equal befor this func was called in Main)
     if len(source_lms) + len(target_lms) !=0:   
         if reg_code == "No_reg":            
-            _, registered_img_path = func_delauney_registration(sectionpath, source_lms, target_lms, source_img_path, target_img_path, reg_code)
+            _, registered_img_path = func_delauney_registration(sectionpath, source_lms, target_lms, source_img_path, target_img_path, reg_code, section)
             reg_code = "delauney_reg"
         elif reg_code == "ardent_reg":
             source_img_path = ardent_reg_img_path
             #source_lms, target_lms = convert_lm_points_scale(source_lms, target_lms)
-            _, registered_img_path = func_delauney_registration(sectionpath, source_lms, target_lms, source_img_path, target_img_path, reg_code)
+            _, registered_img_path = func_delauney_registration(sectionpath, source_lms, target_lms, source_img_path, target_img_path, reg_code, section)
             reg_code = "ardent_delauney_reg"   
     elif len(source_lms) + len(target_lms) ==0 and not auto_reg_switch:
         registered_img_path = target_img_path
@@ -461,8 +460,8 @@ def delauney_transform_points(blobs_coords):
     return delauney_converted_blobs_coords
 
 
-def ardent_transform_points(blobs_coords):
-    MARGIN, DFba, section_savepath = get_levels_n_factors()
+def ardent_transform_points(blobs_coords, section):
+    MARGIN, DFba, section_savepath = section.get_levels_n_factors()
     temp_ho, temp_wo = int(ardnt_src_shape[0]/2), int(ardnt_src_shape[1]/2)
     targ_ho, targ_wo = int(ardnt_targ_shape[0]/2), int(ardnt_targ_shape[1]/2)
     # Transform blob coords from blevel to alevel
@@ -488,17 +487,17 @@ def ardent_transform_points(blobs_coords):
     return blobs_coords5, ardent_converted_blobs_coords
 
 
-def func_convert_coords(reg_code, blobs_coords, color):
+def func_convert_coords(reg_code, blobs_coords, color, section):
     if reg_code == "ardent_reg":
-        blobs_coords5, converted_blob_coords = ardent_transform_points(blobs_coords)
+        blobs_coords5, converted_blob_coords = ardent_transform_points(blobs_coords, section)
     elif reg_code == "delauney_reg":
         # Apply Delauney Transformation
-        MARGIN, DFba, _ = get_levels_n_factors()
+        MARGIN, DFba, _ = section.get_levels_n_factors()
         blobs_coords0 = [(int(coords[0] / DFba) + MARGIN, int(coords[1] / DFba) + MARGIN) for coords in blobs_coords]
         blobs_coords1 = [(int(coords[0]/(TEMP_DF*ACC_DF)), int(coords[1] /(TEMP_DF*ACC_DF))) for coords in blobs_coords0] #(c,r)
         converted_blob_coords = delauney_transform_points(blobs_coords1)
     elif reg_code == "ardent_delauney_reg":
-        blobs_coords5, ardent_converted_blob_coords = ardent_transform_points(blobs_coords)
+        blobs_coords5, ardent_converted_blob_coords = ardent_transform_points(blobs_coords, section)
         converted_blob_coords = delauney_transform_points(blobs_coords5)
     else:
         converted_blob_coords = blobs_coords
