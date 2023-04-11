@@ -28,3 +28,6 @@ Keep track of any updates and improvements to the AMBIA tool to ensure that you 
 
 ### Collaborate and share findings: 
 Collaborate with other researchers who are using the AMBIA tool to exchange insights, best practices, and findings. Sharing experiences and knowledge will help improve the overall understanding of the tool and contribute to its ongoing development and refinement.
+
+## Parameter adjustment
+Before using AMBIA, check the file /Ambia_core/src/Switches_Static.py which provides parameters that can be adjusted and each parameter is explained with a comment line.
