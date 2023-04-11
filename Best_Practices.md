@@ -5,6 +5,9 @@ When considering the application of the AMBIA tool for localizing and registerin
 ### Data preparation and quality control: 
 Ensure that the input histological images are of high quality, as artifacts and distortions can affect the performance of the localization and registration modules. Proper tissue preparation, staining, and scanning procedures should be followed to minimize the introduction of artifacts.
 
+### Input data format: 
+AMBIA currently supports WSI the formats .mrxs and .czi, which are output formats of 3DHistech and Zeiss Scanners.
+
 ### Understand limitations: 
 Be aware of the limitations of the AMBIA tool, such as the higher error in detecting the β angle compared to the α angle, and consider the potential impact on your research findings. Understanding these limitations will help you interpret the results more accurately.
 
