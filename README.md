@@ -42,6 +42,13 @@ This folder contains three different type of data
 #### Processed folder
 This is where the files and reports of the analysis of your mouse brain slices will be saved. Also as an example, we provide analysis of two mouse brain slices from two different slides are in this folder.
 
+## Citation
+If you use our software for your research, we kindly request that you cite our corresponding paper in any resulting publications. The reference for the paper is:
+
+Sadeghi, Maryam, et al. "Localization and Registration of 2D Histological Mouse Brain Images in 3D Atlas Space." Neuroinformatics (2023): 1-16.
+
+Citing this paper helps us to continue developing and maintaining this project. It also ensures that the scientific community recognizes the effort we have put into creating this software. It's important to give credit where it's due, and we appreciate your support in acknowledging our work.
+
 
 ## GUI screenshots
 Here are some screenshots of AMBIA GUI showing different stages of analysis with a mrxs format slide image. \
