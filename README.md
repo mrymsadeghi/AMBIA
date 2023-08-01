@@ -72,10 +72,10 @@ You can find video tutorials on how to install and use Ambia in the following li
 [How to modify the code of AMBIA](https://www.example.com) 
 
 ## Publication
-Sadeghi, Maryam, et al. "Localization and Registration of 2D Histological Mouse Brain Images in 3D Atlas Space." Neuroinformatics (2023): 1-16.
+- Sadeghi, Maryam, et al. "Localization and Registration of 2D Histological Mouse Brain Images in 3D Atlas Space." Neuroinformatics (2023): 1-16.
 https://link.springer.com/article/10.1007/s12021-023-09632-8
 
-Sadeghi, M., Neto, P., Ramos-Prats, A., Castaldi, F., Paradiso, E., Mahmoodian, N., ... & Goebel, G. (2022, April). Automatic 2D to 3D localization of histological mouse brain sections in the reference atlas using deep learning. In Medical Imaging 2022: Image Processing (Vol. 12032, pp. 718-724). SPIE
+- Sadeghi, Maryam et al. "Automatic 2D to 3D localization of histological mouse brain sections in the reference atlas using deep learning". In Medical Imaging 2022: Image Processing (Vol. 12032, pp. 718-724). SPIE
 https://doi.org/10.1117/12.2604231
 
 ## Other resources
