@@ -17,10 +17,12 @@ AMBIA is intentionally designed with few requirements. You can easily run Ambia 
 1. Install python, ideally version 3.7.9, on your system. 
 2. Download Ambia package files from this Git repository \
 or you can use \
-`Git clone https://github.com/mrymsadeghi/AMBIA.git` 
+`git clone https://github.com/mrymsadeghi/AMBIA.git` 
 3. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions \
 `pip install -r requirements.txt`
 4. Run the Main.py file to run Ambia
+
+> For Linux and macOS users: install `[openslide](https://openslide.org/download/)` separately. Note that installation on Apple-SoC processors (M1) is not straightforward.
 
 ## Structure of files and folders
 The files and folders in the Ambia Git repository consists of the following folers:
