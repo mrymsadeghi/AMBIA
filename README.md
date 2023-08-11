@@ -22,7 +22,7 @@ or you can use \
 `pip install -r requirements.txt`
 4. Run the Main.py file to run Ambia
 
-> For Linux and macOS users: install `[openslide](https://openslide.org/download/)` separately. Note that installation on Apple-SoC processors (M1) is not straightforward.
+> For Linux and macOS users: install [`openslide`](https://openslide.org/download/) separately. Note that installation on Apple-SoC processors (M1) is not straightforward.
 
 ## Structure of files and folders
 The files and folders in the Ambia Git repository consists of the following folers:
