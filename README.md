@@ -72,7 +72,10 @@ You can find video tutorials on how to install and use Ambia in the following li
 [How to modify the code of AMBIA](https://www.example.com) 
 
 ## Publication
-link of AMBIA publication 
+Link of publications for AMBIA:
+https://link.springer.com/article/10.1007/s12021-023-09632-8
+https://www.spiedigitallibrary.org/conference-proceedings-of-spie/12032/2604231/Automatic-2D-to-3D-localization-of-histological-mouse-brain-sections/10.1117/12.2604231.short?SSO=1
+https://www.researchgate.net/publication/359719171_Automatic_2D_to_3D_localization_of_histological_mouse_brain_sections_in_the_reference_atlas_using_deep_learning
 
 ## Other resources
 Development of AMBIA on Gitlab since 2020 [here](https://gitlab.com/maryams88/mb_gui)
