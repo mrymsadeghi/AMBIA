@@ -8,30 +8,30 @@ AMBIA (**A**ccurate **M**ouse **B**rain **I**mage **A**nalysis) is a tool to fas
 
 ## Requirements
 
-AMBIA is intentionally designed with few requirements. You can easily run Ambia on your local computer. Ofcourse computers with higher ram and stronger CPUs make Ambia run faster. Following a the requirements before you install Ambia:
+AMBIA is intentionally designed with few requirements. You can easily run AMBIA on your local computer. Ofcourse computers with higher ram and stronger CPUs make AMBIA run faster. Following a the requirements before you install AMBIA:
 - Python > 3.7
 
 
 ## Installation
 
 1. Install python, ideally version 3.7.9, on your system. 
-2. Download Ambia package files from this Git repository \
+2. Download AMBIA package files from this Git repository \
 or you can use \
 `Git clone https://github.com/mrymsadeghi/AMBIA.git` 
 3. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions \
 `pip install -r requirements.txt`
-4. Run the Main.py file to run Ambia
+4. Run the Main.py file to run AMBIA
 
 ## Structure of files and folders
-The files and folders in the Ambia Git repository consists of the following folers:
+The files and folders in the AMBIA Git repository consists of the following folers:
 - Gui Atlases
 - Ambia_core
 - models
 - Processed
-Keep this folder structure in your system for Ambia to work correctly. \
+Keep this folder structure in your system for AMBIA to work correctly. \
 Here is an explanation of the content and functionality of each folder:
 #### Gui Atlases folder
-This folder contains the color coded coronal atlases of adult mouse brain or P56 mouse brain. In the file `Static_Switches.py` if you choose `atlas_type = Adult`, Ambia will use Adult atlases in this folder. Also it is noteworthy that the color codes of each atlas is contained in the folder `Ambia_core/src/atlas_codes`.
+This folder contains the color coded coronal atlases of adult mouse brain or P56 mouse brain. In the file `Static_Switches.py` if you choose `atlas_type = Adult`, AMBIA will use Adult atlases in this folder. Also it is noteworthy that the color codes of each atlas is contained in the folder `Ambia_core/src/atlas_codes`.
 #### Ambia_core folder
 This folder contains all the python code for the Cell detection, Localization, Atlas generator and Registration Module, as well as the GUI. The file `Ambia_core/src/Switches_Static.py` contatins parameters that are editable by the users. Parameters such as for choosing the atlas type (`atlas_type`), turning auto registration on or off (`auto_registration`) and etc. 
 #### models folder
@@ -46,7 +46,7 @@ This is where the files and reports of the analysis of your mouse brain slices w
 ## GUI screenshots
 Here are some screenshots of AMBIA GUI showing different stages of analysis with a mrxs format slide image. \
 **Loading the Slide image** \
-Slide image is loaded. Ambia detects different mouse brain slices, and now the user can choose which slice to analyse. \
+Slide image is loaded. AMBIA detects different mouse brain slices, and now the user can choose which slice to analyse. \
 ![AMBIA loading slide](models/AMBIA_GUI_01.png) \
 **Cell Detection** \
 Different methods can be implemented in the cell detection module. Here as default two methods for each channel is provided. The user can choose between methods for each of the green and red channels and parameters can be adjusted in the GUI \
@@ -60,12 +60,12 @@ The selected slice can now be registered to a mouse brain atlas. The user can ei
 After choosing or generating an atlas, you can toggle auto registration switch on to perform automatic ardent registration. And later choose landmarks to refine the registration. \
 ![AMBIA loading slide](models/AMBIA_GUI_04.png) \
 **Analysis Report** \
-Ambia demostrates visually where the detected cells are located in the registered mouse brain slice on the annotated atlas. Also a report is generated in the form of an Excel sheet and a text file which reports the number of detected cells in each brain region.
+AMBIA demostrates visually where the detected cells are located in the registered mouse brain slice on the annotated atlas. Also a report is generated in the form of an Excel sheet and a text file which reports the number of detected cells in each brain region.
 ![AMBIA loading slide](models/AMBIA_GUI_05.png)
 
 
 ## Video Tutorial
-You can find video tutorials on how to install and use Ambia in the following links: 
+You can find video tutorials on how to install and use AMBIA in the following links: 
 
 [Installation and how to start](https://www.example.com) \
 [How to Use AMBIA](https://www.example.com) \
@@ -73,9 +73,9 @@ You can find video tutorials on how to install and use Ambia in the following li
 
 ## Publication
 Link of publications for AMBIA:
-https://link.springer.com/article/10.1007/s12021-023-09632-8
-https://www.spiedigitallibrary.org/conference-proceedings-of-spie/12032/2604231/Automatic-2D-to-3D-localization-of-histological-mouse-brain-sections/10.1117/12.2604231.short?SSO=1
-https://www.researchgate.net/publication/359719171_Automatic_2D_to_3D_localization_of_histological_mouse_brain_sections_in_the_reference_atlas_using_deep_learning
+https://link.springer.com/article/10.1007/s12021-023-09632-8 \
+https://www.spiedigitallibrary.org/conference-proceedings-of-spie/12032/2604231/Automatic-2D-to-3D-localization-of-histological-mouse-brain-sections/10.1117/12.2604231.short?SSO=1 \
+https://www.researchgate.net/publication/359719171_Automatic_2D_to_3D_localization_of_histological_mouse_brain_sections_in_the_reference_atlas_using_deep_learning \
 
 ## Other resources
 Development of AMBIA on Gitlab since 2020 [here](https://gitlab.com/maryams88/mb_gui)
