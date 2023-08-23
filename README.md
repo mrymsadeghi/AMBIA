@@ -27,7 +27,7 @@ The files and folders in the AMBIA Git repository consists of the following fole
 - Gui Atlases
 - Ambia_core
 - models
-- Processed
+- Processed \
 Keep this folder structure in your system for AMBIA to work correctly. \
 Here is an explanation of the content and functionality of each folder:
 #### Gui Atlases folder
