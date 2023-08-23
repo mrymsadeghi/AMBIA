@@ -72,10 +72,11 @@ You can find video tutorials on how to install and use AMBIA in the following li
 [How to modify the code of AMBIA]()  (Available soon)
 
 ## Publication
+ \
 Link of publications for AMBIA: \
 https://link.springer.com/article/10.1007/s12021-023-09632-8 \
  \
-https://www.spiedigitallibrary.org/conference-proceedings-of-spie/12032/2604231/Automatic-2D-to-3D-localization-of-histological-mouse-brain-sections/10.1117/12.2604231.short?SSO=1 \
+https://www.spiedigitallibrary.org/conference-proceedings-of-spie/12032/2604231/Automatic-2D-to-3D-localization-of-histological-mouse-brain-sections/10.1117/12.2604231.short?SSO=1
 
 
 ## Other resources
