@@ -72,10 +72,10 @@ def get_channel_info(slidepath):
     slide = slideio.open_slide(slidepath, "CZI")
     metadata = slide.raw_metadata
     root = ET.fromstring(metadata)
-    channels = root[0][4][3][11][0]
-    allchannels = channels.findall('Channel')
-    num_channels = len(allchannels)
-    channel_types = []
-    for channel in allchannels:
-        channel_types.append(channel.attrib['Name'])
+    channels = root.findall(
+        './Metadata/Information/Image/Dimensions/Channels/Channel'
+    )
+    num_channels = len(channels)
+    channel_types = [channel.attrib['Name'] for channel in channels]
+
     return num_channels, channel_types
