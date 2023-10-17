@@ -11,14 +11,26 @@ def set_rootpath(rootpath0):
 def get_rootpath():
     return rootpath
 
+def set_atlasnum(atlasnum0):
+    global atlasnum
+    atlasnum = atlasnum0
+    return
+
+def get_atlasnum():
+    return atlasnum
+
+region_names_for_alas_generation = []
+
 if st_switches.atlas_type == 'Adult':
-    from atlas_codes.Regions_n_colors_adult import Region_names
-    region_names_for_alas_generation = []
-    [region_names_for_alas_generation.append(item[:-3]) for item in Region_names if item[:-3] not in region_names_for_alas_generation]
+    from regionscode.Regions_n_colors_adult import Region_names
+    
 elif st_switches.atlas_type == 'P56':
-    from atlas_codes.Regions_n_colors_p56 import Region_names
-    region_names_for_alas_generation = []
-    [region_names_for_alas_generation.append(item[:-3]) for item in Region_names if item[:-3] not in region_names_for_alas_generation]
+    from regionscode.Regions_n_colors_p56 import Region_names
+
+elif st_switches.atlas_type == 'Rat':
+    from regionscode.Regions_n_colors_rat import Region_names
+
+[region_names_for_alas_generation.append(item[:-3]) for item in Region_names if item[:-3] not in region_names_for_alas_generation]
 
 def set_ardent_reg_done_to_false():
     global ardent_reg_done

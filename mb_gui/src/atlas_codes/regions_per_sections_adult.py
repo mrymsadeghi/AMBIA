@@ -133,6 +133,7 @@ regs_per_section ={
 132 : ['CB', 'PRM', 'IRN', 'COPY', 'NTS', 'GR', 'fiber tracts', 'SPVC', 'FOTU', 'PYR', 'UVU', 'CU', 'DMX', 'MDRNd', 'MDRNv', 'MY', 'root']}
 
 
+# RGB color
 Regions_n_colors_List = [('root', 'not detected', '000000', (0, 0, 0)),
 ('root', 'grey', 'CH', '#B31E77', (179, 30, 119)),
 ('root', 'grey', 'CH', 'CTX', '#32BB96', (50, 187, 150)),

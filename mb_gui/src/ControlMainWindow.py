@@ -1,11 +1,15 @@
-import os
 from gui.CustomWidgests import BlobColor
 from gui.GUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt
-#import pathlib
-from PyQt5.QtWidgets import (QMainWindow ,QFrame, QFileDialog, QApplication)
-#from gui.CustomWidgests import CustomTreeItem, PhotoViewer, BlobDetectionParameter
+from PyQt5.QtCore import QPoint,Qt
+import pathlib
+import Path_Finder
+from PyQt5.QtWidgets import (QMainWindow, QTextEdit, QGraphicsScene,QFrame,
+                             QAction, QFileDialog, QApplication, QPushButton, QRadioButton, QTableWidgetItem)
+from PyQt5.QtGui import QPixmap
+from gui.CustomWidgests import CustomTreeItem, PhotoViewer, BlobDetectionParameter
+import os
+import time
 from pathlib import Path 
 from easysettings import EasySettings
 from Switches_Static import blob1_size_red, blob1_size_green, blob1_size_yellow
@@ -74,7 +78,10 @@ class ControlMainWindow(QMainWindow):
 
         
     def set_defaults(self):
-        from Main import prepath, atlas_prepath
+        self.double_click_timer=0
+        #from Main import prepath, atlas_prepath
+        prepath=Path_Finder.return_prepath()
+        atlas_prepath=Path_Finder.return_atlas_path()
         #prepath = pathlib.Path(__file__).parents[2].absolute()
         atlas_prepath = os.path.join(atlas_prepath, "labeled_atlases")
         print("atlas prepath", atlas_prepath)
@@ -191,14 +198,14 @@ class ControlMainWindow(QMainWindow):
         
         if green_type=="Rabies":
             self.ui.greenPropertySetting.setCurrentIndex(0)
-        elif green_type=='MoG':
+        elif green_type=="MoG":
             self.ui.greenPropertySetting.setCurrentIndex(1)
         elif green_type=="cFos":
             self.ui.greenPropertySetting.setCurrentIndex(2)
 
         if red_type=="Rabies":
             self.ui.redPropertySetting.setCurrentIndex(0)
-        elif red_type=='MoG':
+        elif red_type=="MoG":
             self.ui.redPropertySetting.setCurrentIndex(1)            
         elif red_type=="cFos":
             self.ui.redPropertySetting.setCurrentIndex(2)            
@@ -323,9 +330,11 @@ class ControlMainWindow(QMainWindow):
         full_address = os.path.join(self.folder_path, file_name)
         self.atlas_preview_full_name = full_address
         self.ui.atlasPreview.setPhoto(QtGui.QPixmap(full_address))
-
+        
     def load_preview_as_atlas(self):
         full_address = self.atlas_preview_full_name
+        
+        
         self.ui.attlasViewSecond.setPhoto(QtGui.QPixmap(full_address))
 
     ### Steps
@@ -459,13 +468,9 @@ class ControlMainWindow(QMainWindow):
         return self.atlas_preview_full_name
         
     def get_atlas_number(self):
-        try:
-            atlasfilename= os.path.split(self.atlas_preview_full_name)[-1]
-            print("atlasfilename ", atlasfilename)
-            atlasnum = atlasfilename.split(".")[0]
-            return int(atlasnum)
-        except:
-            print("Try again")
+        atlasfilename= os.path.split(self.atlas_preview_full_name)[-1]
+        atlasnum = atlasfilename.split(".")[0]
+        return int(atlasnum)
 
     def get_step_state(self, step):
         return self.states_state[step - 1]
@@ -604,8 +609,13 @@ class ControlMainWindow(QMainWindow):
 
       
     def set_atlas_landmark_detection_image(self, file_address):
+        self.img=QtGui.QPixmap(file_address)
         self.ui.attlasViewSecond.setPhoto(QtGui.QPixmap(file_address))
         self.ui.attlasViewSecond.fitInView()
+
+    def remove_pics(self):
+        self.ui.attlasViewSecond.setPhoto(None)
+        self.set_registration_image(None)
 
     def set_registration_image(self, file_address):
         self.ui.viewRegistration.setPhoto(QtGui.QPixmap(file_address))
@@ -626,16 +636,32 @@ class ControlMainWindow(QMainWindow):
         selection_item.setGeometry(QtCore.QRect(x1, y1, w_scale, h_scale))
         selection_item.setText(caption)
         selection_item.toggled.connect(lambda: self.brain_select_action(selection_item))
+        #selection_item.doubleClicked.connect(lambda: self.handle_selection_double_click(selection_item))
         selection_item.show()
-        
+
         # selection_item.geometry().height
         self.selection_items.append(selection_item)
 
+
+
+
     def brain_select_action(self, item):
-        if item.isChecked() == True:
-            self.selected_brain = int(item.text())
-            selection_message = "Section {} is selected".format(self.selected_brain)
-            self.set_status_bar_text(selection_message)
+        if self.double_click_timer==0:
+            
+            if item.isChecked() == True:
+                self.selected_brain = int(item.text())
+                selection_message = "Section {} is selected".format(self.selected_brain)
+                self.set_status_bar_text(selection_message)
+            self.double_click_timer=time.time()*1000
+            print (self.double_click_timer)
+        else :
+            if time.time()*1000 - self.double_click_timer<301:
+                self.double_click_timer=0
+                self.accept_selection_region()
+            else :
+                self.double_click_timer=0
+        #######to be continued
+            
 
     def create_brain_selection_regions(self, brainboundcoords):
         # Hide old selections item

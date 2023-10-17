@@ -1,11 +1,8 @@
-from atlas_codes.regions_per_sections_p56 import regs_per_section, Regions_n_colors_List
-
-
-
+from regionscode.regions_per_sections_p56 import regs_per_section, Regions_n_colors_List
 
 
 def create_regs_n_colors_per_sec_list(atlasnum):
-    regs_per_sec_List = regs_per_section[int(atlasnum)]
+    regs_per_sec_List = regs_per_section[int(atlasnum)] #list
     regs_n_colors_per_sec_List = [('root', 'not detected', '000000', (0, 0, 0))]
     for elem in Regions_n_colors_List:
         if elem[-3] in regs_per_sec_List:
@@ -14,10 +11,10 @@ def create_regs_n_colors_per_sec_list(atlasnum):
     Bgr_Color_List = []
     Rgb_Color_List = []
     for elem in regs_n_colors_per_sec_List:
-        Bgr_Color_List.append(elem[-1])
-        Rgb_Color_List.append((elem[-1][2],elem[-1][1],elem[-1][0]))
+        Rgb_Color_List.append(elem[-1])
+        Bgr_Color_List.append((elem[-1][2],elem[-1][1],elem[-1][0]))
 
-    return regs_n_colors_per_sec_List, Bgr_Color_List, Rgb_Color_List
+    return regs_n_colors_per_sec_List, Rgb_Color_List, Bgr_Color_List
 
 
 Region_names = ['CTX_bg _L', 'CTX_bg _R', 'FRP1 _L', 'FRP1 _R', 'FRP2/3 _L', 'FRP2/3 _R', 'FRP5 _L', 'FRP5 _R', 'FRP6a _L', 'FRP6a _R', 'FRP6b _L', 'FRP6b _R', 'MOp1 _L', 'MOp1 _R', 'MOp2/3 _L', 'MOp2/3 _R', 'MOp5 _L', 'MOp5 _R', 'MOp6a _L', 'MOp6a _R', 'MOp6b _L', 'MOp6b _R', 'MOs1 _L', 'MOs1 _R', 'MOs2/3 _L', 'MOs2/3 _R', 'MOs5 _L', 'MOs5 _R', 'MOs6a _L', 'MOs6a _R', 'MOs6b _L', 'MOs6b _R', 'SSp-n1 _L', 'SSp-n1 _R', 'SSp-n2/3 _L', 'SSp-n2/3 _R', 'SSp-n4 _L', 'SSp-n4 _R', 'SSp-n5 _L', 'SSp-n5 _R', 'SSp-n6a _L', 'SSp-n6a _R', 'SSp-n6b _L', 'SSp-n6b _R', 'SSp-bfd1 _L', 'SSp-bfd1 _R', 'SSp-bfd2/3 _L', 'SSp-bfd2/3 _R', 'SSp-bfd4 _L', 'SSp-bfd4 _R', 'SSp-bfd5 _L', 'SSp-bfd5 _R', 'SSp-bfd6a _L', 'SSp-bfd6a _R', 'SSp-bfd6b _L', 'SSp-bfd6b _R', 'SSp-ll1 _L', 'SSp-ll1 _R', 'SSp-ll2/3 _L', 'SSp-ll2/3 _R', 'SSp-ll4 _L', 'SSp-ll4 _R', 'SSp-ll5 _L', 'SSp-ll5 _R', 'SSp-ll6a _L', 'SSp-ll6a _R', 'SSp-ll6b _L', 'SSp-ll6b _R', 'SSp-m1 _L', 'SSp-m1 _R', 'SSp-m2/3 _L', 'SSp-m2/3 _R', 'SSp-m4 _L', 'SSp-m4 _R', 'SSp-m5 _L', 'SSp-m5 _R', 'SSp-m6a _L', 'SSp-m6a _R', 'SSp-m6b _L', 'SSp-m6b _R', 'SSp-ul1 _L', 'SSp-ul1 _R', 'SSp-ul2/3 _L', 'SSp-ul2/3 _R', 'SSp-ul4 _L', 'SSp-ul4 _R', 'SSp-ul5 _L', 'SSp-ul5 _R', 'SSp-ul6a _L', 'SSp-ul6a _R', 'SSp-ul6b _L', 'SSp-ul6b _R', 'SSp-tr1 _L', 'SSp-tr1 _R', 'SSp-tr2/3 _L', 'SSp-tr2/3 _R', 'SSp-tr4 _L', 'SSp-tr4 _R', 'SSp-tr5 _L', 'SSp-tr5 _R', 'SSp-tr6a _L', 'SSp-tr6a _R', 'SSp-tr6b _L', 'SSp-tr6b _R', 'SSp-un1 _L', 'SSp-un1 _R', 'SSp-un2/3 _L', 'SSp-un2/3 _R', 'SSp-un4 _L', 'SSp-un4 _R', 'SSp-un5 _L', 'SSp-un5 _R', 'SSp-un6a _L', 'SSp-un6a _R', 'SSp-un6b _L', 'SSp-un6b _R', 'SSs1 _L', 'SSs1 _R', 'SSs2/3 _L', 'SSs2/3 _R', 'SSs4 _L', 'SSs4 _R', 'SSs5 _L', 'SSs5 _R', 'SSs6a _L', 'SSs6a _R', 'SSs6b _L', 'SSs6b _R', 'GU1 _L', 'GU1 _R', 'GU2/3 _L', 'GU2/3 _R', 'GU4 _L', 'GU4 _R', 'GU5 _L', 'GU5 _R', 'GU6a _L', 'GU6a _R', 'GU6b _L', 'GU6b _R', 'VISC1 _L', 'VISC1 _R', 'VISC2/3 _L', 'VISC2/3 _R', 'VISC4 _L', 'VISC4 _R', 'VISC5 _L', 'VISC5 _R', 'VISC6a _L', 'VISC6a _R', 'VISC6b _L', 'VISC6b _R', 'AUDd1 _L', 'AUDd1 _R', 'AUDd2/3 _L', 'AUDd2/3 _R', 'AUDd4 _L', 'AUDd4 _R', 'AUDd5 _L', 'AUDd5 _R', 'AUDd6a _L', 'AUDd6a _R', 'AUDd6b _L', 'AUDd6b _R', 'AUDp1 _L', 'AUDp1 _R', 'AUDp2/3 _L', 'AUDp2/3 _R', 'AUDp4 _L', 'AUDp4 _R', 'AUDp5 _L', 'AUDp5 _R', 'AUDp6a _L', 'AUDp6a _R', 'AUDp6b _L', 'AUDp6b _R', 'AUDpo1 _L', 'AUDpo1 _R', 'AUDpo2/3 _L', 'AUDpo2/3 _R', 'AUDpo4 _L', 'AUDpo4 _R', 'AUDpo5 _L', 'AUDpo5 _R', 'AUDpo6a _L', 'AUDpo6a _R', 'AUDpo6b _L', 'AUDpo6b _R', 'AUDv1 _L', 'AUDv1 _R', 'AUDv2/3 _L', 'AUDv2/3 _R', 'AUDv4 _L', 'AUDv4 _R', 'AUDv5 _L', 'AUDv5 _R', 'AUDv6a _L', 'AUDv6a _R', 'AUDv6b _L', 'AUDv6b _R', 'VISal1 _L', 'VISal1 _R', 'VISal2/3 _L', 'VISal2/3 _R', 'VISal4 _L', 'VISal4 _R', 'VISal5 _L', 'VISal5 _R', 'VISal6a _L', 'VISal6a _R', 'VISal6b _L', 'VISal6b _R', 'VISam1 _L', 'VISam1 _R', 'VISam2/3 _L', 'VISam2/3 _R', 'VISam4 _L', 'VISam4 _R', 'VISam5 _L', 'VISam5 _R', 'VISam6a _L', 'VISam6a _R', 'VISam6b _L', 'VISam6b _R', 'VISl1 _L', 'VISl1 _R', 'VISl2/3 _L', 'VISl2/3 _R', 'VISl4 _L', 'VISl4 _R', 'VISl5 _L', 'VISl5 _R', 'VISl6a _L', 'VISl6a _R', 'VISl6b _L', 'VISl6b _R', 'VISp1 _L', 'VISp1 _R', 'VISp2/3 _L', 'VISp2/3 _R', 'VISp4 _L', 'VISp4 _R', 'VISp5 _L', 'VISp5 _R', 'VISp6a _L', 'VISp6a _R', 'VISp6b _L', 'VISp6b _R', 'VISpl1 _L', 'VISpl1 _R', 'VISpl2/3 _L', 'VISpl2/3 _R',

@@ -1,12 +1,19 @@
 import os
 import numpy as np
-import utils.allen_functions as allen
+import matplotlib.pyplot as plt
+import utils_allen as allen
+#from tensorflow.keras.models import load_model
+#from tensorflow.saved_model import load
+from time import time
+import atlas_generator as allen
+from colormap import rgb2hex, hex2rgb
+from allensdk.core.reference_space_cache import ReferenceSpaceCache, ReferenceSpace
 import Switches_Static as st_switches
 import Switches_Dynamic as dy_switches
 
 
 rootpath = dy_switches.get_root_path()
-annotations_file_path = os.path.join(rootpath, 'models', 'Allen_files', 'annotation_10_ccf17.nrrd')
+annotations_file_path = os.path.join(rootpath, 'accessories','annotation_10_ccf17.nrrd')
 region_names = dy_switches.get_region_names_for_alas_generation()
 
 

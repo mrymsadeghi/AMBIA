@@ -1,17 +1,22 @@
 import numpy as np
 import cv2
 from pathlib import Path
-import Switches_Static as st_switches
+#import Switches_Static as st_switches
 from skimage import measure
 import cv2 as cv
-
-if st_switches.section_classifier_on or st_switches.segmentation_1_20_on or st_switches.section_QL_on:
-    import tensorflow as tf
+def check_switch(parameter):
+    global tf
+    if parameter.section_classifier_on or parameter.segmentation_1_20_on or parameter.section_QL_on:
+        import tensorflow
+        tf=tensorflow
 
 
 def rotate_img(img):
-    img_rotated = np.rot90(img, k=-1, axes=(0, 1))
-    return img_rotated
+    img_rot = np.zeros((img.shape[1], img.shape[0], img.shape[2]))      ###########  optimize
+    img_rot[:, :, 0] = np.rot90(img[:, :, 0], k=-1, axes=(0, 1))
+    img_rot[:, :, 1] = np.rot90(img[:, :, 1], k=-1, axes=(0, 1))
+    img_rot[:, :, 2] = np.rot90(img[:, :, 2], k=-1, axes=(0, 1))
+    return img_rot
 
 
 def equalize_img(image):                                                 ###########  optimize
@@ -45,7 +50,6 @@ def standardize(x):
     x[x > 1] = 1
     return x
 
-
 def preprocessing(img):
     image = np.array(img)   
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
@@ -56,7 +60,6 @@ def preprocessing(img):
     image = standardize(image)
     return image
 
-
 def load_images(path, size_y, size_x):
     images = []
     EXTENSIONS = {'.png', '.jpg'}
@@ -65,29 +68,30 @@ def load_images(path, size_y, size_x):
             img = cv2.imread(str(img_path))
             img = cv2.resize(img, (size_y, size_x))
             img = preprocessing(img)
+
             images.append(img)
+        
     return np.array(images)
 
-
 def load_image(path, size_y, size_x):
+    
     img = cv2.imread(str(path))
     img = cv2.resize(img, (size_y, size_x))
     img = preprocessing(img)
-    return img
 
+    return img
 
 def get_mask(img, model):
     pred_mask = model.predict(img[tf.newaxis, ...])
     pred_mask = tf.argmax(pred_mask, axis=-1)
-    pred_mask = pred_mask[..., tf.newaxis]      
+    pred_mask = pred_mask[..., tf.newaxis]
+                  
     return pred_mask[0].numpy()
-
 
 def threshold(p, v):
     if p == v:
         return 1
     return 0
-
 
 def remove_outliers(mask):
     labels_mask = measure.label(mask)                       
@@ -97,10 +101,11 @@ def remove_outliers(mask):
         for rg in regions[1:]:
             labels_mask[rg.coords[:,0], rg.coords[:,1]] = 0
     labels_mask[labels_mask!=0] = 1
+    
     return labels_mask
 
-
 def get_regions(mask, size_x=256, size_y=256):
+
     present_region = [False, False, False]
     total_num_of_pixels = size_x*size_y #256*256
     min_size= total_num_of_pixels*0.10
@@ -140,7 +145,6 @@ def get_regions(mask, size_x=256, size_y=256):
 
     return [le, re, bs], present_region
 
-
 def get_crop(img, min_h, max_h, min_w, max_w, size_x=256, size_y=256):
 
     img = np.array(img)
@@ -162,7 +166,6 @@ def get_box(mask):
 
     return min_h, max_h, min_w, max_w
 
-
 def get_crop_halves(img, min_h, max_h, min_w, max_w, size_x=256, size_y=256):
 
     img = np.array(img)
@@ -176,7 +179,6 @@ def get_crop_halves(img, min_h, max_h, min_w, max_w, size_x=256, size_y=256):
     half_point = int(real_max_h*0.5)
     
     return [img[real_min_h:half_point, real_min_w:real_max_w], img[half_point:real_max_h, real_min_w:real_max_w]]
-
 
 def get_groupC_quadrants(img, original, mask):
     
@@ -217,7 +219,6 @@ def get_groupC_quadrants(img, original, mask):
         
     return quadrants, quadrant_ids
 
-
 def five_cut(img_path, original, model):
     img = cv2.imread(str(img_path))
     img = cv2.resize(img, (256, 256))
@@ -228,7 +229,6 @@ def five_cut(img_path, original, model):
     quadrants, categories = get_groupC_quadrants(img, original, mask)
     
     return quadrants, categories
-
 
 def four_cut(image, margin=0.1):
     
@@ -254,7 +254,6 @@ def four_cut(image, margin=0.1):
         q4 = image[mid2_row:end_row , mid2_col:end_col]
     
     return [q1, q2, q3, q4]
-
 
 def is_empty_quadrant(img):
     if len(img) != 0:

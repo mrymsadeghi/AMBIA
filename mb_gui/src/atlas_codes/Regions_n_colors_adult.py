@@ -1,6 +1,5 @@
-from atlas_codes.regions_per_sections_adult import regs_per_section, Regions_n_colors_List
+from regionscode.regions_per_sections_adult import regs_per_section, Regions_n_colors_List
 
- 
 
 def create_regs_n_colors_per_sec_list(atlasnum):
     regs_per_sec_List = regs_per_section[int(atlasnum)] #list
@@ -12,8 +11,8 @@ def create_regs_n_colors_per_sec_list(atlasnum):
     Bgr_Color_List = []
     Rgb_Color_List = []
     for elem in regs_n_colors_per_sec_List:
-        Bgr_Color_List.append(elem[-1])
-        Rgb_Color_List.append((elem[-1][2],elem[-1][1],elem[-1][0]))
+        Rgb_Color_List.append(elem[-1])
+        Bgr_Color_List.append((elem[-1][2],elem[-1][1],elem[-1][0]))
 
     return regs_n_colors_per_sec_List, Rgb_Color_List, Bgr_Color_List
 

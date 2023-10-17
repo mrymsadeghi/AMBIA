@@ -6,19 +6,17 @@ import random
 from colormap import hex2rgb
 from allensdk.core.reference_space_cache import ReferenceSpaceCache, ReferenceSpace
 import json 
-from Switches_Dynamic import get_rootpath
+import Switches_Dynamic #import get_rootpath
 
 
-prepath = get_rootpath()
+prepath = Switches_Dynamic.get_rootpath()
 allen_files_path = os.path.join(prepath, "models", "Allen_files")
-MANIFEST_PATH = os.path.join(allen_files_path, 'manifest.json')
-
 
 def get_volume(volume_path, region_names0=None, json_color_code=None):
     
     global region_names
     # Get hierarchy and list of regions
-    rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=MANIFEST_PATH)
+    rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=os.path.join(allen_files_path, 'manifest.json'))
     tree = rspc.get_structure_tree(structure_graph_id=1) 
     
     if region_names0 == None:
@@ -330,7 +328,7 @@ def create_map(tree, atlas_values, region_names):
 def get_color_code_simple(cm):
     
     # Get hierarchy and list of regions
-    rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=MANIFEST_PATH)
+    rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=os.path.join(allen_files_path, 'manifest.json'))#'manifest.json')
     tree = rspc.get_structure_tree(structure_graph_id=1) 
     
     objs = []
@@ -358,7 +356,7 @@ def get_color_code_simple(cm):
 def save_color_code(json_path, cm_left, cm_right):
         
     # Get hierarchy and list of regions
-    rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=MANIFEST_PATH)
+    rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=os.path.join(allen_files_path, 'manifest.json'))#manifest='manifest.json')
     tree = rspc.get_structure_tree(structure_graph_id=1) 
     
     # Get the colors and other attributes of regions based on the CM
@@ -433,7 +431,8 @@ def reset_count(regions):
 
 def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions_lr, deep_regs_results):
 
-    rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=MANIFEST_PATH)
+    rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=os.path.join(allen_files_path, 'manifest.json'))#manifest='manifest.json')
+
     tree = rspc.get_structure_tree(structure_graph_id=1)
     acr_id = tree.get_id_acronym_map()
     id_acr = {v: k for k, v in acr_id.items()}
@@ -441,27 +440,56 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
     # Sum high level values
     general_regions_cols = ['Animal', 'Rack', 'Slide', 'Section', 'type', 'Total'] + general_regions_lr
     general_regs_results = pd.DataFrame(columns=general_regions_cols)
+    #print (general_regs_results.shape)
     reportfile = open(os.path.join(section_savepath, "reportfile_low.txt"), 'w')
     for index, row in deep_regs_results.iterrows():
+        #print (index)
         count, existing = reset_count(general_regions_lr)
-        if index > 0:
+        #print ("KEYS : " , count.keys())
+        if True :#index > 0:
             if row['type'] != 'Density' and not pd.isnull(row['type']):
                 for reg in deep_regions_lr:
+
+                    #print (reg)
+                    #print ("PASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
                     if not pd.isnull(row[reg]):
-                        suffix = reg[-3:]
-                        region = reg[:-3]
-                        if '_bg' in region:
+                        suffix = reg[-2:]
+                        #splitted=reg.split("_")
+                        #suffix="_"+splitted[-1]
+                        
+                        region = reg[:-2]
+                        #region="_".join(splitted[:-1])
+                        #print (region)
+                        #print (region)
+                        if '_bg' in region:#region:
                             if reg in count.keys():
+                                #print ("True that")
                                 count[acr] += float(row[reg])
                                 existing[acr] = True
                         else:
-                            parents_ids = tree.get_structures_by_acronym([region])[0]['structure_id_path'][2:]
-                            parents_acr = [id_acr[id]+suffix for id in parents_ids]
-                            for acr in parents_acr:
-                                if acr in count.keys():
-                                    count[acr] += float(row[reg])
-                                    existing[acr] = True
+                            #print ("False that")
+                            """print (tree.get_structures_by_acronym(["OLF"]))
+                            print (tree.get_structures_by_acronym([region])[0])
+                            print (tree.get_structures_by_acronym([region])[0]['structure_id_path'])
+                            print (tree.get_structures_by_acronym([region])[0]['structure_id_path'][2:]"""
+                            try :
+                                #print ("TrueTrueTrue")
+                                parents_ids = tree.get_structures_by_acronym([region])[0]['structure_id_path'][2:]
+                                parents_acr = [id_acr[id]+suffix for id in parents_ids]
+                                for acr in parents_acr:
 
+                                    #print (acr,count.keys())
+                                    if acr in count.keys():
+
+                                        count[acr] += float(row[reg])
+                                        existing[acr] = True
+                                    
+                            except Exception as E:
+                                print (E)
+
+
+            #print (set(existing.values()))
+            #print (set(count.values()))
             #total = np.sum(np.array(list(count.values())))
             total = '__'                
             blobs_color = row['type']
@@ -469,23 +497,29 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
             if blobs_color == 'Red' or blobs_color == 'Green' or blobs_color == 'Coloc':
                 total = row['Total']
                 reportfile.write(f'\n \n \n {blobs_color} blobs:\t{str(int(row["Total"]))} \n ')
-            
-            data = {'Animal':row['Animal'], 'Rack': row['Rack'], 'Slide': row['Slide'], 'Section': row['Section'], 'type': row['type'], 'Total':total}
-
+            #print (row.keys())
+            try: data = {'Animal':row['Animal'], 'Rack': row['Rack'], 'Slide': row['Slide'], 'Section': row['Section'], 'type': row['type'], 'Total':total}
+            except : data= {'Experiment': row['Experiment'], 'Animal': row['Animal'], 'Slide': row['Slide'], 'Section': row['Section'],'type': row['type']}
             obj = {}
             datafile = {}
+            #print (count.keys())
+             
             for acr in count.keys():
+                #print (acr)
+                #print (acr)
                 if existing[acr]:
+                    #print ("True that ")
                     obj[acr] = count[acr]
                     if blobs_color == 'Red' or blobs_color == 'Green' or blobs_color == 'Coloc':
                         if int(count[acr]) != 0:
                             reportfile.write(f'\n {acr}:\t{str(int(count[acr]))}')
                 else:
+                    #print ("False that ")
                     obj[acr] = np.nan
                     
             data.update(obj)
 
-            general_regs_results = general_regs_results.append(data, ignore_index=True)
+            general_regs_results = general_regs_results._append(data, ignore_index=True)
     reportfile.close()
     # Calculate density
     general_regions_cols = list(set(general_regs_results.columns) - set(['Animal', 'Rack', 'Slide', 'Section', 'type']))
@@ -496,5 +530,7 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
                 green = general_regs_results.iloc[index-3][region]
                 if not pd.isna(area) and not pd.isna(green):
                     if area != 0 and area != '__':
-                        general_regs_results.loc[general_regs_results['type'] == 'Density', region] = green/int(area)
+                        #print ("greeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeen",green)
+                        general_regs_results.loc[general_regs_results['type'] == 'Density', region] = int(green)/int(area)
+
     return general_regs_results

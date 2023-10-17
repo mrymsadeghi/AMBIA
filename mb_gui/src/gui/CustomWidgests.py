@@ -28,6 +28,8 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self._empty = True
         self._scene = QtWidgets.QGraphicsScene(self)
         self._photo = QtWidgets.QGraphicsPixmapItem()
+        
+        
         self._list_widget=None
         self._scene.addItem(self._photo)
         self.setScene(self._scene)
@@ -56,7 +58,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
     def get_list_widget(self,list_widget):
         self._list_widget=list_widget
-
+        
         
 
 
