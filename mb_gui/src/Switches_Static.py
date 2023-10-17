@@ -24,7 +24,7 @@ mrx_maskthresh = 20
 ###### Czi format parametes
 czi_mlevel = 6
 czi_blevel = 1
-czi_alevel = 5
+czi_alevel = 4
 czi_maskthresh = 0
 
 
@@ -47,7 +47,7 @@ num_rows = 5
 ## Registration 
 ########################################## 
 ACC_DF = 1                  #Accelarating factor for ardent registration. Downscales both images by this factor to speed up the registration process
-TEMP_DF = 3/2               #Approximate ratio between the source image and the target image
+TEMP_DF = 1               #Approximate ratio between the source image and the target image
 TARG_DF = 1
 source_resolution = 100
 target_resolution = 100
