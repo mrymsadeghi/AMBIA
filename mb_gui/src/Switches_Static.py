@@ -11,6 +11,8 @@ section_QL_on = False
 rotate_flag=False
 czi_maskthresh = 10                 # This threshold is used for the section detection on the whole slide image
 contrast_enhancement = 12.0         # This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
+blevel_mask_threshold = 10         # This parameter adjust the threshold for brain_mask
+alevel_mask_threshold = 10
 
 ## Atlas Type:
 atlas_type = "Adult"        # Adult or P56 or Rat

@@ -45,6 +45,8 @@ else :
 
 MARGIN = st_switches.MARGIN
 num_rows = st_switches.num_rows
+ALEVEL_MASK_THRESH = st_switches.alevel_mask_threshold
+BLEVEL_MASK_THRESH = st_switches.blevel_mask_threshold
 
 saved_data_pickle = {}
 
@@ -196,7 +198,21 @@ class Slide_Operator:
         print(f"SectionDetection took {time2-time1}")
         return brainboundcoords, tissuemask_fullpath
     
-
+    def remove_edge_blob(self, img):
+        print("in remove edge func")
+        # Get the contours of all blobs in the image
+        if img.dtype != np.uint8:
+            img = np.array(img, np.uint8)
+        if len(img.shape) > 2:
+            img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        contours, _ = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        contours = sorted(contours, key=cv.contourArea)
+        print("len(contours)", len(contours))
+        for i, cnt in enumerate(contours[:-1]):
+            x, y, w, h = cv.boundingRect(cnt)
+            if x == 0 or y == 0 or x+w == img.shape[1] or y+h == img.shape[0]:
+                cv.drawContours(img, contours, i, (0, 0, 0), -1)
+        return img
 
     def get_section_images(self,brnum0, brainboundcoords):
         num_processes = 5  # Adjust this to the number of processes you want
@@ -250,26 +266,25 @@ class Slide_Operator:
             
             section_alevel = czi_channel_regulator(section_alevel)
             section_blevel = czi_channel_regulator(section_blevel)
-            section_alevel = cv.copyMakeBorder(section_alevel, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT,
-                                            value=(0, 0, 0))
-            section_alevel_eq = histogram_equalization(section_alevel)
+            section_alevel_eq0 = histogram_equalization(section_alevel)
             section_blevel_eq = histogram_equalization(section_blevel) 
             #pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)))
-
+            section_alevel_gr0 = cv.cvtColor(section_alevel_eq0, cv.COLOR_BGR2GRAY)
+            section_alevel_gr = cv.convertScaleAbs(section_alevel_gr0, alpha=(255.0/65535.0))
+            _, alevel_mask = cv.threshold(section_alevel_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
+            cv.imwrite(os.path.join(self.section_savepath,"alevel_mask.png"), alevel_mask)
+            alevel_mask_fixed = self.remove_edge_blob(alevel_mask)
+            cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_fixed.png"), alevel_mask_fixed)
+            section_alevel_eq = cv.bitwise_and(section_alevel_eq0, section_alevel_eq0, mask = alevel_mask_fixed)
+            section_alevel = cv.copyMakeBorder(section_alevel, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
+            section_alevel_eq = cv.copyMakeBorder(section_alevel_eq, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
+            
             if st_switches.rotate_flag:
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel.png"), cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel_eq.png"), cv.rotate(section_alevel_eq, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE)))
-                """cv.imwrite(os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE))
-                cv.imwrite(os.path.join(self.section_savepath,"blevel.png"), cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE))
-                cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), cv.rotate(section_alevel_eq, cv.ROTATE_90_CLOCKWISE))
-                cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE))"""
             else:
-                """cv.imwrite(os.path.join(self.section_savepath,"alevel.png"), section_alevel)
-                cv.imwrite(os.path.join(self.section_savepath,"blevel.png"), section_blevel)
-                cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq)
-                cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq)"""
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel.png"), section_alevel))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel.png"), section_blevel))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq))
@@ -284,8 +299,6 @@ class Slide_Operator:
                     cv.imwrite(os.path.join(self.section_savepath, f"blevel_{channel}.png"), blevel_channel)
             
 
-
-        
         blob_detection_file_name = os.path.join(self.section_savepath,"blevel_eq.png")
         tissue_lm_detection_filename = os.path.join(self.section_savepath,"alevel_eq.png")
         
@@ -309,10 +322,9 @@ class Slide_Operator:
         tempMARGIN = 50  # temporary margin just to avoid the borders when applying thresh, adding the margin is reversed in the parameter brain_mask_eroded
 
         brain_blevel = cv.imread(os.path.join(self.section_savepath, 'blevel_eq.png'))
-        brainimgtemp = cv.copyMakeBorder(brain_blevel, tempMARGIN, tempMARGIN, tempMARGIN, tempMARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
-        brainimgtemp_gray = cv.cvtColor(brainimgtemp, cv.COLOR_BGR2GRAY)
-        _, brain_mask = cv.threshold(brainimgtemp_gray, 5, 255, cv.THRESH_BINARY)
-        cv.imwrite(os.path.join(self.section_savepath, 'brain_mask.jpg'), brain_mask[tempMARGIN:-tempMARGIN, tempMARGIN:-tempMARGIN])
+        brainimgtemp_gray = cv.cvtColor(brain_blevel, cv.COLOR_BGR2GRAY)
+        _, brain_mask = cv.threshold(brainimgtemp_gray, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
+        cv.imwrite(os.path.join(self.section_savepath, 'brain_mask.jpg'), brain_mask)
     
         if self.slideformat == "mrxs":
             kernel1 = np.ones((11,11), np.uint8)
@@ -326,25 +338,17 @@ class Slide_Operator:
             img_channel_r = cv.imread(os.path.join(self.section_savepath, 'blevel_2.png'), 0)
             img_channel_g = cv.imread(os.path.join(self.section_savepath, 'blevel_1.png'), 0)
         
-        closing = cv.morphologyEx(brain_mask, cv.MORPH_CLOSE, kernel2)
-        #cv.imwrite(os.path.join(section_savepath, 'brain_mask_closed.jpg'), closing)
-        brain_mask_eroded_uncut = cv.erode(closing, kernel2, iterations=3)
-        #cv.imwrite(os.path.join(section_savepath, 'brain_mask_eroded.jpg'), brain_mask_eroded_uncut)
 
+        brain_mask_edge_removed = self.remove_edge_blob(brain_mask)
+        # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_edge_removed.jpg'), brain_mask_edge_removed)
+        brain_mask_temp = cv.copyMakeBorder(brain_mask_edge_removed, tempMARGIN, tempMARGIN, tempMARGIN, tempMARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
+        closing = cv.morphologyEx(brain_mask_temp, cv.MORPH_CLOSE, kernel2)
+        # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_closed.jpg'), closing)
+        brain_mask_eroded_uncut = cv.erode(closing, kernel2, iterations=3)
+        # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_eroded.jpg'), brain_mask_eroded_uncut)
         brain_mask_eroded = brain_mask_eroded_uncut[tempMARGIN:-tempMARGIN, tempMARGIN:-tempMARGIN]
         cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_eroded_cut.jpg'), brain_mask_eroded)
 
-        #img_channel_g = cv.medianBlur(img_channel_g, 3)
-        #img_channel_g = equalize_img(img_channel_g)
-        # hist,bins = np.histogram(img_channel_g.flatten(),256,[0,256])
-        # cdf = hist.cumsum()
-        # cdf_normalized = cdf * hist.max()/ cdf.max()
-        # cdf_m = np.ma.masked_equal(cdf,0)
-        # cdf_m = (cdf_m - cdf_m.min())*255/(cdf_m.max()-cdf_m.min())
-        # cdf = np.ma.filled(cdf_m,0).astype('uint8')
-        # img_channel_g = cdf[img_channel_g]
-        
-        #img_not_r = cv.medianBlur(img_channel_r, 3)
 
         ### Parameters
         red_blob_type = blobs_parameters["red_blob_type"]
@@ -465,6 +469,8 @@ class Slide_Operator:
         #np.save(os.path.join(section_savepath, "bloblocs_r_auto.npy"), blob_locs_r)
         #np.save(os.path.join(section_savepath, "bloblocs_co_auto.npy"), blob_locs_co)
         return number_of_blobs_r, number_of_blobs_g, matchcount, screenimg_path, self.blobs_log_r, self.blobs_log_g, blob_locs_co
+    
+
     def funcAnalysis(self,atlasnum, brnum, atlas_prepath, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords):
         """ Inputs red/green_blobs_modified as a list of blob coords (c, r)
         these include detected blob coords after user modification
