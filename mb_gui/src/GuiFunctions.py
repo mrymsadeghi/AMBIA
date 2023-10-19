@@ -811,9 +811,9 @@ class Slide_Operator:
             blevel_ch1 = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel_1.png")), 1)
             blevel_ch2 = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel_2.png")), 1)
 
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_ch0.png"), blevel_ch0)
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_ch1.png"), blevel_ch1)
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_ch2.png"), blevel_ch2)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_0.png"), blevel_ch0)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_1.png"), blevel_ch1)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_2.png"), blevel_ch2)
 
         cv.imwrite(os.path.join(self.section_savepath,"alevel.png"), section_alevel)
         cv.imwrite(os.path.join(self.section_savepath,"blevel.png"), section_blevel)
