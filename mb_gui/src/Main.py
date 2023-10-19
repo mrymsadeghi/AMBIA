@@ -372,7 +372,7 @@ if __name__ == '__main__':
             self.change_status_bar_waiting()
             self.set_status_bar_text("Please Wait")
             self.brnum = self.accept_selection_region()
-            print ("brnum ",self.brnum)
+            print("brnum ",self.brnum)
             dy_switches.set_ardent_reg_done_to_false()
             
 

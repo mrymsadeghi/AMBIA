@@ -55,10 +55,7 @@ def func_ardent_registration(section_savepath, source_img_path, target_img_path)
     global transform
     global ardnt_src_shape, ardnt_targ_shape
     #target_rgb = cv.imread(target_img_path)
-    print("func ardent source path", source_img_path)
-    print("func ardent target path", target_img_path)
     source_rgb = cv.imread(source_img_path)
-
     target_rgb = transform_target_img(target_img_path)
     target = cv.cvtColor(target_rgb, cv.COLOR_BGR2GRAY)
     source = cv.cvtColor(source_rgb, cv.COLOR_BGR2GRAY)
@@ -143,8 +140,6 @@ def calculate_n_add_corner_points(img_gray, img_landmark_points, reg_code):
     x,y,w,h = cv.boundingRect(biggest_cnt)
 
     minr, maxr, minc, maxc = int(y/2), y+h+int((height-(y+h))/2), int(x/2), x+w+int((width-(x+w))/2)
-
-    #print("minr, maxr, minc, maxc ", minr, maxr, minc, maxc)
     r_linespace = np.linspace(minr, maxr, num = st_switches.Delauney_strength)
     c_linespace = np.linspace(minc, maxc, num = st_switches.Delauney_strength)
 
@@ -200,10 +195,6 @@ def func_delauney_registration(section_savepath, source_lms, target_lms, source_
     global source_landmark_points
     global target_landmark_points
 
-    print("func delau source path", source_img_path)
-    print("func delau target path", target_img_path)
-
-    #tempfolder = "C:/Users/q371ms/Downloads/delauney"
     target_img = cv.imread(target_img_path)  # Atlas image   ################
     source_img = cv.imread(source_img_path)  # Section image
     target_unlabeled_gray = cv.imread(os.path.join(section_savepath, f"atlas_unlabeled_low.png"), 0)
@@ -213,7 +204,6 @@ def func_delauney_registration(section_savepath, source_lms, target_lms, source_
     height, width, channels = target_img.shape
     target_new_hull = np.zeros((height, width, channels), np.uint8)
     # target
-    #source_landmark_points, target_landmark_points = convert_lm_points_scale(source_lms, target_lms)
     source_landmark_points, target_landmark_points = source_lms, target_lms  ################
 
     if reg_code=='No_reg':
@@ -224,9 +214,6 @@ def func_delauney_registration(section_savepath, source_lms, target_lms, source_
         source_landmark_points = calculate_n_add_corner_points(target_unlabeled_gray, source_landmark_points, reg_code)  
 
 
-    print("++++++++++++++++++++++++++++++++", reg_code)
-    print(len(target_landmark_points))
-    print(len(source_landmark_points))
     for point in source_lms:
         co2, ro2 = point  # Level 3  c, r = xo1, yo1
         cv.circle(source_img, (co2, ro2), 3, (255, 255, 0), -1)
@@ -387,8 +374,6 @@ def func_ambia_registration(sectionpath, source_img_path, target_img_path, sourc
     ardent_reg_img_path = os.path.join(sectionpath, "ardent_reg_img.png")
     target_show_img_path = target_show_img_path0
 
-    print("func ambia source path", source_img_path)
-    print("func ambia target path", target_img_path)
     # if auto_reg_switch is on automatic ardent registration will be done
     if auto_reg_switch:
         reg_code = "ardent_reg"

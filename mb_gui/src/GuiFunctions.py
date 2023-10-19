@@ -23,11 +23,6 @@ import Path_Finder
 import concurrent.futures
 
 
-
-
-
-
-
 settings = EasySettings("myconfigfile.conf")
 if st_switches.atlas_type == "Adult":
     from regionscode.Regions_n_colors_adult import Region_names, general_Region_names, create_regs_n_colors_per_sec_list
@@ -38,12 +33,11 @@ elif st_switches.atlas_type == "Rat":
     from regionscode.Regions_n_colors_rat import Region_names, general_Region_names, create_regs_n_colors_per_sec_list
     from regionscode.regions_per_sections_rat import regs_per_section
 else :
-    print ("Incorrect atlas type, exiting.")
+    print("Incorrect atlas type, exiting.")
     sys.exit()
 
 
 MARGIN = st_switches.MARGIN
-num_rows = st_switches.num_rows
 ALEVEL_MASK_THRESH = st_switches.alevel_mask_threshold
 BLEVEL_MASK_THRESH = st_switches.blevel_mask_threshold
 CH_O = st_switches.channel_to_omit
@@ -70,10 +64,9 @@ def get_region_color(regmargin, section):
     return pointcolor2
 rootpath=Path_Finder.return_root_path()
 
-#OPENSLIDE_PATH = "F:\AMBIA\git_lab_rat_version_branch\mb_gui\openslide_dlls"
 os.path.join(rootpath, "Gui_Atlases", "Adult_full_atlases")
 OPENSLIDE_PATH = os.path.join(rootpath, "mb_gui","openslide_dlls")
-print (OPENSLIDE_PATH)
+print(OPENSLIDE_PATH)
 if hasattr(os, 'add_dll_directory'):
     # Python >= 3.8 on Windows
     with os.add_dll_directory(OPENSLIDE_PATH):
@@ -82,13 +75,10 @@ else:
     import openslide
 
 def save_to_saved_data_pickle(item, keytext):
-
     saved_data_pickle[keytext] = item
 
 
 def funcLandmarkDetection(imgpath, midheight):
-    # midh = 200 for tissue
-    # midh = 400 for atlas
     LandmarksT = []
     return LandmarksT
 
@@ -152,8 +142,6 @@ class Slide_Operator:
         #global Report_df
         brainboundcoords = np.array([[0, 0, 0, 0]])  #[x, y, w, h]
         slideimg = cv.imread(os.path.join(self.savepath, "mlevel.jpg"))
-
-        print (os.path.join(self.savepath, "mlevel.jpg"))
         imgray = cv.cvtColor(slideimg, cv.COLOR_BGR2GRAY)
         img_gr_mblur = cv.medianBlur(imgray, 9)
         # In mask level specified above
@@ -170,7 +158,6 @@ class Slide_Operator:
         
         contours=list(contours)
 
-        
         br_min_coords = [(x, y) for x, y, w, h in (cv.boundingRect(c) for c in contours)]
         br_min_coords_by5 = [x + y * 5 for x, y in br_min_coords]
         br_min_coords_by5_sorted = sorted(br_min_coords_by5)
@@ -186,21 +173,17 @@ class Slide_Operator:
             brainboundcoords = np.append(brainboundcoords, [[x, y, w, h]], axis=0)
             brnumtemp += 1  
 
-
-        
         if self.slideformat == "mrxs":
             tissuemask_fullpath = os.path.join(self.savepath, "imgray.jpg")
         elif self.slideformat == "czi":
             tissuemask_fullpath = os.path.join(self.savepath, "imgray.jpg")
 
-                
         brainboundcoords = brainboundcoords[1:, :]
         time2=time.time()
         print(f"SectionDetection took {time2-time1}")
         return brainboundcoords, tissuemask_fullpath
     
     def remove_edge_blob(self, img):
-        print("in remove edge func")
         # Get the contours of all blobs in the image
         if img.dtype != np.uint8:
             img = np.array(img, np.uint8)
@@ -208,7 +191,6 @@ class Slide_Operator:
             img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
         contours, _ = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         contours = sorted(contours, key=cv.contourArea)
-        print("len(contours)", len(contours))
         for i, cnt in enumerate(contours[:-1]):
             x, y, w, h = cv.boundingRect(cnt)
             if x == 0 or y == 0 or x+w == img.shape[1] or y+h == img.shape[0]:
@@ -408,15 +390,12 @@ class Slide_Operator:
                 maxsigma = blobs_parameters['red_blob_max_sigma']
                 r_thresh = blobs_parameters['red_blob_num_sigma']
                 red_blobs_thresh = blobs_parameters['red_blob_thresh2'] /100
-                print("r_threshg: ", r_thresh)
                 img_channel_r_temp = cv.convertScaleAbs(img_channel_r, alpha=ALPHA, beta=0)
                 cv.imwrite(os.path.join(self.section_savepath, "ch_red_enhanced.png"), img_channel_r_temp)
                 _, ch_thresh = cv.threshold(img_channel_r, r_thresh, 255, cv.THRESH_BINARY)
                 img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
                 cv.imwrite(os.path.join(self.section_savepath, "blobmask_red.png"), ch_thresh)
                 cv.imwrite(os.path.join(self.section_savepath, "img_channel_r_masked.png"), img_channel_r)
-
-                #blobs_log_r = cfos_detection(img_channel_r, minsigma, maxsigma, numsigma, red_blobs_thresh, brain_mask_eroded)
                 self.blobs_log_r = pool_cell_detection(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells")
                 blobs_parameters_dict_to_save['red'] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
 
@@ -440,7 +419,6 @@ class Slide_Operator:
                 g_thresh = blobs_parameters['green_blob_num_sigma']
                 green_blobs_thresh = blobs_parameters['green_blob_thresh2']/100
                 numsigma = 10
-                print("parameters are")
                 img_channel_g_temp = cv.convertScaleAbs(img_channel_g, alpha=ALPHA, beta=0)
                 cv.imwrite(os.path.join(self.section_savepath, "ch_gr_enhanced.png"), img_channel_g_temp)
                 _, ch_thresh = cv.threshold(img_channel_g, g_thresh, 255, cv.THRESH_BINARY)
@@ -449,7 +427,6 @@ class Slide_Operator:
                 cv.imwrite(os.path.join(self.section_savepath, "img_channel_g_masked.png"), img_channel_g)
                 self.blobs_log_g = pool_cell_detection(img_channel_g, brain_mask_eroded, minsigma, maxsigma, numsigma, green_blobs_thresh, "green_cells")
                 blobs_parameters_dict_to_save['green'] = [minsigma, maxsigma, numsigma, green_blobs_thresh]
-                #np.save(os.path.join(section_savepath, 'blobparams_g.npy'), g_params_for_save)
             matchcount, blob_locs_co = calculate_colocalized_blobs(self.blobs_log_r, self.blobs_log_g)
 
         
@@ -529,7 +506,6 @@ class Slide_Operator:
         atlas_pil = Image.open(unlabeled_atlas_filepath).convert('RGB')
         atlas_colors = Counter(atlas_pil.getdata())
         red_blobs_coords = red_blobs_modified #(c,r
-        #print (red_blobs_coords)
         for point in red_blobs_coords:
             co2, ro2 = point  # Level 3  c, r = xo1, yo1
             bb,gg,rr = mappedatlas_detection[ro2, co2]
@@ -733,7 +709,7 @@ class Slide_Operator:
                 #self.Report_df = self.Report_df[self.Report_df['Section'] != brnum]
                 #the line above removes the row with same section number
             else :
-                print ("section does not exist in report,appending")
+                print("section does not exist in report,appending")
                 for i in range(Report_subdf.shape[0]):
                     self.Report_df=self.Report_df._append(Report_subdf.iloc[i])
   
@@ -744,14 +720,14 @@ class Slide_Operator:
         try:
             writer = pd.ExcelWriter(os.path.join(savepath, f'Report_{self.slidename}.xlsx'), engine='openpyxl')
             self.Report_df.to_excel(writer, sheet_name='Sheet 1', index=False)
-            print ("report created")
+            print("report created")
             writer.close()
             
             writer = pd.ExcelWriter(os.path.join(self.section_savepath, f'Report_{self.slidename}_S{brnum}.xlsx'), engine='openpyxl')
             Report_subdf.to_excel(writer, sheet_name='Sheet 1', index=False)
             writer.close()
         except Exception as E:
-            print( E)
+            print(E)
             return self.section_savepath, "em2"
         reportfile.write(f'\n \n Atlas number: {atlasnum} ')
         reportfile.close()
