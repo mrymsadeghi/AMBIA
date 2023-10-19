@@ -10,7 +10,7 @@ if __name__ == '__main__':
     import Switches_Static as st_switches
     import Switches_Dynamic as dy_switches
     from AMBIA_M1_CellDetection import calculate_colocalized_blobs
-    from AMBIA_M4_Registration import func_ambia_registration, func_convert_coords, resize_images_for_registration, get_overlayed_registered_img, func_ambia_registration_reverse
+    from AMBIA_M4_Registration import func_ambia_registration, func_convert_coords, resize_images_for_registration, get_overlayed_registered_img
 
     import sys
     ################################################
@@ -153,7 +153,6 @@ if __name__ == '__main__':
             guif.save_to_saved_data_pickle(blobs_coords_orig, 'blobs_coords_orig')
             #GuiFunctions.save_to_pkl("blobs_coords_orig.pkl", blobs_coords_orig)
             reg_code_status = dy_switches.get_reg_code()
-            func_ambia_registration_reverse(reg_code_status, self.sectionfolder)
             atlas_path = self.get_atlas_preview_name()
             atlasnum = os.path.split(atlas_path)[-1].split(".")[0]
             mappingimgpath, report_image_file_name = self.GuiFunctions.funcAnalysis(atlasnum, self.brnum, atlas_prepath, red_converted_coords, green_converted_coords, colocalized_converted_coords)
