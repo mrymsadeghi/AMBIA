@@ -21,11 +21,11 @@ mrx_num_channels = 3
 
 mrx_maskthresh = 20
 
-###### Czi format parametes
+###### Czi format parameters
 czi_mlevel = 6
 czi_blevel = 1
 czi_alevel = 4
-czi_maskthresh = 0
+czi_maskthresh = 10                 # This threshold is used for the section detection on the whole slide image
 
 
 #Blob_size shown on Neuro Detection step
