@@ -6,12 +6,11 @@ from AMBIA_M1_CellDetection import pool_cell_detection,double_pool_cell_detectio
 from multiprocessing import Pool
 import cv2 as cv
 import multiprocessing
-from skimage.feature import blob_log
 from collections import Counter
 from math import sqrt
 from easysettings import EasySettings
-from utils.img_processing import rotate_img, equalize_img
-from utils.reading_czi import CZI, czi_channel_regulator,histogram_equalization#, get_channel_info,czi_preview,czi_section_img
+from utils.img_processing import equalize_img
+from utils.reading_czi import CZI, czi_channel_regulator,histogram_equalization
 import Switches_Static as st_switches
 import Switches_Dynamic as dy_switches
 from PIL import Image

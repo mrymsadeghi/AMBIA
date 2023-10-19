@@ -9,12 +9,12 @@ section_QL_on = False
 
 # Image Processing parameters
 rotate_flag=False
-czi_maskthresh = 10                 # This threshold is used for the section detection on the whole slide image
-contrast_enhancement = 12.0         # This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
-blevel_mask_threshold = 10         # This parameter adjust the threshold for brain_mask
+czi_maskthresh = 10                  # This threshold is used for the section detection on the whole slide image
+contrast_enhancement = 12.0           # This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
+blevel_mask_threshold = 10           # This parameter adjust the threshold for brain_mask
 alevel_mask_threshold = 7
-channel_to_omit = 1               #This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
-
+channel_to_omit = 1                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
+CELL_OVERLAP = 0.5                  # If two detected cfos cells have more than this amount overlap, only one will be counted
 ## Atlas Type:
 atlas_type = "Adult"        # Adult or P56 or Rat
 

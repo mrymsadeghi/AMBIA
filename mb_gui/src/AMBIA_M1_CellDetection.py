@@ -3,6 +3,7 @@ import numpy as np
 from math import sqrt
 from multiprocessing import Pool
 from skimage.feature import blob_log
+import Switches_Static as st_switches
 
 def calculate_colocalized_blobs(blobs_log_r, blobs_log_g):
 
@@ -28,6 +29,7 @@ def MoG_detection(img_channel, maxsigma, numsigma, thresh, brain_mask_eroded):
         if brain_mask_eroded[int(y), int(x)]==255:
             blobs_logs.append((int(y), int(x)))
     return blobs_log
+
 def double_cfos_detection(args):
     
     """args = [img_channel, minsigma, maxsigma, numsigma, thresh, brain_mask_eroded]
@@ -39,7 +41,7 @@ def double_cfos_detection(args):
 
     blobs_log_r = []
     img_channel_adjusted_r = cv.convertScaleAbs(args[0], alpha=2, beta=0) # beta > Brightness control (0-100)
-    blobs_logs_all = blob_log(img_channel_adjusted_r, min_sigma= args[1], max_sigma=args[2], num_sigma=args[3], threshold=args[4])
+    blobs_logs_all = blob_log(img_channel_adjusted_r, min_sigma= args[1], max_sigma=args[2], num_sigma=args[3], threshold=args[4], overlap = st_switches.CELL_OVERLAP)
     brain_mask_eroded = args[9]
     for blob in blobs_logs_all:
         rb, cb, _ = blob
@@ -47,7 +49,7 @@ def double_cfos_detection(args):
             blobs_log_r.append((int(rb), int(cb)))
     blobs_log_g = []
     img_channel_adjusted_g = cv.convertScaleAbs(args[5], alpha=2, beta=0) # beta > Brightness control (0-100)
-    blobs_logs_all = blob_log(img_channel_adjusted_g, min_sigma= args[1], max_sigma=args[6], num_sigma=args[7], threshold=args[8])
+    blobs_logs_all = blob_log(img_channel_adjusted_g, min_sigma= args[1], max_sigma=args[6], num_sigma=args[7], threshold=args[8], overlap = st_switches.CELL_OVERLAP)
     for blob in blobs_logs_all:
         rb, cb, _ = blob
         if brain_mask_eroded[int(rb), int(cb)]==255:
@@ -147,7 +149,7 @@ def cfos_detection(args):
   
     blobs_log = []
     img_channel_adjusted = cv.convertScaleAbs(args[0], alpha=2, beta=0) # beta > Brightness control (0-100)
-    blobs_logs_all = blob_log(img_channel_adjusted, min_sigma= args[1],max_sigma=args[2], num_sigma=args[3], threshold=args[4])
+    blobs_logs_all = blob_log(img_channel_adjusted, min_sigma= args[1],max_sigma=args[2], num_sigma=args[3], threshold=args[4], overlap = st_switches.CELL_OVERLAP)
     brain_mask_eroded = args[5]
     for blob in blobs_logs_all:
         rb, cb, _ = blob
