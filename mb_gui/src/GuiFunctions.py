@@ -47,6 +47,7 @@ MARGIN = st_switches.MARGIN
 num_rows = st_switches.num_rows
 ALEVEL_MASK_THRESH = st_switches.alevel_mask_threshold
 BLEVEL_MASK_THRESH = st_switches.blevel_mask_threshold
+CH_O = st_switches.channel_to_omit
 
 saved_data_pickle = {}
 
@@ -266,6 +267,7 @@ class Slide_Operator:
             
             section_alevel = czi_channel_regulator(section_alevel)
             section_blevel = czi_channel_regulator(section_blevel)
+            
             section_alevel_eq0 = histogram_equalization(section_alevel)
             section_blevel_eq = histogram_equalization(section_blevel) 
             #pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)))
@@ -278,7 +280,8 @@ class Slide_Operator:
             section_alevel_eq = cv.bitwise_and(section_alevel_eq0, section_alevel_eq0, mask = alevel_mask_fixed)
             section_alevel = cv.copyMakeBorder(section_alevel, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
             section_alevel_eq = cv.copyMakeBorder(section_alevel_eq, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
-            
+            if CH_O:
+                section_alevel_eq[:,:,CH_O] = 0
             if st_switches.rotate_flag:
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel.png"), cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)))
