@@ -1547,7 +1547,7 @@ class Ui_MainWindow(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%;\"><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">5- For fine-tuning the registration you may choose an equal number of LMs on the section image and the atlas image.</span></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%;\"><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">6- Press Accept.</span></p></body></html>"))
         self.label_65.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Auto Registration</span></p></body></html>"))
-        self.label_32.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Tilted Attlas</span></p></body></html>"))
+        self.label_32.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Tilted Atlas</span></p></body></html>"))
         self.label_27.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Standard Atlas</span></p></body></html>"))
         self.label_30.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Preview:</span></p></body></html>"))
         self.label_29.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Atlas File :</span></p></body></html>"))
