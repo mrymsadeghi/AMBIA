@@ -47,6 +47,7 @@ num_rows = st_switches.num_rows
 ALEVEL_MASK_THRESH = st_switches.alevel_mask_threshold
 BLEVEL_MASK_THRESH = st_switches.blevel_mask_threshold
 CH_O = st_switches.channel_to_omit
+ALPHA = st_switches.cfos_contrast_enhance
 
 saved_data_pickle = {}
 
@@ -362,30 +363,30 @@ class Slide_Operator:
         ######### Red blobs detection
     
         if red_blob_type == "cFos" and green_blob_type == "cFos":
-            minsigma = 1
-            thresh_r = blobs_parameters['red_blob_min_sigma']
+            minsigma_r = blobs_parameters['red_blob_min_sigma']
+            # thresh_r = blobs_parameters['red_blob_min_sigma']
             maxsigma_r = blobs_parameters['red_blob_max_sigma']
-            numsigma_r = blobs_parameters['red_blob_num_sigma']
+            numsigma_r = 10
+            thresh_r = blobs_parameters['red_blob_num_sigma']
             red_blobs_thresh = blobs_parameters['red_blob_thresh2'] /100
+            img_channel_r_temp = cv.convertScaleAbs(img_channel_r, alpha=ALPHA, beta=0)
             _, ch_thresh = cv.threshold(img_channel_r, thresh_r, 255, cv.THRESH_BINARY)
-            img_channel_r = cv.bitwise_and(img_channel_r, img_channel_r, mask = ch_thresh)
-            
-            blobs_parameters_dict_to_save['red'] = [thresh_r, maxsigma_r, numsigma_r, red_blobs_thresh]
-            thresh_g = blobs_parameters['green_blob_min_sigma']
+            img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
+            cv.imwrite(os.path.join(self.section_savepath, "blobmask_red.png"), ch_thresh)
+            cv.imwrite(os.path.join(self.section_savepath, "img_channel_r_masked.png"), img_channel_r)
+            blobs_parameters_dict_to_save['red'] = [minsigma_r, maxsigma_r, numsigma_r, red_blobs_thresh]
+            minsigma_g = blobs_parameters['green_blob_min_sigma']
             maxsigma_g = blobs_parameters['green_blob_max_sigma']
-            numsigma_g = blobs_parameters['green_blob_num_sigma']
+            thresh_g = blobs_parameters['green_blob_num_sigma']
+            numsigma_g = 10
             green_blobs_thresh = blobs_parameters['green_blob_thresh2']/100
-            
+            img_channel_g_temp = cv.convertScaleAbs(img_channel_g, alpha=ALPHA, beta=0)
             _, ch_thresh = cv.threshold(img_channel_g, thresh_g, 255, cv.THRESH_BINARY)
-            
-            img_channel_g = cv.bitwise_and(img_channel_g, img_channel_g, mask = ch_thresh)
-            
-            #blobs_log_g = pool_cell_detection(img_channel_g, brain_mask_eroded, thresh_g, maxsigma_g, numsigma_g, green_blobs_thresh, "green_cells")
-            blobs_parameters_dict_to_save['green'] = [thresh_g, maxsigma_g, numsigma_g, green_blobs_thresh]
+            img_channel_g = cv.bitwise_and(img_channel_g_temp, img_channel_g_temp, mask = ch_thresh)
+            cv.imwrite(os.path.join(self.section_savepath, "blobmask_gr.png"), ch_thresh)
+            cv.imwrite(os.path.join(self.section_savepath, "img_channel_g_masked.png"), img_channel_g)  
 
-            
-
-            self.blobs_log_r, self.blobs_log_g, matchcount, blob_locs_co = double_pool_cell_detection(img_channel_r, img_channel_g, brain_mask_eroded, minsigma, maxsigma_r, numsigma_r, red_blobs_thresh, maxsigma_g, numsigma_g, green_blobs_thresh)
+            self.blobs_log_r, self.blobs_log_g, matchcount, blob_locs_co = double_pool_cell_detection(img_channel_r, img_channel_g, brain_mask_eroded, minsigma_r, minsigma_g, maxsigma_r, numsigma_r, red_blobs_thresh, maxsigma_g, numsigma_g, green_blobs_thresh)
             
         else:
             if red_blob_type == "Rabies":
@@ -402,14 +403,18 @@ class Slide_Operator:
                 self.blobs_log_r = MoG_detection(img_channel_r, min_corr, stride, brain_mask_eroded)
 
             elif red_blob_type == "cFos":
-                minsigma = 1
-                r_thresh = blobs_parameters['red_blob_min_sigma']
+                minsigma = blobs_parameters['red_blob_min_sigma']
+                numsigma = 10
                 maxsigma = blobs_parameters['red_blob_max_sigma']
-                numsigma = blobs_parameters['red_blob_num_sigma']
+                r_thresh = blobs_parameters['red_blob_num_sigma']
                 red_blobs_thresh = blobs_parameters['red_blob_thresh2'] /100
-
-                ret, ch_thresh = cv.threshold(img_channel_r, r_thresh, 255, cv.THRESH_BINARY)
-                img_channel_r = cv.bitwise_and(img_channel_r, img_channel_r, mask = ch_thresh)
+                print("r_threshg: ", r_thresh)
+                img_channel_r_temp = cv.convertScaleAbs(img_channel_r, alpha=ALPHA, beta=0)
+                cv.imwrite(os.path.join(self.section_savepath, "ch_red_enhanced.png"), img_channel_r_temp)
+                _, ch_thresh = cv.threshold(img_channel_r, r_thresh, 255, cv.THRESH_BINARY)
+                img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
+                cv.imwrite(os.path.join(self.section_savepath, "blobmask_red.png"), ch_thresh)
+                cv.imwrite(os.path.join(self.section_savepath, "img_channel_r_masked.png"), img_channel_r)
 
                 #blobs_log_r = cfos_detection(img_channel_r, minsigma, maxsigma, numsigma, red_blobs_thresh, brain_mask_eroded)
                 self.blobs_log_r = pool_cell_detection(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells")
@@ -429,18 +434,20 @@ class Slide_Operator:
                 self.blobs_log_g = MoG_detection(img_channel_g, min_corr, stride, brain_mask_eroded)
 
             elif green_blob_type == "cFos":
-                minsigma = 1
-                g_thresh = blobs_parameters['green_blob_min_sigma']
+                minsigma = blobs_parameters['green_blob_min_sigma']
+                #g_thresh = blobs_parameters['green_blob_min_sigma']
                 maxsigma = blobs_parameters['green_blob_max_sigma']
-                numsigma = blobs_parameters['green_blob_num_sigma']
+                g_thresh = blobs_parameters['green_blob_num_sigma']
                 green_blobs_thresh = blobs_parameters['green_blob_thresh2']/100
-
+                numsigma = 10
+                print("parameters are")
+                img_channel_g_temp = cv.convertScaleAbs(img_channel_g, alpha=ALPHA, beta=0)
+                cv.imwrite(os.path.join(self.section_savepath, "ch_gr_enhanced.png"), img_channel_g_temp)
                 _, ch_thresh = cv.threshold(img_channel_g, g_thresh, 255, cv.THRESH_BINARY)
-                img_channel_g = cv.bitwise_and(img_channel_g, img_channel_g, mask = ch_thresh)
-
+                img_channel_g = cv.bitwise_and(img_channel_g_temp, img_channel_g_temp, mask = ch_thresh)
+                cv.imwrite(os.path.join(self.section_savepath, "blobmask_gr.png"), ch_thresh)
+                cv.imwrite(os.path.join(self.section_savepath, "img_channel_g_masked.png"), img_channel_g)
                 self.blobs_log_g = pool_cell_detection(img_channel_g, brain_mask_eroded, minsigma, maxsigma, numsigma, green_blobs_thresh, "green_cells")
-
-
                 blobs_parameters_dict_to_save['green'] = [minsigma, maxsigma, numsigma, green_blobs_thresh]
                 #np.save(os.path.join(section_savepath, 'blobparams_g.npy'), g_params_for_save)
             matchcount, blob_locs_co = calculate_colocalized_blobs(self.blobs_log_r, self.blobs_log_g)

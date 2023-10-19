@@ -5,6 +5,8 @@ from multiprocessing import Pool
 from skimage.feature import blob_log
 import Switches_Static as st_switches
 
+
+
 def calculate_colocalized_blobs(blobs_log_r, blobs_log_g):
 
     colocalized_blobs = []
@@ -30,6 +32,25 @@ def MoG_detection(img_channel, maxsigma, numsigma, thresh, brain_mask_eroded):
             blobs_logs.append((int(y), int(x)))
     return blobs_log
 
+    
+def cfos_detection(args):
+    """
+    #args = [img_channel, minsigma, maxsigma, numsigma, thresh, brain_mask_eroded]
+    #intermediate variable blobs_logs_all (numpy.ndarray)
+    #Outputs blobs_log coords of detected cells in blevel image or patches of blevel image (in the case of parallel processing)
+    #blobs_log: list of coords, (r, c)
+    #!! blobs_log only includes list of blobs detected by this function and not the ones added manually by the user"""
+  
+    blobs_log = []
+    blobs_logs_all = blob_log(args[0], min_sigma= args[1],max_sigma=args[2], num_sigma=args[3], threshold=args[4], overlap = st_switches.CELL_OVERLAP)
+    brain_mask_eroded = args[5]
+    for blob in blobs_logs_all:
+        rb, cb, _ = blob
+        if brain_mask_eroded[int(rb), int(cb)]==255:
+            blobs_log.append((int(rb), int(cb)))
+    return blobs_log
+    
+
 def double_cfos_detection(args):
     
     """args = [img_channel, minsigma, maxsigma, numsigma, thresh, brain_mask_eroded]
@@ -40,16 +61,14 @@ def double_cfos_detection(args):
     """
 
     blobs_log_r = []
-    img_channel_adjusted_r = cv.convertScaleAbs(args[0], alpha=2, beta=0) # beta > Brightness control (0-100)
-    blobs_logs_all = blob_log(img_channel_adjusted_r, min_sigma= args[1], max_sigma=args[2], num_sigma=args[3], threshold=args[4], overlap = st_switches.CELL_OVERLAP)
+    blobs_logs_all = blob_log(args[0], min_sigma= args[1], max_sigma=args[2], num_sigma=args[3], threshold=args[4], overlap = st_switches.CELL_OVERLAP)
     brain_mask_eroded = args[9]
     for blob in blobs_logs_all:
         rb, cb, _ = blob
         if brain_mask_eroded[int(rb), int(cb)]==255:
             blobs_log_r.append((int(rb), int(cb)))
     blobs_log_g = []
-    img_channel_adjusted_g = cv.convertScaleAbs(args[5], alpha=2, beta=0) # beta > Brightness control (0-100)
-    blobs_logs_all = blob_log(img_channel_adjusted_g, min_sigma= args[1], max_sigma=args[6], num_sigma=args[7], threshold=args[8], overlap = st_switches.CELL_OVERLAP)
+    blobs_logs_all = blob_log(args[5], min_sigma= args[1], max_sigma=args[6], num_sigma=args[7], threshold=args[8], overlap = st_switches.CELL_OVERLAP)
     for blob in blobs_logs_all:
         rb, cb, _ = blob
         if brain_mask_eroded[int(rb), int(cb)]==255:
@@ -57,9 +76,6 @@ def double_cfos_detection(args):
 
     matchcount, colocalized_blobs = calculate_colocalized_blobs(blobs_log_r, blobs_log_g)
     return blobs_log_r, blobs_log_g, matchcount, colocalized_blobs
-
-
-
 
 
 
@@ -92,8 +108,8 @@ def pool_cell_detection(img_channel, brain_mask_eroded, minsigma, maxsigma, nums
             count+=1
     return blobs_log
 
-def double_pool_cell_detection(img_channel_r, img_channel_g, brain_mask_eroded, minsigma, maxsigma_r, numsigma_r, red_blobs_thresh, maxsigma_g, numsigma_g, green_blobs_thresh):
 
+def double_pool_cell_detection(img_channel_r, img_channel_g, brain_mask_eroded, minsigma_r, minsigma_g, maxsigma_r, numsigma_r, red_blobs_thresh, maxsigma_g, numsigma_g, green_blobs_thresh):
     r,c = img_channel_r.shape[0:2]
     rx, cx = 12, 16
     rstep=r//rx
@@ -104,7 +120,7 @@ def double_pool_cell_detection(img_channel_r, img_channel_g, brain_mask_eroded, 
             img_patch_r = img_channel_r[i*rstep:(i+1)*rstep,j*cstep:(j+1)*cstep]
             img_patch_g = img_channel_g[i*rstep:(i+1)*rstep,j*cstep:(j+1)*cstep]
             brain_mask_patch = brain_mask_eroded[i*rstep:(i+1)*rstep,j*cstep:(j+1)*cstep]
-            patches.append([img_patch_r, minsigma, maxsigma_r, numsigma_r, red_blobs_thresh, img_patch_g, maxsigma_g, numsigma_g, green_blobs_thresh,brain_mask_patch])
+            patches.append([img_patch_r, minsigma_r, maxsigma_r, numsigma_r, red_blobs_thresh, img_patch_g, minsigma_g, maxsigma_g, numsigma_g, green_blobs_thresh,brain_mask_patch])
     with Pool(10) as p:
         all_points_bags = p.map(double_cfos_detection, patches)
         #blobs_log_r0, blobs_log_g0, matchcount, colocalized_blobs0 = p.map(double_cfos_detection, patches)
@@ -137,23 +153,4 @@ def double_pool_cell_detection(img_channel_r, img_channel_g, brain_mask_eroded, 
             matchcount += matchcount0       
             count+=1
     return blobs_log_r, blobs_log_g, matchcount, colocalized_blobs  
-    
-    
-def cfos_detection(args):
-    """
-    #args = [img_channel, minsigma, maxsigma, numsigma, thresh, brain_mask_eroded]
-    #intermediate variable blobs_logs_all (numpy.ndarray)
-    #Outputs blobs_log coords of detected cells in blevel image or patches of blevel image (in the case of parallel processing)
-    #blobs_log: list of coords, (r, c)
-    #!! blobs_log only includes list of blobs detected by this function and not the ones added manually by the user"""
-  
-    blobs_log = []
-    img_channel_adjusted = cv.convertScaleAbs(args[0], alpha=2, beta=0) # beta > Brightness control (0-100)
-    blobs_logs_all = blob_log(img_channel_adjusted, min_sigma= args[1],max_sigma=args[2], num_sigma=args[3], threshold=args[4], overlap = st_switches.CELL_OVERLAP)
-    brain_mask_eroded = args[5]
-    for blob in blobs_logs_all:
-        rb, cb, _ = blob
-        if brain_mask_eroded[int(rb), int(cb)]==255:
-            blobs_log.append((int(rb), int(cb)))
-    return blobs_log
     
