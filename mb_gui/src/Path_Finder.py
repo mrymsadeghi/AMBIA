@@ -11,7 +11,7 @@ def return_atlas_path():
         atlas_prepath= os.path.join(return_root_path(), "Gui_Atlases", "Rat_atlases")
     return atlas_prepath
 def return_prepath():
-    prepath=os.path.join( os.path.dirname(return_root_path()), "Processed") 
+    prepath=os.path.join(return_root_path(), "Processed") 
     if "Processed" in os.listdir(return_root_path()):
         if os.path.isdir(prepath):
             print ("Processed folder already exist, skipping mkdir")
