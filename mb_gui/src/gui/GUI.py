@@ -1213,7 +1213,7 @@ class Ui_MainWindow(object):
 "")
         self.tglRegistrationMode.setMaximum(1)
         self.tglRegistrationMode.setOrientation(QtCore.Qt.Horizontal)
-        #self.tglRegistrationMode.setValue(1)
+        self.tglRegistrationMode.setValue(1)
         self.tglRegistrationMode.setObjectName("tglRegistrationMode")
         self.verticalLayout_6.addWidget(self.groupBox_12)
         self.line_5 = QtWidgets.QFrame(self.groupBox)
