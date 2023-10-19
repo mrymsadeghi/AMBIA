@@ -3,11 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import xml.etree.ElementTree as ET
+import Switches_Static as st_switches
 
+
+CNTR_ENH = st_switches.contrast_enhancement
 
 def histogram_equalization(img_in):
     b,g,r = cv2.split(img_in)
-    clahe = cv2.createCLAHE(clipLimit=12.0, tileGridSize=(5,5))
+    clahe = cv2.createCLAHE(clipLimit=CNTR_ENH, tileGridSize=(10,10))
     equ_b = clahe.apply(b)
     equ_g = clahe.apply(g)
     equ_r = clahe.apply(r)
