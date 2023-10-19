@@ -213,16 +213,15 @@ def func_delauney_registration(section_savepath, source_lms, target_lms, source_
         target_landmark_points = calculate_n_add_corner_points(target_unlabeled_gray, target_landmark_points, reg_code)    
         source_landmark_points = calculate_n_add_corner_points(target_unlabeled_gray, source_landmark_points, reg_code)  
 
+    # for point in source_lms:
+    #     co2, ro2 = point  # Level 3  c, r = xo1, yo1
+    #     cv.circle(source_img, (co2, ro2), 3, (255, 255, 0), -1)
+    # cv.imwrite(os.path.join(section_savepath, f"landmarks_source.png"), source_img)
+    # for point in target_lms:
+    #     co2, ro2 = point  # Level 3  c, r = xo1, yo1
+    #     cv.circle(target_img, (co2, ro2), 3,  (255, 0, 255), -1)
+    # cv.imwrite(os.path.join(section_savepath, f"landmarks_target.png"), target_img)
 
-    for point in source_lms:
-        co2, ro2 = point  # Level 3  c, r = xo1, yo1
-        cv.circle(source_img, (co2, ro2), 3, (255, 255, 0), -1)
-    cv.imwrite(os.path.join(section_savepath, f"landmarks_source.png"), source_img)
-
-    for point in target_lms:
-        co2, ro2 = point  # Level 3  c, r = xo1, yo1
-        cv.circle(target_img, (co2, ro2), 3,  (255, 0, 255), -1)
-    cv.imwrite(os.path.join(section_savepath, f"landmarks_target.png"), target_img)
     points = np.array(target_landmark_points, np.int32)    
     convexhull = cv.convexHull(points)
     rect = cv.boundingRect(convexhull)
@@ -322,7 +321,7 @@ def func_delauney_registration(section_savepath, source_lms, target_lms, source_
     target_nohull = cv.bitwise_and(target_img, target_img, mask=target_hull_mask)
     registered_img = cv.add(target_nohull, target_new_hull)
     cv.imwrite(os.path.join(section_savepath, 'reg_delauney_img.png'), target_new_hull)
-    cv.imwrite(os.path.join(section_savepath, 'target_nohull.png'), target_nohull)
+    # cv.imwrite(os.path.join(section_savepath, 'target_nohull.png'), target_nohull)
     landmarks_coords = {'source': save_source_lm_points, 'target': save_target_lm_points}
     #save_to_pkl("landmarks_coords.pkl", landmarks_coords)
     save_to_saved_data_pickle(landmarks_coords, 'landmarks_coords')

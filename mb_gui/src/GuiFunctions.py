@@ -354,8 +354,8 @@ class Slide_Operator:
             img_channel_r_temp = cv.convertScaleAbs(img_channel_r, alpha=ALPHA, beta=0)
             _, ch_thresh = cv.threshold(img_channel_r, thresh_r, 255, cv.THRESH_BINARY)
             img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
-            cv.imwrite(os.path.join(self.section_savepath, "blobmask_red.png"), ch_thresh)
-            cv.imwrite(os.path.join(self.section_savepath, "img_channel_r_masked.png"), img_channel_r)
+            cv.imwrite(os.path.join(self.section_savepath, "zz_blobmask_red.png"), ch_thresh)
+            cv.imwrite(os.path.join(self.section_savepath, "zz_img_channel_r_masked.png"), img_channel_r)
             blobs_parameters_dict_to_save['red'] = [minsigma_r, maxsigma_r, numsigma_r, red_blobs_thresh]
             minsigma_g = blobs_parameters['green_blob_min_sigma']
             maxsigma_g = blobs_parameters['green_blob_max_sigma']
@@ -365,8 +365,8 @@ class Slide_Operator:
             img_channel_g_temp = cv.convertScaleAbs(img_channel_g, alpha=ALPHA, beta=0)
             _, ch_thresh = cv.threshold(img_channel_g, thresh_g, 255, cv.THRESH_BINARY)
             img_channel_g = cv.bitwise_and(img_channel_g_temp, img_channel_g_temp, mask = ch_thresh)
-            cv.imwrite(os.path.join(self.section_savepath, "blobmask_gr.png"), ch_thresh)
-            cv.imwrite(os.path.join(self.section_savepath, "img_channel_g_masked.png"), img_channel_g)  
+            cv.imwrite(os.path.join(self.section_savepath, "zz_blobmask_gr.png"), ch_thresh)
+            cv.imwrite(os.path.join(self.section_savepath, "zz_img_channel_g_masked.png"), img_channel_g)  
 
             self.blobs_log_r, self.blobs_log_g, matchcount, blob_locs_co = double_pool_cell_detection(img_channel_r, img_channel_g, brain_mask_eroded, minsigma_r, minsigma_g, maxsigma_r, numsigma_r, red_blobs_thresh, maxsigma_g, numsigma_g, green_blobs_thresh)
             
@@ -391,11 +391,11 @@ class Slide_Operator:
                 r_thresh = blobs_parameters['red_blob_num_sigma']
                 red_blobs_thresh = blobs_parameters['red_blob_thresh2'] /100
                 img_channel_r_temp = cv.convertScaleAbs(img_channel_r, alpha=ALPHA, beta=0)
-                cv.imwrite(os.path.join(self.section_savepath, "ch_red_enhanced.png"), img_channel_r_temp)
+                cv.imwrite(os.path.join(self.section_savepath, "zz_ch_red_enhanced.png"), img_channel_r_temp)
                 _, ch_thresh = cv.threshold(img_channel_r, r_thresh, 255, cv.THRESH_BINARY)
                 img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
-                cv.imwrite(os.path.join(self.section_savepath, "blobmask_red.png"), ch_thresh)
-                cv.imwrite(os.path.join(self.section_savepath, "img_channel_r_masked.png"), img_channel_r)
+                cv.imwrite(os.path.join(self.section_savepath, "zz_blobmask_red.png"), ch_thresh)
+                cv.imwrite(os.path.join(self.section_savepath, "zz_img_channel_r_masked.png"), img_channel_r)
                 self.blobs_log_r = pool_cell_detection(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells")
                 blobs_parameters_dict_to_save['red'] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
 
@@ -420,40 +420,24 @@ class Slide_Operator:
                 green_blobs_thresh = blobs_parameters['green_blob_thresh2']/100
                 numsigma = 10
                 img_channel_g_temp = cv.convertScaleAbs(img_channel_g, alpha=ALPHA, beta=0)
-                cv.imwrite(os.path.join(self.section_savepath, "ch_gr_enhanced.png"), img_channel_g_temp)
+                cv.imwrite(os.path.join(self.section_savepath, "zz_ch_gr_enhanced.png"), img_channel_g_temp)
                 _, ch_thresh = cv.threshold(img_channel_g, g_thresh, 255, cv.THRESH_BINARY)
                 img_channel_g = cv.bitwise_and(img_channel_g_temp, img_channel_g_temp, mask = ch_thresh)
-                cv.imwrite(os.path.join(self.section_savepath, "blobmask_gr.png"), ch_thresh)
-                cv.imwrite(os.path.join(self.section_savepath, "img_channel_g_masked.png"), img_channel_g)
+                cv.imwrite(os.path.join(self.section_savepath, "zz_blobmask_gr.png"), ch_thresh)
+                cv.imwrite(os.path.join(self.section_savepath, "zz_img_channel_g_masked.png"), img_channel_g)
                 self.blobs_log_g = pool_cell_detection(img_channel_g, brain_mask_eroded, minsigma, maxsigma, numsigma, green_blobs_thresh, "green_cells")
                 blobs_parameters_dict_to_save['green'] = [minsigma, maxsigma, numsigma, green_blobs_thresh]
+            
+            
+            
             matchcount, blob_locs_co = calculate_colocalized_blobs(self.blobs_log_r, self.blobs_log_g)
 
         
         number_of_blobs_g = len(self.blobs_log_g)
         number_of_blobs_r = len(self.blobs_log_r)
-        #save_to_pkl("blobs_parameters", blobs_parameters)
         saved_data_pickle['blobs_parameters'] = blobs_parameters_dict_to_save
-        ####### colocalized
-        """
-        brain_blevel1 = brain_blevel.copy()
 
-        for point in blobs_log_r:
-            co2, ro2 = point  # Level 3  c, r = xo1, yo1
-            cv.circle(brain_blevel1, (ro2, co2), 7, (0, 0, 255), 1)
-
-        brain_blevel2 = brain_blevel.copy()
-
-        for point in blobs_log_g:
-            co2, ro2 = point  # Level 3  c, r = xo1, yo1
-            cv.circle(brain_blevel2, (ro2, co2), 7, (0, 255, 0), 1)
-        
-        cv.imwrite(os.path.join(section_savepath, "cfos_detected_red.png"), brain_blevel1)
-        cv.imwrite(os.path.join(section_savepath, "cfos_detected_green.png"), brain_blevel2)"""
         screenimg_path = os.path.join(self.section_savepath, 'blevel_eq.png')
-        #np.save(os.path.join(section_savepath, "bloblocs_g_auto.npy"), blob_locs_g)
-        #np.save(os.path.join(section_savepath, "bloblocs_r_auto.npy"), blob_locs_r)
-        #np.save(os.path.join(section_savepath, "bloblocs_co_auto.npy"), blob_locs_co)
         return number_of_blobs_r, number_of_blobs_g, matchcount, screenimg_path, self.blobs_log_r, self.blobs_log_g, blob_locs_co
     
 
@@ -463,11 +447,7 @@ class Slide_Operator:
         red/green_blobs_modified coords are in blevel
         Intermediate variable blob_locs_r/g np array  [r,c]
         """
-        #global Report_df
-        #global Report_subdf
-        #global Bgr_Color_list
-        #global Rgb_Color_list
-        #global saved_data_pickle
+
         regmargin = 5  #for color averaging
         if os.path.exists(self.report_xls_path):
             self.Report_df = pd.read_excel(self.report_xls_path)
@@ -526,7 +506,7 @@ class Slide_Operator:
             if co2 > int(atlas_width/2):
                 redpointtags.append((colorindex,2))  ## 2 for right side
         segcountedr = Counter(redpointtags)
-        cv.imwrite(os.path.join(self.section_savepath, "mappedatlas_unlabled_showimg.jpg"), mappedatlas_unlabled_showimg)
+        cv.imwrite(os.path.join(self.section_savepath, "zz_mappedatlas_unlabled_showimg.jpg"), mappedatlas_unlabled_showimg)
         blobs_coords_registered = {'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
         
         saved_data_pickle['blobs_coords_registered'] = blobs_coords_registered
@@ -760,7 +740,7 @@ class Slide_Operator:
         _, mask = cv.threshold(img_channel, blobs_thresh, 255, cv.THRESH_BINARY)
         kernel = np.ones((3, 3), np.uint8)
         mask_eroded = cv.erode(mask, kernel, iterations=1)
-        cv.imwrite(os.path.join(self.section_savepath, 'red_mask.jpg'), mask_eroded)
+        cv.imwrite(os.path.join(self.section_savepath, 'zz_rabies_mask.jpg'), mask_eroded)
         components, _, stats, centers = cv.connectedComponentsWithStats(mask_eroded, 4, cv.CV_32S)
 
         for compnum in range(1, components):
