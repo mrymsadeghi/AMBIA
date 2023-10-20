@@ -454,7 +454,7 @@ def ardent_transform_points(blobs_coords, color,obj):
     temp_ho, temp_wo = int(ardnt_src_shape[0]/2), int(ardnt_src_shape[1]/2)
     targ_ho, targ_wo = int(ardnt_targ_shape[0]/2), int(ardnt_targ_shape[1]/2)
     # Transform blob coords from blevel to alevel
-    blobs_coords0 = [(int(coords[0] / DFba) + MARGIN, int(coords[1] / DFba) + MARGIN) for coords in blobs_coords] #(c,r)
+    blobs_coords0 = [(int(coords[0] / DFba), int(coords[1] / DFba)) for coords in blobs_coords] #(c,r)
     # Apply mlevel section image resize to atlas image factor
     blobs_coords1 = [(int(coords[0]/(TEMP_DF*ACC_DF)), int(coords[1] /(TEMP_DF*ACC_DF))) for coords in blobs_coords0] #(c,r)
     #adjust coords for ardent
@@ -476,7 +476,7 @@ def func_convert_coords(reg_code, blobs_coords, color,obj):
     elif reg_code == "delauney_reg":
         # Apply Delauney Transformation
         MARGIN, DFba, _ = obj.get_levels_n_factors()
-        blobs_coords0 = [(int(coords[0] / DFba) + MARGIN, int(coords[1] / DFba) + MARGIN) for coords in blobs_coords]
+        blobs_coords0 = [(int(coords[0] / DFba), int(coords[1] / DFba)) for coords in blobs_coords]
         blobs_coords1 = [(int(coords[0]/(TEMP_DF*ACC_DF)), int(coords[1] /(TEMP_DF*ACC_DF))) for coords in blobs_coords0] #(c,r)
         converted_blob_coords = delauney_transform_points(blobs_coords1)
     elif reg_code == "ardent_delauney_reg":

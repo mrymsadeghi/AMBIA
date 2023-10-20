@@ -55,12 +55,15 @@ def write_registration_image(path, img):
 
 
 def get_region_color(regmargin, section):
-    sectioncolors = []
-    for i in range (0,regmargin*2):
-        for j in range(0,regmargin*2):
-            b,g,r = section[i,j]
-            sectioncolors.append((r,g,b))
-    pointcolor2 = max(set(sectioncolors), key = sectioncolors.count)
+    try:
+        sectioncolors = []
+        for i in range (0,regmargin*2):
+            for j in range(0,regmargin*2):
+                b,g,r = section[i,j]
+                sectioncolors.append((r,g,b))
+        pointcolor2 = max(set(sectioncolors), key = sectioncolors.count)
+    except:
+        pointcolor2 = (0,0,0)
     return pointcolor2
 rootpath=Path_Finder.return_root_path()
 
@@ -225,8 +228,7 @@ class Slide_Operator:
             braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa)).convert("RGB")
             braina_dark = np.array(braina)
             braina_rot = cv.rotate(braina_dark, cv.ROTATE_90_CLOCKWISE)
-            section_alevel = cv.copyMakeBorder(braina_rot, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT,
-                                            value=(0, 0, 0))
+            section_alevel = braina_rot
             if st_switches.color_switch_on:
                 section_alevel2 = section_alevel.copy()
                 section_alevel2[:,:,1]= section_alevel[:,:,2]
@@ -253,18 +255,18 @@ class Slide_Operator:
             
             section_alevel_eq0 = histogram_equalization(section_alevel)
             section_blevel_eq = histogram_equalization(section_blevel) 
-            #pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)))
             section_alevel_gr0 = cv.cvtColor(section_alevel_eq0, cv.COLOR_BGR2GRAY)
             section_alevel_gr = cv.convertScaleAbs(section_alevel_gr0, alpha=(255.0/65535.0))
             _, alevel_mask = cv.threshold(section_alevel_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
-            alevel_mask_eroded = cv.erode(alevel_mask, kernel1, iterations=3)
-            cv.imwrite(os.path.join(self.section_savepath,"alevel_mask.png"), alevel_mask)
-            alevel_mask_fixed = self.remove_edge_blob(alevel_mask_eroded)
+            # alevel_mask_eroded = cv.erode(alevel_mask, kernel1, iterations=3)
+            # cv.imwrite(os.path.join(self.section_savepath,"alevel_mask.png"), alevel_mask)
+            # cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_eroded.png"), alevel_mask_eroded)
+            alevel_mask_fixed = self.remove_edge_blob(alevel_mask)
             cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_fixed.png"), alevel_mask_fixed)
-            alevel_mask_fixed =cv.morphologyEx(alevel_mask_fixed, cv.MORPH_CLOSE, kernel2)
+            # alevel_mask_fixed =cv.morphologyEx(alevel_mask_fixed, cv.MORPH_CLOSE, kernel2)
             section_alevel_eq = cv.bitwise_and(section_alevel_eq0, section_alevel_eq0, mask = alevel_mask_fixed)
-            section_alevel = cv.copyMakeBorder(section_alevel, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
-            section_alevel_eq = cv.copyMakeBorder(section_alevel_eq, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
+            # section_alevel = cv.copyMakeBorder(section_alevel, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
+            # section_alevel_eq = cv.copyMakeBorder(section_alevel_eq, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
             if CH_O:
                 section_alevel_eq[:,:,CH_O-1] = 0
             if st_switches.rotate_flag:
@@ -326,15 +328,17 @@ class Slide_Operator:
             img_channel_r = cv.imread(os.path.join(self.section_savepath, 'blevel_2.png'), 0)
             img_channel_g = cv.imread(os.path.join(self.section_savepath, 'blevel_1.png'), 0)
         
-
+        # brain_mask_eroded = cv.erode(brain_mask, kernel1, iterations=3)
         brain_mask_edge_removed = self.remove_edge_blob(brain_mask)
         # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_edge_removed.jpg'), brain_mask_edge_removed)
-        brain_mask_temp = cv.copyMakeBorder(brain_mask_edge_removed, tempMARGIN, tempMARGIN, tempMARGIN, tempMARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
+        # brain_mask_temp = cv.copyMakeBorder(brain_mask_edge_removed, tempMARGIN, tempMARGIN, tempMARGIN, tempMARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
+        brain_mask_temp =brain_mask_edge_removed
         closing = cv.morphologyEx(brain_mask_temp, cv.MORPH_CLOSE, kernel2)
         # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_closed.jpg'), closing)
-        brain_mask_eroded_uncut = cv.erode(closing, kernel2, iterations=3)
+        brain_mask_eroded_uncut = cv.erode(closing, kernel1, iterations=3)
         # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_eroded.jpg'), brain_mask_eroded_uncut)
-        brain_mask_eroded = brain_mask_eroded_uncut[tempMARGIN:-tempMARGIN, tempMARGIN:-tempMARGIN]
+        # brain_mask_eroded = brain_mask_eroded_uncut[tempMARGIN:-tempMARGIN, tempMARGIN:-tempMARGIN]
+        brain_mask_eroded = brain_mask_eroded_uncut
         cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_eroded_cut.jpg'), brain_mask_eroded)
 
 
@@ -491,9 +495,14 @@ class Slide_Operator:
         red_blobs_coords = red_blobs_modified #(c,r
         for point in red_blobs_coords:
             co2, ro2 = point  # Level 3  c, r = xo1, yo1
-            bb,gg,rr = mappedatlas_detection[ro2, co2]
-            pointcolor = (bb,gg,rr) 
-            pointcolor_rgb = (rr,gg,bb) 
+            try:
+                bb,gg,rr = mappedatlas_detection[ro2, co2]
+                pointcolor = (bb,gg,rr) 
+                pointcolor_rgb = (rr,gg,bb) 
+            except:
+                pointcolor = (0,0,0) 
+                pointcolor_rgb = (0,0,0) 
+
             cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 255), -1)
             cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
             cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 255), -1)
@@ -553,9 +562,13 @@ class Slide_Operator:
         greenpointtags = []
         for point in green_blobs_coords:
             co2, ro2 = point  # bLevel
-            bb,gg,rr = mappedatlas_detection[ro2, co2]
-            pointcolor = (bb,gg,rr)
-            pointcolor_rgb = (rr,gg,bb) 
+            try:
+                bb,gg,rr = mappedatlas_detection[ro2, co2]
+                pointcolor = (bb,gg,rr) 
+                pointcolor_rgb = (rr,gg,bb) 
+            except:
+                pointcolor = (0,0,0) 
+                pointcolor_rgb = (0,0,0) 
             cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 255, 0), -1)
             cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
             cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 255, 0), -1)
@@ -604,14 +617,17 @@ class Slide_Operator:
         matchpointtags = []
         if matchcount > 0:
             for point in colocalized_blobs:
-                co2, ro2 = point
+                try:
+                    bb,gg,rr = mappedatlas_detection[ro2, co2]
+                    pointcolor = (bb,gg,rr) 
+                    pointcolor_rgb = (rr,gg,bb) 
+                except:
+                    pointcolor = (0,0,0) 
+                    pointcolor_rgb = (0,0,0) 
                 cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 255, 255), -1)
                 cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 150, 150), 1)
                 cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 255, 255), -1)
                 cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-                bb,gg,rr = mappedatlas_detection[ro2, co2]
-                pointcolor = (bb,gg,rr)
-                pointcolor_rgb = (rr,gg,bb) 
                 colorindex = self.coords_to_colorindex(pointcolor_rgb)
                 #colorindex = recheck_colorindex(colorindex, mappedatlas_detection, yo2, xo2)
                 if colorindex == 0:
