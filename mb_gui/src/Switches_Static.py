@@ -6,7 +6,7 @@ section_classifier_on = False
 color_switch_on = False
 segmentation_1_20_on = False
 section_QL_on = False
-
+#++++++++++++++++++++++++++++++++++++++
 # Image Processing parameters
 rotate_flag=False
 czi_maskthresh = 10                  # This threshold is used for the section detection on the whole slide image

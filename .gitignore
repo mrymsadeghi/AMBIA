@@ -147,7 +147,7 @@ cython_debug/
 *.json
 
 # Configfiles
-myconfigfile.conf
+mb_gui/src/myconfigfile.conf
 
 #folders
 Processed/
