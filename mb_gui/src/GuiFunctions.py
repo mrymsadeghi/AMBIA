@@ -246,7 +246,8 @@ class Slide_Operator:
             num_sections = len(brainboundcoords)
             section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, [], rect=None)
             section_blevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [], rect=None)
-            
+            kernel1 = np.ones((5, 5), np.uint8)
+            kernel2 = np.ones((7, 7), np.uint8)
             section_alevel = czi_channel_regulator(section_alevel)
             section_blevel = czi_channel_regulator(section_blevel)
             
@@ -256,9 +257,11 @@ class Slide_Operator:
             section_alevel_gr0 = cv.cvtColor(section_alevel_eq0, cv.COLOR_BGR2GRAY)
             section_alevel_gr = cv.convertScaleAbs(section_alevel_gr0, alpha=(255.0/65535.0))
             _, alevel_mask = cv.threshold(section_alevel_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
+            alevel_mask_eroded = cv.erode(alevel_mask, kernel1, iterations=3)
             cv.imwrite(os.path.join(self.section_savepath,"alevel_mask.png"), alevel_mask)
-            alevel_mask_fixed = self.remove_edge_blob(alevel_mask)
+            alevel_mask_fixed = self.remove_edge_blob(alevel_mask_eroded)
             cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_fixed.png"), alevel_mask_fixed)
+            alevel_mask_fixed =cv.morphologyEx(alevel_mask_fixed, cv.MORPH_CLOSE, kernel2)
             section_alevel_eq = cv.bitwise_and(section_alevel_eq0, section_alevel_eq0, mask = alevel_mask_fixed)
             section_alevel = cv.copyMakeBorder(section_alevel, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
             section_alevel_eq = cv.copyMakeBorder(section_alevel_eq, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
