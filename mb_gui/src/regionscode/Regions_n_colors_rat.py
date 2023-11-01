@@ -1,5 +1,5 @@
 from .regions_per_sections_rat import regs_per_section, Regions_n_colors_List
-with open("regionscode/regions_rat.txt") as file:
+with open("./mb_gui/src/regionscode/regions_rat.txt") as file:
     Region_names=file.read().split("\n")
 
 def create_regs_n_colors_per_sec_list(atlasnum):

@@ -81,9 +81,7 @@ def save_to_saved_data_pickle(item, keytext):
     saved_data_pickle[keytext] = item
 
 
-def funcLandmarkDetection(imgpath, midheight):
-    LandmarksT = []
-    return LandmarksT
+
 
 class Slide_Operator:
     def __init__(self,prepath):

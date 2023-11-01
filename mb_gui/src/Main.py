@@ -480,8 +480,8 @@ if __name__ == '__main__':
             self.set_tissue_landmark_detection_image(resized_tissue_LM_file_name) #################### must be done in earlier stages or removed from here?	
             self.set_atlas_landmark_detection_image(labeled_atlas_LM_filepath)	
             # This part applies if there is a code for automatic LM detection in the funcLandmarkDetection funtion	
-            tissue_auto_landmarks = guif.funcLandmarkDetection(tissue_landmark_detection_file_name, 400)	
-            atlas_auto_landmarks = guif.funcLandmarkDetection(atlas_landmark_detection_file_name, 500)	
+            tissue_auto_landmarks = []	
+            atlas_auto_landmarks = []
             list_of_autodetected_nodes_list = 1	
             # displays the automatically detected LMs in the GUI	
             self.add_auto_detect_landmark(list_of_autodetected_nodes_list, tissue_auto_landmarks, atlas_auto_landmarks)	
