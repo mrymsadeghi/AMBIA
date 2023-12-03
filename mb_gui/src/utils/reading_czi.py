@@ -7,14 +7,13 @@ import Switches_Static as st_switches
 
 
 CNTR_ENH = st_switches.contrast_enhancement
-
 def histogram_equalization(img_in):
-    b,g,r = cv2.split(img_in)
+    channels= cv2.split(img_in)
+    channels_=[]
     clahe = cv2.createCLAHE(clipLimit=CNTR_ENH, tileGridSize=(10,10))
-    equ_b = clahe.apply(b)
-    equ_g = clahe.apply(g)
-    equ_r = clahe.apply(r)
-    img_out = cv2.merge((equ_b, equ_g, equ_r))
+    for i in channels :
+        channels_.append(clahe.apply(i))
+    img_out = cv2.merge(channels_)
     return img_out
 class CZI:
     def __init__(self,path):
@@ -67,9 +66,11 @@ class CZI:
         #slide = slideio.open_slide(slidepath, "CZI")
         metadata = self.slide.raw_metadata
         root = ET.fromstring(metadata)
+        self.num_channels=0
         #root = etree.fromstring(metadata)
-
-        try:
+        self.channel_types=[]
+        self.get_num_channels(root)
+        """try:
             channels = root[0][4][3][11][0]
 
         except:
@@ -79,12 +80,23 @@ class CZI:
         allchannels = channels.findall('Channel')
 
 
-        num_channels = len(allchannels)
+        num_channels = self.num_channels#len(allchannels)
         channel_types = []
         for channel in allchannels:
-            channel_types.append(channel.attrib['Name'])
-        return num_channels, channel_types
+            channel_types.append(channel.attrib['Name'])"""
+        
+        return self.num_channels, self.channel_types
     
+    def get_num_channels(self,data):
+
+
+        if "dyename" in data.tag.lower():
+            self.num_channels+=1
+            self.channel_types.append(data.text)
+
+        for i in data:
+            
+            self.get_num_channels(i)
 
 
 
@@ -93,12 +105,15 @@ class CZI:
 
 
 
-def czi_channel_regulator(image):
-    if image.shape[2]==2:
-        chan3 = np.zeros_like(image[:,:,0])
-        image = np.dstack((image, chan3))
-    if image.shape[2]>=4:
-        image = image[:,:,0:3]
+def czi_channel_regulator(image,num_channels=None):
+    if not num_channels:
+        if image.shape[2]==2:
+            chan3 = np.zeros_like(image[:,:,0])
+            image = np.dstack((image, chan3))
+        if image.shape[2]>=4:
+            image = image[:,:,0:3]
+    else :
+        image=image[:,:,num_channels]
     return image
 
 

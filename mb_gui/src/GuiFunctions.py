@@ -2,7 +2,7 @@ import numpy as np
 import slideio
 import pandas as pd
 import os,sys
-from AMBIA_M1_CellDetection import pool_cell_detection,double_pool_cell_detection,MoG_detection,calculate_colocalized_blobs
+from AMBIA_M1_CellDetection import pool_cell_detection,MoG_detection,calculate_colocalized_blobs,calc_new_coords,cfos_detection
 from multiprocessing import Pool
 import cv2 as cv
 import multiprocessing
@@ -21,8 +21,9 @@ import time
 from utils.allen_functions import high_to_low_level_regions
 import Path_Finder
 import concurrent.futures
+import time
 
-
+BlobColor_=[(255,0,0),(0,255,0),(0,0,255),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
 settings = EasySettings("myconfigfile.conf")
 if st_switches.atlas_type == "Adult":
     from regionscode.Regions_n_colors_adult import Region_names, general_Region_names, create_regs_n_colors_per_sec_list
@@ -122,11 +123,13 @@ class Slide_Operator:
         elif self.slideformat == "czi":
             self.czi=CZI(slide_fullpath)
             print("It is czi format")
+            
             self.mlevel = st_switches.czi_mlevel  # mask level
             self.blevel = st_switches.czi_blevel  # Blob detection level
             self.alevel = st_switches.czi_alevel  # Atlas mapping level
             slideimgpath = os.path.join(self.savepath, "mlevel.jpg")
             self.num_channels, self.channel_types = self.czi.get_channel_info(slide_fullpath)
+            print ("name of channels",self.channel_types)
             self.czi.czi_preview(slide_fullpath, slideimgpath, self.mlevel)
             self.maskthresh = st_switches.czi_maskthresh
         else:
@@ -213,6 +216,7 @@ class Slide_Operator:
             [xa, ya, wa, ha] = [x * self.dfma, y * self.dfma, w * self.dfma, h * self.dfma]
             Slide = openslide.OpenSlide(self.slidepath)
             Dims = Slide.level_dimensions
+            #if len (st_switches.num_channels)>
             brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb)).convert("RGB")
             brainimg2 = np.array(brainimg)
             section_blevel = cv.rotate(brainimg2, cv.ROTATE_90_CLOCKWISE)
@@ -238,9 +242,9 @@ class Slide_Operator:
             cv.imwrite(os.path.join(self.section_savepath,"blevel.png"), section_blevel)
             cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq)
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_b.png"), blevel_b)
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_g.png"), blevel_g)
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_r.png"), blevel_r)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_2.png"), blevel_b)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_1.png"), blevel_g)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_0.png"), blevel_r)
         
         elif self.slideformat == "czi":
             num_sections = len(brainboundcoords)
@@ -249,7 +253,7 @@ class Slide_Operator:
             kernel1 = np.ones((5, 5), np.uint8)
             kernel2 = np.ones((7, 7), np.uint8)
             section_alevel = czi_channel_regulator(section_alevel)
-            section_blevel = czi_channel_regulator(section_blevel)
+            section_blevel = czi_channel_regulator(section_blevel,st_switches.num_channels)
             
             section_alevel_eq0 = histogram_equalization(section_alevel)
             section_blevel_eq = histogram_equalization(section_blevel) 
@@ -277,14 +281,14 @@ class Slide_Operator:
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel.png"), section_blevel))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq))
-            for channel in range(self.num_channels):
+            for index,channel in enumerate(st_switches.num_channels):
                 #channel_name = self.channel_types[channel]
-                blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
- 
+                #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
+                blevel_channel=section_blevel[...,index]
                 if st_switches.rotate_flag:
-                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{channel}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))
+                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))
                 else : 
-                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{channel}.png"), blevel_channel)
+                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), blevel_channel)
             
 
         blob_detection_file_name = os.path.join(self.section_savepath,"blevel_eq.png")
@@ -295,6 +299,7 @@ class Slide_Operator:
         
         pool.close()
         pool.join()
+        del (pool)
         print(f"Getting Section Images took {time4-time3}")
         return blob_detection_file_name, tissue_lm_detection_filename
     
@@ -306,6 +311,7 @@ class Slide_Operator:
         this also include blob coords (r,c) before adding the blobs added/removed manually by user
         Saves  r_params_for_save, g_params_for_save as npy
         """
+        timer1=time.time()
 
         tempMARGIN = 50  # temporary margin just to avoid the borders when applying thresh, adding the margin is reversed in the parameter brain_mask_eroded
 
@@ -313,18 +319,28 @@ class Slide_Operator:
         brainimgtemp_gray = cv.cvtColor(brain_blevel, cv.COLOR_BGR2GRAY)
         _, brain_mask = cv.threshold(brainimgtemp_gray, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
         cv.imwrite(os.path.join(self.section_savepath, 'brain_mask.jpg'), brain_mask)
-    
+        czi_images={}
+        params={}
+
         if self.slideformat == "mrxs":
             kernel1 = np.ones((11,11), np.uint8)
             kernel2 = np.ones((27, 27), np.uint8)
-            img_channel_r = cv.imread(os.path.join(self.section_savepath, 'blevel_r.png'), 0)
-            img_channel_g = cv.imread(os.path.join(self.section_savepath, 'blevel_g.png'), 0)
+            img_channel_0 = cv.imread(os.path.join(self.section_savepath, 'blevel_0.png'), 0)
+            img_channel_1 = cv.imread(os.path.join(self.section_savepath, 'blevel_1.png'), 0)
+            img_channel_2 = cv.imread(os.path.join(self.section_savepath, 'blevel_2.png'), 0)
+            czi_images[0]=img_channel_0
+            czi_images[1]=img_channel_1
+            czi_images[2]=img_channel_2
 
         elif self.slideformat == "czi":
+
             kernel1 = np.ones((11,11), np.uint8)
             kernel2 = np.ones((11, 11), np.uint8)
-            img_channel_r = cv.imread(os.path.join(self.section_savepath, 'blevel_2.png'), 0)
-            img_channel_g = cv.imread(os.path.join(self.section_savepath, 'blevel_1.png'), 0)
+            for index,channel in enumerate(st_switches.num_channels):
+                name=self.channel_types[channel]
+                czi_images[index]=cv.imread(os.path.join(self.section_savepath, f'blevel_{name}.png'), 0)
+            #img_channel_r = cv.imread(os.path.join(self.section_savepath, 'blevel_2.png'), 0)
+            #img_channel_g = cv.imread(os.path.join(self.section_savepath, 'blevel_1.png'), 0)
         
         # brain_mask_eroded = cv.erode(brain_mask, kernel1, iterations=3)
         brain_mask_edge_removed = self.remove_edge_blob(brain_mask)
@@ -335,118 +351,124 @@ class Slide_Operator:
         # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_closed.jpg'), closing)
         brain_mask_eroded_uncut = cv.erode(closing, kernel1, iterations=3)
         # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_eroded.jpg'), brain_mask_eroded_uncut)
-        # brain_mask_eroded = brain_mask_eroded_uncut[tempMARGIN:-tempMARGIN, tempMARGIN:-tempMARGIN]
+        # brain_mask_eroded -= brain_mask_eroded_uncut[tempMARGIN:-tempMARGIN, tempMARGIN:-tempMARGIN]
         brain_mask_eroded = brain_mask_eroded_uncut
         cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_eroded_cut.jpg'), brain_mask_eroded)
 
 
         ### Parameters
-        red_blob_type = blobs_parameters["red_blob_type"]
-        green_blob_type = blobs_parameters["green_blob_type"]
-        green_blobs_thresh = blobs_parameters["green_blob_thresh"]
-        number_of_blobs_g = 0
-        number_of_blobs_r = 0
+        params[0]=blobs_parameters["c0_blob_type"]
+        params[1]=blobs_parameters["c1_blob_type"]
+        for i in range(2,len (st_switches.num_channels)):
+            params[i]=st_switches.type_channels[i]
+
+        #red_blob_type = blobs_parameters["c0_blob_type"]
+        #green_blob_type = blobs_parameters["c0_blob_type"]
+        c1_blobs_thresh = blobs_parameters["c0_blob_thresh"]
+        number_of_blobs_c1 = 0
+        number_of_blobs_c0 = 0
         blobs_parameters_dict_to_save = {}
         ######### Red blobs detection
-    
-        if red_blob_type == "cFos" and green_blob_type == "cFos":
-            minsigma_r = blobs_parameters['red_blob_min_sigma']
-            # thresh_r = blobs_parameters['red_blob_min_sigma']
-            maxsigma_r = blobs_parameters['red_blob_max_sigma']
-            numsigma_r = 10
-            thresh_r = blobs_parameters['red_blob_num_sigma']
-            red_blobs_thresh = blobs_parameters['red_blob_thresh2'] /100
-            img_channel_r_temp = cv.convertScaleAbs(img_channel_r, alpha=ALPHA, beta=0)
-            _, ch_thresh = cv.threshold(img_channel_r, thresh_r, 255, cv.THRESH_BINARY)
-            img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
-            cv.imwrite(os.path.join(self.section_savepath, "zz_blobmask_red.png"), ch_thresh)
-            cv.imwrite(os.path.join(self.section_savepath, "zz_img_channel_r_masked.png"), img_channel_r)
-            blobs_parameters_dict_to_save['red'] = [minsigma_r, maxsigma_r, numsigma_r, red_blobs_thresh]
-            minsigma_g = blobs_parameters['green_blob_min_sigma']
-            maxsigma_g = blobs_parameters['green_blob_max_sigma']
-            thresh_g = blobs_parameters['green_blob_num_sigma']
-            numsigma_g = 10
-            green_blobs_thresh = blobs_parameters['green_blob_thresh2']/100
-            img_channel_g_temp = cv.convertScaleAbs(img_channel_g, alpha=ALPHA, beta=0)
-            _, ch_thresh = cv.threshold(img_channel_g, thresh_g, 255, cv.THRESH_BINARY)
-            img_channel_g = cv.bitwise_and(img_channel_g_temp, img_channel_g_temp, mask = ch_thresh)
-            cv.imwrite(os.path.join(self.section_savepath, "zz_blobmask_gr.png"), ch_thresh)
-            cv.imwrite(os.path.join(self.section_savepath, "zz_img_channel_g_masked.png"), img_channel_g)  
-
-            self.blobs_log_r, self.blobs_log_g, matchcount, blob_locs_co = double_pool_cell_detection(img_channel_r, img_channel_g, brain_mask_eroded, minsigma_r, minsigma_g, maxsigma_r, numsigma_r, red_blobs_thresh, maxsigma_g, numsigma_g, green_blobs_thresh)
-            
-        else:
-            if red_blob_type == "Rabies":
-                minsize = blobs_parameters['red_blob_min_size']
-                red_blobs_thresh = blobs_parameters["red_blob_thresh"]
-                self.blobs_log_r = self.rabies_detection(img_channel_r, red_blobs_thresh, minsize, brain_mask_eroded)
+        
+        self.blob_logs=[]
+        
+        for index,blob_type in params.items():
+            print ("currently on ",index,blob_type)
+            pool=Pool()
+            if blob_type == "Rabies" or blob_type == "r" :
+                if index in (0,1):
+                    minsize = blobs_parameters['c0_blob_min_size']
+                    red_blobs_thresh = blobs_parameters["c0_blob_thresh"]
+                else :
+                    minsize,red_blobs_thresh = st_switches.params_rabies[index]#lobs_parameters['c0_blob_min_size']
+                    #red_blobs_thresh = blobs_parameters["red_blob_thresh"]
+                self.blob_logs.append( self.rabies_detection(czi_images[index], red_blobs_thresh, minsize, brain_mask_eroded))
                 #r_params_for_save = np.array([minsize,red_blobs_thresh])
-                blobs_parameters_dict_to_save['red'] = [minsize, red_blobs_thresh]
+                blobs_parameters_dict_to_save[index] = [minsize, red_blobs_thresh]
                 #np.save(os.path.join(section_savepath, 'blobparams_r.npy'), r_params_for_save)
 
-            if red_blob_type == "MoG":
+            if blob_type == "MoG" or blob_type == "m":
                 min_corr = blobs_parameters['red_blob_correlation']
                 stride = blobs_parameters['red_blob_stride']
                 self.blobs_log_r = MoG_detection(img_channel_r, min_corr, stride, brain_mask_eroded)
 
-            elif red_blob_type == "cFos":
-                minsigma = blobs_parameters['red_blob_min_sigma']
-                numsigma = 10
-                maxsigma = blobs_parameters['red_blob_max_sigma']
-                r_thresh = blobs_parameters['red_blob_num_sigma']
-                red_blobs_thresh = blobs_parameters['red_blob_thresh2'] /100
-                img_channel_r_temp = cv.convertScaleAbs(img_channel_r, alpha=ALPHA, beta=0)
-                cv.imwrite(os.path.join(self.section_savepath, "zz_ch_red_enhanced.png"), img_channel_r_temp)
-                _, ch_thresh = cv.threshold(img_channel_r, r_thresh, 255, cv.THRESH_BINARY)
-                img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
-                cv.imwrite(os.path.join(self.section_savepath, "zz_blobmask_red.png"), ch_thresh)
-                cv.imwrite(os.path.join(self.section_savepath, "zz_img_channel_r_masked.png"), img_channel_r)
-                self.blobs_log_r = pool_cell_detection(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells")
-                blobs_parameters_dict_to_save['red'] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
-
-            ####### Green blobs detection
-            if green_blob_type == "Rabies":
-                minsize = blobs_parameters['green_blob_min_size']
-                green_blobs_thresh = blobs_parameters['green_blob_thresh']
-                self.blobs_log_g = self.rabies_detection(img_channel_g, green_blobs_thresh, minsize, brain_mask_eroded)
-                #g_params_for_save = np.array()
-                blobs_parameters_dict_to_save['green'] = [minsize,green_blobs_thresh]
-
-            elif green_blob_type == "MoG":
-                min_corr = blobs_parameters['green_blob_correlation']
-                stride = blobs_parameters['green_blob_stride']
-                self.blobs_log_g = MoG_detection(img_channel_g, min_corr, stride, brain_mask_eroded)
-
-            elif green_blob_type == "cFos":
-                minsigma = blobs_parameters['green_blob_min_sigma']
-                #g_thresh = blobs_parameters['green_blob_min_sigma']
-                maxsigma = blobs_parameters['green_blob_max_sigma']
-                g_thresh = blobs_parameters['green_blob_num_sigma']
-                green_blobs_thresh = blobs_parameters['green_blob_thresh2']/100
-                numsigma = 10
-                img_channel_g_temp = cv.convertScaleAbs(img_channel_g, alpha=ALPHA, beta=0)
-                cv.imwrite(os.path.join(self.section_savepath, "zz_ch_gr_enhanced.png"), img_channel_g_temp)
-                _, ch_thresh = cv.threshold(img_channel_g, g_thresh, 255, cv.THRESH_BINARY)
-                img_channel_g = cv.bitwise_and(img_channel_g_temp, img_channel_g_temp, mask = ch_thresh)
-                cv.imwrite(os.path.join(self.section_savepath, "zz_blobmask_gr.png"), ch_thresh)
-                cv.imwrite(os.path.join(self.section_savepath, "zz_img_channel_g_masked.png"), img_channel_g)
-                self.blobs_log_g = pool_cell_detection(img_channel_g, brain_mask_eroded, minsigma, maxsigma, numsigma, green_blobs_thresh, "green_cells")
-                blobs_parameters_dict_to_save['green'] = [minsigma, maxsigma, numsigma, green_blobs_thresh]
-            
-            
-            
-            matchcount, blob_locs_co = calculate_colocalized_blobs(self.blobs_log_r, self.blobs_log_g)
-
+            elif blob_type == "cFos" or blob_type=="c" :
+                if index in (0,1):
+                    minsigma = blobs_parameters['c0_blob_min_sigma']
+                    numsigma = 10
+                    maxsigma = blobs_parameters['c0_blob_max_sigma']
+                    r_thresh = blobs_parameters['c0_blob_thresh']
+                    red_blobs_thresh = blobs_parameters['c0_blob_thresh2'] /100
+                    img_channel_r_temp = cv.convertScaleAbs(czi_images[index], alpha=ALPHA, beta=0)
+                    cv.imwrite(os.path.join(self.section_savepath, f"zz_ch_{self.channel_types[st_switches.num_channels[index]]}_enhanced.png"), img_channel_r_temp)
+                    _, ch_thresh = cv.threshold(czi_images[index], r_thresh, 255, cv.THRESH_BINARY)
+                    img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
+                    cv.imwrite(os.path.join(self.section_savepath, f"zz_blobmask_{self.channel_types[st_switches.num_channels[index]]}.png"), ch_thresh)
+                    cv.imwrite(os.path.join(self.section_savepath, f"zz_img_channel_{self.channel_types[st_switches.num_channels[index]]}_masked.png"), czi_images[index])
+                    #self.blob_logs.append(  pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells"))
+                    patches,rx,cx,rstep,cstep= pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells")
+                    #self.blob_logs.append( pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells"))
+                    
+                    processes=[]
+                    outputs=[]
+                    for i in patches[:10]:
+                        processes.append(pool.apply_async(cfos_detection,[i]))
+                    for i in processes:
+                        outputs.append(i.get())
+                        #OUTPUTS.OUTPUT.append(result.get()
+                    """pool.close()
+                    pool.join()"""
+                    
+                    self.blob_logs.append(calc_new_coords(outputs,rx,cx,rstep,cstep))
+                    blobs_parameters_dict_to_save[index] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
+                else :
+                    minsigma,maxsigma,r_thresh,red_blobs_thresh = st_switches.params_cfos[index]
+                    numsigma = 10
+                    red_blobs_thresh =red_blobs_thresh /100
+                    img_channel_r_temp = cv.convertScaleAbs(czi_images[index], alpha=ALPHA, beta=0)
+                    cv.imwrite(os.path.join(self.section_savepath, f"zz_ch_{self.channel_types[st_switches.num_channels[index]]}_enhanced.png"), img_channel_r_temp)
+                    _, ch_thresh = cv.threshold(czi_images[index], r_thresh, 255, cv.THRESH_BINARY)
+                    img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
+                    cv.imwrite(os.path.join(self.section_savepath, f"zz_blobmask_{self.channel_types[st_switches.num_channels[index]]}.png"), ch_thresh)
+                    cv.imwrite(os.path.join(self.section_savepath,f"zz_img_channel_{self.channel_types[st_switches.num_channels[index]]}_masked.png"), czi_images[index])
+                    patches,rx,cx,rstep,cstep= pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells")
+                    #self.blob_logs.append( pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells"))
+                    
+                    processes=[]
+                    outputs=[]
+                    for i in patches[:10]:
+                        processes.append(pool.apply_async(cfos_detection,[i]))
+                    for i in processes:
+                        outputs.append(i.get())
+                        #OUTPUTS.OUTPUT.append(result.get()
+                    
+                    """pool.close()
+                    pool.join()"""
+                    self.blob_logs.append(calc_new_coords(outputs,rx,cx,rstep,cstep))
+                    
+                    blobs_parameters_dict_to_save[index] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
+                     
+            pool.close()
+            pool.join()
+            del(pool)
+        match_counts,blob_locs_co = calculate_colocalized_blobs(self.blob_logs)#self.blobs_log_r, self.blobs_log_g)
+        # matchcount, blob_locs_co = calculate_colocalized_blobs(self.blob_logs)#self.blobs_log_r, self.blobs_log_g)
         
-        number_of_blobs_g = len(self.blobs_log_g)
-        number_of_blobs_r = len(self.blobs_log_r)
+        
+        #number_of_blobs_g = len(self.blobs_log_g)
+        #number_of_blobs_r = len(self.blobs_log_r)
+        number_of_blobs=[]
+        for i in self.blob_logs:
+            number_of_blobs.append(len(i))
         saved_data_pickle['blobs_parameters'] = blobs_parameters_dict_to_save
 
         screenimg_path = os.path.join(self.section_savepath, 'blevel_eq.png')
-        return number_of_blobs_r, number_of_blobs_g, matchcount, screenimg_path, self.blobs_log_r, self.blobs_log_g, blob_locs_co
+        return number_of_blobs, match_counts, screenimg_path, self.blob_logs, blob_locs_co
+        #return number_of_blobs_r, number_of_blobs_g, matchcount, screenimg_path, self.blobs_log_r, self.blobs_log_g, blob_locs_co
     
 
-    def funcAnalysis(self,atlasnum, brnum, atlas_prepath, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords):
+    #def funcAnalysis(self,atlasnum, brnum, atlas_prepath, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords):
+    def funcAnalysis(self,atlasnum, brnum, atlas_prepath, blobs_coords, colocalized_blobs_coords):
         """ Inputs red/green_blobs_modified as a list of blob coords (c, r)
         these include detected blob coords after user modification
         red/green_blobs_modified coords are in blevel
@@ -481,210 +503,155 @@ class Slide_Operator:
         mappedatlas_unlabled_showimg = cv.imread(unlabeled_atlas_filepath)
         mappedatlas_labled_showimg = cv.imread(labeled_atlas_filepath)
 
-        num_red_blobs = len(red_blobs_modified)
-        num_gr_blobs = len(green_blobs_modified)
+        #num_red_blobs = len(red_blobs_modified)
+        #num_gr_blobs = len(green_blobs_modified)
         atlas_width = mappedatlas_labled_showimg.shape[1]
 
-        redpointcolors = []
-        redpointtags = []
-
+        
         atlas_pil = Image.open(unlabeled_atlas_filepath).convert('RGB')
         atlas_colors = Counter(atlas_pil.getdata())
-        red_blobs_coords = red_blobs_modified #(c,r
-        for point in red_blobs_coords:
-            co2, ro2 = point  # Level 3  c, r = xo1, yo1
-            try:
-                bb,gg,rr = mappedatlas_detection[ro2, co2]
-                pointcolor = (bb,gg,rr) 
-                pointcolor_rgb = (rr,gg,bb) 
-            except:
-                pointcolor = (0,0,0) 
-                pointcolor_rgb = (0,0,0) 
-
-            cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 255), -1)
-            cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-            cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 255), -1)
-            cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-            redpointcolors.append(pointcolor_rgb)
-            colorindex = self.coords_to_colorindex(pointcolor_rgb)
-            if colorindex==0:
-                region = mappedatlas_detection[ro2-regmargin:ro2+regmargin, co2-regmargin:co2+regmargin]
-                pointcolor2 = get_region_color(regmargin, region)
-                colorindex = self.coords_to_colorindex(pointcolor2)
-            if co2 <= int(atlas_width/2):
-                redpointtags.append((colorindex,1))  ## 1 for left side
-            if co2 > int(atlas_width/2):
-                redpointtags.append((colorindex,2))  ## 2 for right side
-        segcountedr = Counter(redpointtags)
-        cv.imwrite(os.path.join(self.section_savepath, "zz_mappedatlas_unlabled_showimg.jpg"), mappedatlas_unlabled_showimg)
-        blobs_coords_registered = {'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
-        
-        saved_data_pickle['blobs_coords_registered'] = blobs_coords_registered
-        #save_to_pkl("blobs_coords_registered.pkl", blobs_coords_registered)
-
-        #np.save(os.path.join(section_savepath, "red_blobs_registered.npy"), red_blobs_modified)
-        #np.save(os.path.join(section_savepath, "green_blobs_registered.npy"), green_blobs_modified)
+        #red_blobs_coords = red_blobs_modified #(c,r
+        saved_data_pickle['blobs_coords_registered'] = blobs_coords
+        increamenter=0
         reportfile = open(os.path.join(self.section_savepath, "reportfile.txt"), 'w')
-        reportfile.write('{} Red Blobs in:\n'.format(len(red_blobs_modified)))
-        reportfile.write('\n')
-
-        dict_red  = {'type': 'Red', 'Total': num_red_blobs}
-        for colortag, count in segcountedr.items():
-            pointcolor = self.Rgb_Color_list[colortag[0]]
-            if colortag[1]==1:
-                label = Regions_n_colors_list[colortag[0]][-3] + "_L"
-            elif colortag[1]==2:
-                label = Regions_n_colors_list[colortag[0]][-3] + "_R"       
-
-            dict_red[label] = count
-            reportfile.write(label + '\t' + str(count) + '\n')
-            
-        reportfile.write('\n')
-
-        row_red = dict(list(dict_base.items()) + list(dict_red.items())+list({'id':1}.items()))
-        for regname in regs_per_section[int(atlasnum)]:
-            regname_l = regname + "_L"
-            regname_r = regname + "_R"
-            if regname_l not in row_red:
-                row_red[regname_l]=0
-            if regname_r not in row_red:
-                row_red[regname_r]=0
-
-        temp=Report_subdf
-
-        Report_subdf = Report_subdf._append(row_red,ignore_index=True)
-        
-        green_blobs_coords = green_blobs_modified #(c,r)
-
-        greenpointcolors = []
-        greenpointtags = []
-        for point in green_blobs_coords:
-            co2, ro2 = point  # bLevel
-            try:
-                bb,gg,rr = mappedatlas_detection[ro2, co2]
-                pointcolor = (bb,gg,rr) 
-                pointcolor_rgb = (rr,gg,bb) 
-            except:
-                pointcolor = (0,0,0) 
-                pointcolor_rgb = (0,0,0) 
-            cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 255, 0), -1)
-            cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-            cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 255, 0), -1)
-            cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
-            greenpointcolors.append(pointcolor_rgb)
-            colorindex = self.coords_to_colorindex(pointcolor_rgb)
-            if colorindex==0:
-                region = mappedatlas_detection[ro2-regmargin:ro2+regmargin, co2-regmargin:co2+regmargin]
-                pointcolor2 = get_region_color(regmargin, region) #RGB
-                colorindex = self.coords_to_colorindex(pointcolor2)
-            if co2 <= int(atlas_width/2):
-                greenpointtags.append((colorindex,1))  ## 1 for left side
-            if co2 > int(atlas_width/2):
-                greenpointtags.append((colorindex,2))  ## 2 for right side
-        segcountedg = Counter(greenpointtags)
-        reportfile.write('{} Green Blobs in:\n'.format(len(green_blobs_modified)))
-        reportfile.write('\n')
-        dict_green = {'type': 'Green', 'Total': num_gr_blobs}
-        dict_regs_n_colors_g = {}
-        for colortag, count in segcountedg.items():
-            pointcolor = self.Rgb_Color_list[colortag[0]]
-            if colortag[1]==1:
-                label = Regions_n_colors_list[colortag[0]][-3] + "_L"
-            elif colortag[1]==2:
-                label = Regions_n_colors_list[colortag[0]][-3] + "_R"               
-            dict_regs_n_colors_g[label] = [pointcolor, count]
-            reportfile.write(label + '\t' + str(count) + '\n')
-            dict_green[label] = count
-        row_green = dict(list(dict_base.items()) + list(dict_green.items())+list({'id':2}.items()))
-    
-        for regname in regs_per_section[int(atlasnum)]:
-            regname_l = regname + "_L"
-            regname_r = regname + "_R"
-            if regname_l not in row_green:
-                row_green[regname_l]=0
-            if regname_r not in row_green:
-                row_green[regname_r]=0
-
-        Report_subdf = Report_subdf._append(row_green, ignore_index=True)
-
-        colocalized_blobs = colocalized_blobs_coords
-        matchcount = len(colocalized_blobs)
-        blob_colocs = np.array(colocalized_blobs)
-        reportfile.write('\n')
-        reportfile.write('{} Co-localization in:\n'.format(matchcount))
-        matchpointtags = []
-        if matchcount > 0:
-            for point in colocalized_blobs:
+        for i in range(len(st_switches.num_channels)):
+            redpointcolors = []
+            redpointtags = []
+            for point in blobs_coords[i]:
+                co2, ro2 = point  # Level 3  c, r = xo1, yo1
                 try:
                     bb,gg,rr = mappedatlas_detection[ro2, co2]
                     pointcolor = (bb,gg,rr) 
                     pointcolor_rgb = (rr,gg,bb) 
                 except:
                     pointcolor = (0,0,0) 
-                    pointcolor_rgb = (0,0,0) 
-                cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 255, 255), -1)
-                cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 150, 150), 1)
-                cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 255, 255), -1)
+                    pointcolor_rgb = (0,0,0)
+                cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, BlobColor_[i], -1)
+                cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
+                cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, BlobColor_[i], -1)
                 cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
                 colorindex = self.coords_to_colorindex(pointcolor_rgb)
-                #colorindex = recheck_colorindex(colorindex, mappedatlas_detection, yo2, xo2)
-                if colorindex == 0:
+                if colorindex==0:
                     region = mappedatlas_detection[ro2-regmargin:ro2+regmargin, co2-regmargin:co2+regmargin]
                     pointcolor2 = get_region_color(regmargin, region)
                     colorindex = self.coords_to_colorindex(pointcolor2)
                 if co2 <= int(atlas_width/2):
-                    matchpointtags.append((colorindex,1))  ## 1 for left side
+                    redpointtags.append((colorindex,1))  ## 1 for left side
                 if co2 > int(atlas_width/2):
-                    matchpointtags.append((colorindex,2))  ## 2 for right side
-            segcountedm = Counter(matchpointtags)
-        else:
-            segcountedm = {}
-
-        reportfile.write('\n')
-        dict_co = {'type': 'CoLoc', 'Total': matchcount}
-
-        if len(matchpointtags)>0:
-            for colortag, count in segcountedm.items():
+                    redpointtags.append((colorindex,2))  ## 2 for right side
+            segcountedr = Counter(redpointtags)
+            cv.imwrite(os.path.join(self.section_savepath, "zz_mappedatlas_unlabled_showimg.jpg"), mappedatlas_unlabled_showimg)
+            reportfile.write(f"{len(blobs_coords[i])} blobs in {self.channel_types[st_switches.num_channels[i]]}({i})")#'{} Red Blobs in:\n'.format(len(blobs_coords[i])))
+            reportfile.write('\n')
+            dict_red  = {'type': f"{self.channel_types[st_switches.num_channels[i]]}({i})", 'Total': str(len(blobs_coords[i]))}
+            dict_regs_n_colors={}
+            for colortag, count in segcountedr.items():
                 pointcolor = self.Rgb_Color_list[colortag[0]]
                 if colortag[1]==1:
                     label = Regions_n_colors_list[colortag[0]][-3] + "_L"
                 elif colortag[1]==2:
-                    label = Regions_n_colors_list[colortag[0]][-3] + "_R"      
-
+                    label = Regions_n_colors_list[colortag[0]][-3] + "_R"       
+                dict_regs_n_colors[label] = [pointcolor, count]
+                dict_red[label] = count
                 reportfile.write(label + '\t' + str(count) + '\n')
-                dict_co[label] = count
-        row_coloc = dict(list(dict_base.items()) + list(dict_co.items())+list({'id':3}.items()))
-        for regname in regs_per_section[int(atlasnum)]:
-            regname_l = regname + "_L"
-            regname_r = regname + "_R"
-            if regname_l not in row_coloc:
-                row_coloc[regname_l]=0
-            if regname_r not in row_coloc:
-                row_coloc[regname_r]=0
+                
+            reportfile.write('\n')
+            row_red = dict(list(dict_base.items()) + list(dict_red.items())+list({'id':i}.items()))
+            for regname in regs_per_section[int(atlasnum)]:
+                regname_l = regname + "_L"
+                regname_r = regname + "_R"
+                if regname_l not in row_red:
+                    row_red[regname_l]=0
+                if regname_r not in row_red:
+                    row_red[regname_r]=0
+            Report_subdf = Report_subdf._append(row_red,ignore_index=True)
+            if "c" in st_switches.type_channels[i].lower():
+                
+                dict_density = {'type': f'Density_{self.channel_types[st_switches.num_channels[i]]}({i})', 'Total': '__'}
+                dict_area = {'type': f'Area_{self.channel_types[st_switches.num_channels[i]]}({i})', 'Total': '__'}
+
+                for regname, value  in dict_regs_n_colors.items():
+
+                    if 'not detected' not in regname.lower():
+                        region_cfos_count = value[1] 
+                        #if st_switches.atlas
+                        region_area = atlas_colors[value[0]]
+                        region_density =  region_cfos_count / region_area 
+                        dict_area[regname] = region_area 
+                        dict_density[regname] = region_density
+
+                row_area = dict(list(dict_base.items()) + list(dict_area.items())+list({'id':i+len(st_switches.num_channels)+increamenter}.items()))
+                Report_subdf = Report_subdf._append(row_area, ignore_index=True)
+
+                row_density = dict(list(dict_base.items()) + list(dict_density.items())+list({'id':i+len(st_switches.num_channels)+increamenter+1}.items()))
+                Report_subdf = Report_subdf._append(row_density, ignore_index=True)
+                increamenter+=1
+            #blobs_coords_registered = blobs_coords#{'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
+            
 
 
-        temp=Report_subdf
-        Report_subdf = Report_subdf._append(row_coloc, ignore_index=True)
+        
+        for i in range(len(colocalized_blobs_coords)):
+            colocalized_blobs = colocalized_blobs_coords[i]
+            matchcount = len(colocalized_blobs)
+            #blob_colocs = np.array(colocalized_blobs)
+            reportfile.write('\n')
+            reportfile.write('{} Co-localization in:\n'.format(matchcount))
+            matchpointtags = []
+            if matchcount > 0:
+                for point in colocalized_blobs:
+                    try:
+                        bb,gg,rr = mappedatlas_detection[ro2, co2]
+                        pointcolor = (bb,gg,rr) 
+                        pointcolor_rgb = (rr,gg,bb) 
+                    except:
+                        pointcolor = (0,0,0) 
+                        pointcolor_rgb = (0,0,0) 
+                    cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 255, 255), -1)
+                    cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 150, 150), 1)
+                    cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 255, 255), -1)
+                    cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
+                    colorindex = self.coords_to_colorindex(pointcolor_rgb)
+                    #colorindex = recheck_colorindex(colorindex, mappedatlas_detection, yo2, xo2)
+                    if colorindex == 0:
+                        region = mappedatlas_detection[ro2-regmargin:ro2+regmargin, co2-regmargin:co2+regmargin]
+                        pointcolor2 = get_region_color(regmargin, region)
+                        colorindex = self.coords_to_colorindex(pointcolor2)
+                    if co2 <= int(atlas_width/2):
+                        matchpointtags.append((colorindex,1))  ## 1 for left side
+                    if co2 > int(atlas_width/2):
+                        matchpointtags.append((colorindex,2))  ## 2 for right side
+                segcountedm = Counter(matchpointtags)
+            else:
+                segcountedm = {}
+
+            reportfile.write('\n')
+            dict_co = {'type': f'CoLoc{i}', 'Total': matchcount}
+
+            if len(matchpointtags)>0:
+                for colortag, count in segcountedm.items():
+                    pointcolor = self.Rgb_Color_list[colortag[0]]
+                    if colortag[1]==1:
+                        label = Regions_n_colors_list[colortag[0]][-3] + "_L"
+                    elif colortag[1]==2:
+                        label = Regions_n_colors_list[colortag[0]][-3] + "_R"      
+
+                    reportfile.write(label + '\t' + str(count) + '\n')
+                    dict_co[label] = count
+            row_coloc = dict(list(dict_base.items()) + list(dict_co.items())+list({'id':i+len(st_switches.num_channels)+increamenter+2}.items()))
+            for regname in regs_per_section[int(atlasnum)]:
+                regname_l = regname + "_L"
+                regname_r = regname + "_R"
+                if regname_l not in row_coloc:
+                    row_coloc[regname_l]=0
+                if regname_r not in row_coloc:
+                    row_coloc[regname_r]=0
 
 
-        dict_density = {'type': 'Density', 'Total': '__'}
-        dict_area = {'type': 'Area', 'Total': '__'}
+            temp=Report_subdf
+            Report_subdf = Report_subdf._append(row_coloc, ignore_index=True)
 
-        for regname, value  in dict_regs_n_colors_g.items():
-            if 'not detected' not in regname.lower():
 
-                region_cfos_count = value[1] 
-                #if st_switches.atlas
-                region_area = atlas_colors[value[0]]
-                region_density =  region_cfos_count / region_area 
-                dict_area[regname] = region_area 
-                dict_density[regname] = region_density
-
-        row_area = dict(list(dict_base.items()) + list(dict_area.items())+list({'id':4}.items()))
-        Report_subdf = Report_subdf._append(row_area, ignore_index=True)
-
-        row_density = dict(list(dict_base.items()) + list(dict_density.items())+list({'id':5}.items()))
-        Report_subdf = Report_subdf._append(row_density, ignore_index=True)
 
         try: 
             if 'id' in self.Report_df:
@@ -700,8 +667,13 @@ class Slide_Operator:
             if brnum in self.Report_df["Section"].values:
                 ms=self.Report_df.index[self.Report_df['Section'] == brnum]
            
-                Report_subdf=Report_subdf.set_index(ms)
-                self.Report_df.loc[ms]=Report_subdf.loc[:]
+                #Report_subdf=Report_subdf.set_index(ms)
+
+                tmp1=self.Report_df.loc[0:min(ms)]
+                tmp2=self.Report_df.loc[max(ms):]
+                self.Report_df=pd.concat([tmp1,Report_subdf,tmp2],axis=0)
+                self.Report_df=self.Report_df.drop_duplicates(["type","Section"])
+                #self.Report_df.loc[ms]=Report_subdf.loc[:]
         
                 #self.Report_df = self.Report_df[self.Report_df['Section'] != brnum]
                 #the line above removes the row with same section number
@@ -782,9 +754,9 @@ class Slide_Operator:
         if self.slideformat == "mrxs":
             blevel_b, blevel_g, blevel_r = cv.split(section_blevel)
 
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_b.png"), blevel_b)
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_g.png"), blevel_g)
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_r.png"), blevel_r)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_0.png"), blevel_b)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_1.png"), blevel_g)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_2.png"), blevel_r)
         elif self.slideformat == "czi":
             blevel_ch0 = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel_0.png")), 1)
             blevel_ch1 = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel_1.png")), 1)
@@ -808,18 +780,20 @@ class Slide_Operator:
         b_file.close()
 
 
-    def calculate_fp_fn_blobs(self,red_blobs_modified, green_blobs_modified):
+    def calculate_fp_fn_blobs(self,final_blobs,detected_blobs):
         #global saved_data_pickle
         blobs_fp_fn = {}
-        red_blobs_modified2 = [(sub[1], sub[0]) for sub in red_blobs_modified] 
-        green_blobs_modified2 = [(sub[1], sub[0]) for sub in green_blobs_modified] 
-        blobs_fp_fn['red_fn'] = [item for item in red_blobs_modified2 if item not in self.blobs_log_r]   #Added_red_points
-        blobs_fp_fn['red_fp'] = [item for item in self.blobs_log_r if item not in red_blobs_modified2]  #Removed red points
-        blobs_fp_fn['green_fn'] = [item for item in green_blobs_modified2 if item not in self.blobs_log_g]   #Added_green_points
-        blobs_fp_fn['green_fp'] = [item for item in self.blobs_log_g if item not in green_blobs_modified2]  #Removed green points
         reportfile = open(os.path.join(self.section_savepath, "reportfile_fpfn.txt"), 'w')
-        reportfile.write(f'\n Red FP: {len(blobs_fp_fn["red_fp"])} and FN: {len(blobs_fp_fn["red_fn"])}')
-        reportfile.write(f'\n Green FP: {len(blobs_fp_fn["green_fp"])} and FN: {len(blobs_fp_fn["green_fn"])}')
+        for i in st_switches.num_channels:
+            blobs_channel=final_blobs[i]
+            blobs_detected=detected_blobs[i]
+            blobs_detected = [(sub[1], sub[0]) for sub in blobs_detected] 
+            b1=f'channel_{self.channel_types[st_switches.num_channels[i]]}({i})_fn'
+            b2=f'channel_{self.channel_types[st_switches.num_channels[i]]}({i})_fp'
+            blobs_fp_fn[b1] = [item for item in blobs_channel if item not in blobs_detected] 
+            blobs_fp_fn[b2] = [item for item in blobs_detected  if item not in blobs_channel] 
+            reportfile.write(f'\n {i} FP: {len(blobs_fp_fn[b2])} and FN: {len(blobs_fp_fn[b1])}')
+
         reportfile.close()
         #blob_locs_r = np.array(red_blobs_modified2)
         #blob_locs_g = np.array(green_blobs_modified2)

@@ -46,6 +46,7 @@ if __name__ == '__main__':
         # Resize PhotoViewers
         MainWindow.resize_photo_viewers()
         active_step=MainWindow.active_step
+
         try:
             # if active_step>1:
             #     return
@@ -119,6 +120,12 @@ if __name__ == '__main__':
     class Window(ControlMainWindow):
         def __init__(self,Functions_object):
             super().__init__()
+            #self.setWindowFlags (QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
+            
+
+            #self.setWindowFlags( QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint )
+            self.showMaximized()
+            self.setFixedSize(self.size())
             self.reg_done=False
             self.GuiFunctions=Functions_object
             self.bind_functions()
@@ -134,28 +141,48 @@ if __name__ == '__main__':
             Gets the report image and report data(reportfile.txt) from funcAnalysis function
             Displays the report image and data
             '''
-
+            #ouput of detection
+            #self.number_of_blobs,self.CO_COUNT,self._,self.blobs_log,self.colocalized_blobs 
             #global report_image_file_name
             error_msg_2 = QMessageBox()
             error_msg_2.setWindowTitle("Error")
             error_msg_2.setText("Report File might be open in Excel. Please close it and try again.")
-            red_blobs_modified, green_blobs_modified = self.get_blobs()
-            self.GuiFunctions.calculate_fp_fn_blobs(red_blobs_modified, green_blobs_modified)
-            red_converted_coords, green_converted_coords, colocalized_converted_coords  = [], [], []
-            colocalized_blobs_coords = self.get_coloc_blobs()
-            blobs_coords_orig = {'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
-            if len(red_blobs_modified)>0:
+            #red_blobs_modified, green_blobs_modified = self.get_blobs()
+            self.GuiFunctions.calculate_fp_fn_blobs(self.final_blobs,self.blobs_log)#red_blobs_modified, green_blobs_modified)
+            #red_converted_coords, green_converted_coords, colocalized_converted_coords  = [], [], []
+            #colocalized_blobs_coords = self.get_coloc_blobs()
+            #blobs_coords_orig = {'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
+            blobs_coords_orig={}
+            registered_coords={}
+            colocalized_converted_coords=[]
+            for i in range(len(st_switches.num_channels)):
+                blobs_coords_orig[i]=self.final_blobs[i]
+                if len(self.final_blobs)>0:
+                    try:registered_coords[i]=func_convert_coords(self.reg_code,self.final_blobs[i], str(i),self.GuiFunctions)
+                    except : registered_coords[i]=[]
+            for i in  self.final_colocalized_blobs:
+                tmp=[]
+                #for j in i :
+                try:tmp.append( func_convert_coords(self.reg_code, i, 'coloc',self.GuiFunctions))
+                except:
+                    tmp.append([])
+                colocalized_converted_coords.append( tmp)
+            registered_coords["coloc"]=colocalized_converted_coords
+            """if len(red_blobs_modified)>0:
                 red_converted_coords = func_convert_coords(self.reg_code, red_blobs_modified, 'red',self.GuiFunctions)
             if len(green_blobs_modified)>0:
                 green_converted_coords = func_convert_coords(self.reg_code, green_blobs_modified, 'green',self.GuiFunctions)
             if len(colocalized_blobs_coords)>0:
-                colocalized_converted_coords = func_convert_coords(self.reg_code, colocalized_blobs_coords, 'coloc',self.GuiFunctions)
+                colocalized_converted_coords = func_convert_coords(self.reg_code,
+                colocalized_blobs_coords, 'coloc',self.GuiFunctions)"""
             guif.save_to_saved_data_pickle(blobs_coords_orig, 'blobs_coords_orig')
             #GuiFunctions.save_to_pkl("blobs_coords_orig.pkl", blobs_coords_orig)
             reg_code_status = dy_switches.get_reg_code()
             atlas_path = self.get_atlas_preview_name()
             atlasnum = os.path.split(atlas_path)[-1].split(".")[0]
-            mappingimgpath, report_image_file_name = self.GuiFunctions.funcAnalysis(atlasnum, self.brnum, atlas_prepath, red_converted_coords, green_converted_coords, colocalized_converted_coords)
+            mappingimgpath, report_image_file_name = self.GuiFunctions.funcAnalysis(atlasnum, self.brnum, atlas_prepath,
+                                                                                    registered_coords,
+                                                                                    colocalized_converted_coords)
             if report_image_file_name == "em2":
                 error_msg_2.exec_()
                 return
@@ -285,9 +312,11 @@ if __name__ == '__main__':
             #blob_detection_result = self.is_blob_detection_perform()
             if self.is_blob_detection_perform():
                 status_message = "Neuron detection  is accepted"
-                red_blobs, green_blobs = self.get_blobs()
-                _, colocalized_blobs = calculate_colocalized_blobs(red_blobs, green_blobs)
-                self.set_coloc_blobs(colocalized_blobs)
+                #red_blobs, green_blobs = self.get_blobs()
+                self.final_blobs=self.get_blobs()
+                #_, colocalized_blobs = calculate_colocalized_blobs(red_blobs, green_blobs)
+                self.final_colocalized_blobs_count, self.final_colocalized_blobs = calculate_colocalized_blobs(self.final_blobs)
+                self.set_coloc_blobs(self.final_colocalized_blobs)
                 self.finish_step(2)
                 self.go_to_next_step()
                 # Set Atlas PreviewFile  Default
@@ -337,10 +366,11 @@ if __name__ == '__main__':
 
 
                 
-                RED_COUNT, GREEN_COUNT,CO_COUNT,_,blobs_log_r,blobs_log_g,colocalized_blobs = self.GuiFunctions.funcBlobDetection(self.brnum, blobs_parameters)
-                self.add_auto_detect_blobs(blobs_log_r,blobs_log_g,colocalized_blobs) # Displays the detected Neurons with circles in GUI
+                self.number_of_blobs,self.CO_COUNT,self._,self.blobs_log,self.colocalized_blobs = self.GuiFunctions.funcBlobDetection(self.brnum, blobs_parameters)
+                self.add_auto_detect_blobs(self.blobs_log,self.colocalized_blobs) # Displays the detected Neurons with circles in GUI
                 #MainWindow.set_blob_detection_image(blob_detection_file_name)
-                self.set_blob_detection_cells_count(RED_COUNT, GREEN_COUNT, CO_COUNT) # Sets the counted Neuron numbers in GUI
+                self.set_blob_detection_cells_count(self.number_of_blobs[0], self.number_of_blobs[1], self.CO_COUNT)
+                #self.set_blob_detection_cells_count(RED_COUNT, GREEN_COUNT, CO_COUNT) # Sets the counted Neuron numbers in GUI
                 self.blob_detection_perform() # Flags that blob detection is done
                 status_message = "Neuron detection is Done!"
                 self.change_status_bar_default()  
@@ -360,7 +390,6 @@ if __name__ == '__main__':
 
             self.set_blob_detection_image(blob_detection_file_name)
             self.set_tissue_landmark_detection_image(tissue_lm_detection_filename)
-            
             status_message = "Section : {} has been selected".format(self.brnum)
             self.set_status_bar_text(status_message)
             self.change_status_bar_default()  
@@ -396,6 +425,7 @@ if __name__ == '__main__':
                 self.set_brain_number_in_statusbar(self.brnum)
                 self.remove_all_blobs()
                 self.change_status_bar_default()
+                
                 status_message = "Section : {} has been selected".format(self.brnum)
                 self.finish_step(1)
                 self.go_to_next_step()

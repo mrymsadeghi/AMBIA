@@ -3,8 +3,12 @@
 from . import regions_per_sections_adult as rpsa
 #import regions_per_sections_adult as rpsa
 
-with open("./mb_gui/src/regionscode/regions_adult.txt","r") as file:
-    Region_names=file.read().split("\n")
+try :
+    with open("./mb_gui/src/regionscode/regions_adult.txt","r") as file:# open("regionscode/regions_adult.txt","r") as file:#
+        Region_names=file.read().split("\n")
+except :
+    with open("regionscode/regions_adult.txt","r") as file:#
+        Region_names=file.read().split("\n")
 def create_regs_n_colors_per_sec_list(atlasnum):
     regs_per_sec_List = rpsa.regs_per_section[int(atlasnum)] #list
     regs_n_colors_per_sec_List = [('root', 'not detected', '000000', (0, 0, 0))]

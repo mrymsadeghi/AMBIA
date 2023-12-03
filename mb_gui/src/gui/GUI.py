@@ -9,9 +9,38 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from Switches_Static import num_channels
 
 class Ui_MainWindow(object):
+    def property_Settings(self):
+        self.properties={}
+        print (num_channels)
+        for i in num_channels:
+            self.PropertySetting = QtWidgets.QStackedWidget(self.gboxCellSettings)
+            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Ignored)
+            sizePolicy.setHorizontalStretch(0)
+            sizePolicy.setVerticalStretch(0)
+            sizePolicy.setHeightForWidth(self.PropertySetting.sizePolicy().hasHeightForWidth())
+            self.PropertySetting.setSizePolicy(sizePolicy)
+            self.PropertySetting.setMinimumSize(QtCore.QSize(0, 120))
+            self.PropertySetting.setObjectName(f"channel{str(i)}PropertySetting")
+            self.PropertySetting.addWidget(self.method1)
+            self.PropertySetting.addWidget(self.method2)
+            self.PropertySetting.addWidget(self.method3)
+            self.verticalLayout_7.addWidget(self.PropertySetting)
+            self.PropertySetting.setCurrentIndex(0)
+            Types = QtWidgets.QComboBox(self.gboxCellSettings)
+            Types.setMinimumSize(QtCore.QSize(0, 25))
+            Types.setMaximumSize(QtCore.QSize(16777215, 25))
+            Types.setStyleSheet("color:white;")
+            Types.setObjectName(f"{str(i)}Types")
+            values=['Rabies','MoG','cFos']
+            Types.addItems(values)
+            self.verticalLayout_7.addWidget(Types)
+            #self.PropertySetting.addWidget(Types)
+
+            self.properties[i]=self.PropertySetting
+            
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1250, 702)
@@ -740,7 +769,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_12.setSpacing(0)
         self.verticalLayout_12.setObjectName("verticalLayout_12")
         self.gboxCellSettings = QtWidgets.QGroupBox(self.scrollCell)
-        self.gboxCellSettings.setTitle("")
+        self.gboxCellSettings.setTitle("Parameters")
         self.gboxCellSettings.setFlat(True)
         self.gboxCellSettings.setCheckable(False)
         self.gboxCellSettings.setObjectName("gboxCellSettings")
@@ -763,6 +792,8 @@ class Ui_MainWindow(object):
         self.cmbRedTypes.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.cmbRedTypes.setStyleSheet("")
         self.cmbRedTypes.setObjectName("cmbRedTypes")
+
+
         self.verticalLayout_7.addWidget(self.cmbRedTypes)
         self.redPropertySetting = QtWidgets.QStackedWidget(self.gboxCellSettings)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Ignored)
@@ -1490,7 +1521,7 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" color:#ffffff;\">Help</span></p></body></html>"))
         self.label_8.setText(_translate("MainWindow", "<html><head/><body><p><a name=\"docs-internal-guid-1e5e96ab-7fff-a2ed-308b-1fde502936c4\"/><span style=\" font-family:\'Arial\'; font-size:11pt; font-weight:600; color:#ffffff; background-color:transparent;\">A</span><span style=\" font-family:\'Arial\'; font-size:11pt; font-weight:600; color:#ffffff; background-color:transparent;\">dd/ Remove detections</span></p><p><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">Right click to activate editing mode</span></p><p><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">Left click on the screen to add a blob</span></p><p><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">Press the shift button to change the blob color</span></p><p><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">Alt + L-click: remove the blob</span></p></body></html>"))
         self.label_6.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" color:#ffffff;\">Parameters</span></p></body></html>"))
-        self.label_25.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; font-weight:600; color:#fa3535;\">Red Cell Type:</span></p></body></html>"))
+        self.label_25.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; font-weight:600; color:#fa3535;\">First Channel Cell Type:</span></p></body></html>"))
         self.label_26.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Threshold :</span></p></body></html>"))
         self.label_24.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Min Size :</span></p></body></html>"))
         self.label_55.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:6pt; color:#d3d7cf;\">range (0-100) eg 4</span></p></body></html>"))
@@ -1507,7 +1538,7 @@ class Ui_MainWindow(object):
         self.label_38.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:6pt; color:#d3d7cf;\">range (0-50)</span></p></body></html>"))
         self.label_39.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:6pt; color:#d3d7cf;\">range (0-255)</span></p></body></html>"))
         self.label_40.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:6pt; color:#d3d7cf;\">range (0-10)</span></p></body></html>"))
-        self.label_11.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; font-weight:600; color:#73d216;\">Green Cell Type:</span></p></body></html>"))
+        self.label_11.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; font-weight:600; color:#73d216;\">Second Channel Cell Type:</span></p></body></html>"))
         self.label_41.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Threshold :</span></p></body></html>"))
         self.label_42.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Min Size :</span></p></body></html>"))
         self.label_58.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:6pt; color:#d3d7cf;\">range (0-100) eg 4</span></p></body></html>"))
@@ -1567,5 +1598,7 @@ class Ui_MainWindow(object):
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:12px; font-weight:600; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Ubuntu\'; font-size:10pt; font-weight:400; color:#ffffff;\">Final Report :</span></p></body></html>"))
         self.mainTab.setTabText(self.mainTab.indexOf(self.tabAnalysis), _translate("MainWindow", "Report"))
+        #self.property_Settings()
+
 from gui.CustomWidgests import MySwitch, PhotoViewer
 import gui.resource_rc

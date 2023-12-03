@@ -32,7 +32,6 @@ if st_switches.section_QL_on:
     vol, cm_left, cm_right, level_map, tree = get_volume(os.path.join(prepath, "models", "Allen_files","annotation_10_ccf17.nrrd"), region_names)
 
 
-#SL_classifier_model_path = "E:/PyProjects/MB_GUI/models/single_regression_resnet50v2_v11"
 SL_classifier_model_path = os.path.join(prepath, "models", "single_regression_resnet50v2_v11")
 QL_classifier_model_path = os.path.join(prepath, "models", "quadrant_regression_resnet101_v2")
 seg20_model_path = os.path.join(prepath, "models", "seg_1_22_5")

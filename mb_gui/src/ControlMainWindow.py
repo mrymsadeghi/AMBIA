@@ -1,4 +1,4 @@
-from gui.CustomWidgests import BlobColor
+from gui.CustomWidgests import BlobColor,BlobColor_,BlobColor_object
 from gui.GUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QPoint,Qt
@@ -12,14 +12,14 @@ import os
 import time
 from pathlib import Path 
 from easysettings import EasySettings
-from Switches_Static import blob1_size_red, blob1_size_green, blob1_size_yellow
+from Switches_Static import blob_sizes# blob1_size_red, blob1_size_green, blob1_size_yellow
 
 
 settings = EasySettings("myconfigfile.conf")
 #some settings
-BLOB_SIZE_GREEN = blob1_size_green
+"""BLOB_SIZE_GREEN = blob1_size_green
 BLOB_SIZE_RED = blob1_size_red #Size of circles in the blob detection step displayed on the
-BLOB_SIZE_YELLOW = blob1_size_yellow
+BLOB_SIZE_YELLOW = blob1_size_yellow"""
 
 
 # 
@@ -124,27 +124,27 @@ class ControlMainWindow(QMainWindow):
         
     def load_default_blob_parameters(self):
         try:
-            self.ui.cmbRedTypes.setCurrentText(settings.get("red_blob_type"))
-            self.ui.txtRedMinSize.setValue(settings.get("red_blob_min_size"))
-            self.ui.txtRedThresh.setValue(settings.get("red_blob_thresh"))
-            self.ui.txtRedCorrelation.setValue(settings.get("red_blob_correlation"))
-            self.ui.txtRedStride.setValue(settings.get("red_blob_stride"))
-            self.ui.txtRedMinSigma.setValue(settings.get("red_blob_min_sigma"))
-            self.ui.txtRedMaxSigma.setValue(settings.get("red_blob_max_sigma"))
+            self.ui.cmbRedTypes.setCurrentText(settings.get("c0_blob_type"))
+            self.ui.txtRedMinSize.setValue(settings.get("c0_blob_min_size"))
+            self.ui.txtRedThresh.setValue(settings.get("c0_blob_thresh"))
+            self.ui.txtRedCorrelation.setValue(settings.get("c0_blob_correlation"))
+            self.ui.txtRedStride.setValue(settings.get("c0_blob_stride"))
+            self.ui.txtRedMinSigma.setValue(settings.get("c0_blob_min_sigma"))
+            self.ui.txtRedMaxSigma.setValue(settings.get("c0_blob_max_sigma"))
             # self.ui.txtRedNumSigma.setValue(settings.get("red_blob_num_sigma"))
-            self.ui.txtRedThreshold2.setValue(settings.get("red_blob_thresh2"))
+            self.ui.txtRedThreshold2.setValue(settings.get("c0_blob_thresh2"))
 
         
            
-            self.ui.cmbGreenTypes.setCurrentText(settings.get("green_blob_type"))
-            self.ui.txtGreenMinSize.setValue(settings.get("green_blob_min_size"))
-            self.ui.txtGreenThresh.setValue(settings.get("green_blob_thresh"))
-            self.ui.txtGreenCorrelation.setValue(settings.get("green_blob_correlation"))
-            self.ui.txtGreenStride.setValue(settings.get("green_blob_stride"))
-            self.ui.txtGreenMinSigma.setValue(settings.get("green_blob_min_sigma"))
-            self.ui.txtGreenMaxSigma.setValue(settings.get("green_blob_max_sigma"))
+            self.ui.cmbGreenTypes.setCurrentText(settings.get("c1_blob_type"))
+            self.ui.txtGreenMinSize.setValue(settings.get("c1_blob_min_size"))
+            self.ui.txtGreenThresh.setValue(settings.get("c1_blob_thresh"))
+            self.ui.txtGreenCorrelation.setValue(settings.get("c1_blob_correlation"))
+            self.ui.txtGreenStride.setValue(settings.get("c1_blob_stride"))
+            self.ui.txtGreenMinSigma.setValue(settings.get("c1_blob_min_sigma"))
+            self.ui.txtGreenMaxSigma.setValue(settings.get("c1_blob_max_sigma"))
             # self.ui.txtGreenNumSigma.setValue(settings.get("green_blob_num_sigma"))
-            self.ui.txtGreenThreshold2.setValue(settings.get("green_blob_thresh2"))
+            self.ui.txtGreenThreshold2.setValue(settings.get("c1_blob_thresh2"))
 
            
         except:
@@ -706,68 +706,68 @@ class ControlMainWindow(QMainWindow):
         blob_detection_parameters = {}
 
         ## Red Blob parameters
-        blob_detection_parameters['red_blob_type'] = self.ui.cmbRedTypes.currentText()
+        blob_detection_parameters['c0_blob_type'] = self.ui.cmbRedTypes.currentText()
 
-        blob_detection_parameters['red_blob_min_size'] = self.ui.txtRedMinSize.value()
-        blob_detection_parameters['red_blob_thresh'] = self.ui.txtRedThresh.value()
+        blob_detection_parameters['c0_blob_min_size'] = self.ui.txtRedMinSize.value()
+        blob_detection_parameters['c0_blob_thresh'] = self.ui.txtRedThresh.value()
 
-        blob_detection_parameters['red_blob_correlation'] = self.ui.txtRedCorrelation.value()
-        blob_detection_parameters['red_blob_stride'] = self.ui.txtRedStride.value()
+        blob_detection_parameters['c0_blob_correlation'] = self.ui.txtRedCorrelation.value()
+        blob_detection_parameters['c0_blob_stride'] = self.ui.txtRedStride.value()
 
-        blob_detection_parameters['red_blob_min_sigma'] = self.ui.txtRedMinSigma.value()
-        blob_detection_parameters['red_blob_max_sigma'] = self.ui.txtRedMaxSigma.value()
+        blob_detection_parameters['c0_blob_min_sigma'] = self.ui.txtRedMinSigma.value()
+        blob_detection_parameters['c0_blob_max_sigma'] = self.ui.txtRedMaxSigma.value()
         
         # Change hard code
-        blob_detection_parameters['red_blob_num_sigma'] =RED_BLOB_NUM_SIGMA
+        blob_detection_parameters['c0_blob_num_sigma'] =RED_BLOB_NUM_SIGMA
         # blob_detection_parameters['red_blob_num_sigma'] = self.ui.txtRedNumSigma.value()
 
 
-        blob_detection_parameters['red_blob_thresh2'] = self.ui.txtRedThreshold2.value()
+        blob_detection_parameters['c0_blob_thresh2'] = self.ui.txtRedThreshold2.value()
         
 
         ## Green Blob parameters
-        blob_detection_parameters['green_blob_type'] = self.ui.cmbGreenTypes.currentText()
+        blob_detection_parameters['c1_blob_type'] = self.ui.cmbGreenTypes.currentText()
 
-        blob_detection_parameters['green_blob_min_size'] = self.ui.txtGreenMinSize.value()
-        blob_detection_parameters['green_blob_thresh'] = self.ui.txtGreenThresh.value()
+        blob_detection_parameters['c1_blob_min_size'] = self.ui.txtGreenMinSize.value()
+        blob_detection_parameters['c1_blob_thresh'] = self.ui.txtGreenThresh.value()
 
-        blob_detection_parameters['green_blob_correlation'] = self.ui.txtGreenCorrelation.value()
-        blob_detection_parameters['green_blob_stride'] = self.ui.txtGreenStride.value()
+        blob_detection_parameters['c1_blob_correlation'] = self.ui.txtGreenCorrelation.value()
+        blob_detection_parameters['c1_blob_stride'] = self.ui.txtGreenStride.value()
 
-        blob_detection_parameters['green_blob_min_sigma'] = self.ui.txtGreenMinSigma.value()
-        blob_detection_parameters['green_blob_max_sigma'] = self.ui.txtGreenMaxSigma.value()
+        blob_detection_parameters['c1_blob_min_sigma'] = self.ui.txtGreenMinSigma.value()
+        blob_detection_parameters['c1_blob_max_sigma'] = self.ui.txtGreenMaxSigma.value()
 
         # Change hard code
-        blob_detection_parameters['green_blob_num_sigma'] = GREEN_BLOB_NUM_SIGMA
+        blob_detection_parameters['c1_blob_num_sigma'] = GREEN_BLOB_NUM_SIGMA
         # blob_detection_parameters['green_blob_num_sigma'] = self.ui.txtGreenNumSigma.value()
         
-        blob_detection_parameters['green_blob_thresh2'] = self.ui.txtGreenThreshold2.value()
+        blob_detection_parameters['c1_blob_thresh2'] = self.ui.txtGreenThreshold2.value()
         
       # Save Settings
         
-        settings.set("red_blob_type", blob_detection_parameters['red_blob_type'])
+        settings.set("c0_blob_type", blob_detection_parameters['c0_blob_type'])
         
-        settings.set("red_blob_min_size", blob_detection_parameters['red_blob_min_size'])
-        settings.set("red_blob_thresh", blob_detection_parameters['red_blob_thresh'])
+        settings.set("c0_blob_min_size", blob_detection_parameters['c0_blob_min_size'])
+        settings.set("c0_blob_thresh", blob_detection_parameters['c0_blob_thresh'])
 
-        settings.set("red_blob_correlation", blob_detection_parameters['red_blob_correlation'])
-        settings.set("red_blob_stride", blob_detection_parameters['red_blob_stride'])
-        settings.set("red_blob_min_sigma", blob_detection_parameters['red_blob_min_sigma'])
-        settings.set("red_blob_max_sigma", blob_detection_parameters['red_blob_max_sigma'])
-        settings.set("red_blob_num_sigma", blob_detection_parameters['red_blob_num_sigma'])
-        settings.set("red_blob_thresh2", blob_detection_parameters['red_blob_thresh2'])
+        settings.set("c0_blob_correlation", blob_detection_parameters['c0_blob_correlation'])
+        settings.set("c0_blob_stride", blob_detection_parameters['c0_blob_stride'])
+        settings.set("c0_blob_min_sigma", blob_detection_parameters['c0_blob_min_sigma'])
+        settings.set("c0_blob_max_sigma", blob_detection_parameters['c0_blob_max_sigma'])
+        settings.set("c0_blob_num_sigma", blob_detection_parameters['c0_blob_num_sigma'])
+        settings.set("c0_blob_thresh2", blob_detection_parameters['c0_blob_thresh2'])
 
 
         
-        settings.set("green_blob_type", blob_detection_parameters['green_blob_type'])
-        settings.set("green_blob_min_size", blob_detection_parameters['green_blob_min_size'])
-        settings.set("green_blob_thresh", blob_detection_parameters['green_blob_thresh'])
-        settings.set("green_blob_correlation", blob_detection_parameters['green_blob_correlation'])
-        settings.set("green_blob_stride", blob_detection_parameters['green_blob_stride'])
-        settings.set("green_blob_min_sigma", blob_detection_parameters['green_blob_min_sigma'])
-        settings.set("green_blob_max_sigma", blob_detection_parameters['green_blob_max_sigma'])
-        settings.set("green_blob_num_sigma", blob_detection_parameters['green_blob_num_sigma'])
-        settings.set("green_blob_thresh2", blob_detection_parameters['green_blob_thresh2'])
+        settings.set("c1_blob_type", blob_detection_parameters['c1_blob_type'])
+        settings.set("c1_blob_min_size", blob_detection_parameters['c1_blob_min_size'])
+        settings.set("c1_blob_thresh", blob_detection_parameters['c1_blob_thresh'])
+        settings.set("c1_blob_correlation", blob_detection_parameters['c1_blob_correlation'])
+        settings.set("c1_blob_stride", blob_detection_parameters['c1_blob_stride'])
+        settings.set("c1_blob_min_sigma", blob_detection_parameters['c1_blob_min_sigma'])
+        settings.set("c1_blob_max_sigma", blob_detection_parameters['c1_blob_max_sigma'])
+        settings.set("c1_blob_num_sigma", blob_detection_parameters['c1_blob_num_sigma'])
+        settings.set("c1_blob_thresh2", blob_detection_parameters['c1_blob_thresh2'])
         settings.save()
 
         return blob_detection_parameters
@@ -826,37 +826,25 @@ class ControlMainWindow(QMainWindow):
         return self.coloc_blobs
 
     def get_blobs(self):
-        red_blobs=self.ui.viewBlobDetection.get_all_red_blob()
-        green_blobs=self.ui.viewBlobDetection.get_all_green_blob()
-        return red_blobs,green_blobs
+        return self.ui.viewBlobDetection.return_all_blobs()
 
-    def add_auto_detect_blobs(self,list_of_green_blobs,list_of_red_blobs,list_of_yellow_blobs):
 
-        for green_blob in list_of_red_blobs:
-
-            self.ui.viewBlobDetection.add_point(
-                green_blob[1], green_blob[0],
-                point_type=BlobColor.green,
+    def add_auto_detect_blobs(self,list_of_blobs,list_of_co_blobs_permute):
+        for i in range(len(list_of_blobs)):
+            for j in list_of_blobs[i]:
+                self.ui.viewBlobDetection.add_point(
+                j[1], j[0],
+                point_type=BlobColor_object[i],
                 has_caption=False,
-                size=BLOB_SIZE_GREEN
-                ) 
-        
-        for red_node in list_of_green_blobs:
-            self.ui.viewBlobDetection.add_point(
-                red_node[1], red_node[0],
-                point_type=BlobColor.red,
-                has_caption=False,
-                size=BLOB_SIZE_RED
-                ) 
-            # print(red_node[1],red_node[0])   #(c,r)
-
-            # break
-
-                
-        for yellow_node in list_of_yellow_blobs:
-            self.ui.viewBlobDetection.add_point(
-                yellow_node[1], yellow_node[0],
-                point_type=BlobColor.yellow,
-                has_caption=False,
-                size=BLOB_SIZE_YELLOW
+                size=blob_sizes[i]
                 )
+        index=4
+        for nodes in list_of_co_blobs_permute:
+
+            for yellow_node in nodes:
+                self.ui.viewBlobDetection.add_point(
+                    yellow_node[1], yellow_node[0],
+                    point_type=BlobColor_object[index],
+                    has_caption=False,
+                    size=blob_sizes[-1])
+            index+=1

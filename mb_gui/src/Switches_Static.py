@@ -1,5 +1,17 @@
-
-
+#number of channels starting with 0
+num_channels=[1,2,0] # to be defined as a list of  channels e.g [1,2,3] or [0,1], indexes starts with 0
+type_channels=["Rabies","Rabies","c"]
+coloc_permutation=[(2,1),(2,0)]#e.g [(2,1),(2,0)]
+blob_sizes=[26,15,14]
+#rabies params for each channel, in the same order as  num channesl, a two element tuple for each channel, first element minsize, second threshold
+#first to tuples can be left empty so they can be modified in gui
+params_rabies=[(),(),(92,5)]
+#cfos params for each channel, in the same order as num channels, a 4 element tuple per channel, first element min sigma, second maxsigma
+#third bg intensity (0-255) fourth cell intensity (0-10)
+params_cfos=[(),(),(0.0,30,0,1)]
+#number of patches for multiprocessing in cFos detection, output is rx*cx
+rx=2
+cx=3
 ## Smart Functions:
 auto_registration = True
 section_classifier_on = False

@@ -447,7 +447,7 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
         count, existing = reset_count(general_regions_lr)
         #print ("KEYS : " , count.keys())
         if True :#index > 0:
-            if row['type'] != 'Density' and not pd.isnull(row['type']):
+            if 'Density' not in row['type'] and "Area" not in  row['type'] and not pd.isnull(row['type']):
                 for reg in deep_regions_lr:
 
                     #print (reg)
@@ -488,21 +488,21 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
                                 print (E)
 
 
-            #print (set(existing.values()))
-            #print (set(count.values()))
-            #total = np.sum(np.array(list(count.values())))
-            total = '__'                
-            blobs_color = row['type']
-            
-            if blobs_color == 'Red' or blobs_color == 'Green' or blobs_color == 'Coloc':
+                #print (set(existing.values()))
+                #print (set(count.values()))
+                #total = np.sum(np.array(list(count.values())))
+                total = '__'                
+                blobs_color = row['type']
+                print (blobs_color,type(blobs_color))
+                #if isinstance(blobs_color,int) or blobs_color=="coloc":# == 'Red' or blobs_color == 'Green' or blobs_color == 'coloc':
                 total = row['Total']
                 reportfile.write(f'\n \n \n {blobs_color} blobs:\t{str(int(row["Total"]))} \n ')
-            #print (row.keys())
+                #print (row.keys())
             try: data = {'Animal':row['Animal'], 'Rack': row['Rack'], 'Slide': row['Slide'], 'Section': row['Section'], 'type': row['type'], 'Total':total}
             except : data= {'Experiment': row['Experiment'], 'Animal': row['Animal'], 'Slide': row['Slide'], 'Section': row['Section'],'type': row['type']}
             obj = {}
             datafile = {}
-            #print (count.keys())
+                #print (count.keys())
              
             for acr in count.keys():
                 #print (acr)
@@ -510,9 +510,9 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
                 if existing[acr]:
                     #print ("True that ")
                     obj[acr] = count[acr]
-                    if blobs_color == 'Red' or blobs_color == 'Green' or blobs_color == 'Coloc':
-                        if int(count[acr]) != 0:
-                            reportfile.write(f'\n {acr}:\t{str(int(count[acr]))}')
+                    #if isinstance(blobs_color,int) or blobs_color=="coloc":#if blobs_color == 'Red' or blobs_color == 'Green' or blobs_color == 'Coloc':
+                    if int(count[acr]) != 0:
+                        reportfile.write(f'\n {acr}:\t{str(int(count[acr]))}')
                 else:
                     #print ("False that ")
                     obj[acr] = np.nan

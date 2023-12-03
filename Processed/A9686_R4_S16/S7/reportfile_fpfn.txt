@@ -1,3 +1,0 @@
-
- Red FP: 0 and FN: 0
- Green FP: 0 and FN: 0
