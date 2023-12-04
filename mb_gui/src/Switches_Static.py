@@ -15,8 +15,8 @@ params_rabies = [(), (), (92,5)]    # (thresh, minsize)
 params_cfos = [(), (), (4, 8, 10, 2)]     # (min sigma, maxsigma, bg intensity, cell intensity)
 
 #number of patches for multiprocessing in cFos detection, output is rx*cx
-rx= 6
-cx= 8
+rx= 2
+cx= 3
 
 ## Smart Functions:
 auto_registration = True
