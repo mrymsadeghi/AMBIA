@@ -5,7 +5,7 @@ coloc_permutation=[(2,1),(2,0)]#e.g [(2,1),(2,0)]
 blob_sizes=[26,15,14]
 #rabies params for each channel, in the same order as  num channesl, a two element tuple for each channel, first element minsize, second threshold
 #first to tuples can be left empty so they can be modified in gui
-params_rabies=[(),(),(92,5)]
+params_rabies=[(),(),(92,5)] 
 #cfos params for each channel, in the same order as num channels, a 4 element tuple per channel, first element min sigma, second maxsigma
 #third bg intensity (0-255) fourth cell intensity (0-10)
 params_cfos=[(),(),(0.0,30,0,1)]
@@ -47,7 +47,7 @@ czi_blevel = 1
 czi_alevel = 4
 
 
-#Blob_size shown on Neuro Detection step
+"""#Blob_size shown on Neuro Detection step
 blob1_size_red = 26
 blob1_size_green = 25
 blob1_size_yellow = 27
@@ -55,7 +55,7 @@ blob1_size_yellow = 27
 #Blob_size shown on Finaly Analysis step
 blob2_size_red = 4
 blob2_size_green = 3
-blob2_size_yellow = 4
+blob2_size_yellow = 4"""
 
 #Scale of pixel:mm
 scale_mm = 0.0412597                # 0.0412597    for 3Dhistech 250 x20 magnification

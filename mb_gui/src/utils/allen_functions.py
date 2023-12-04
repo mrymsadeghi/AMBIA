@@ -443,37 +443,22 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
     #print (general_regs_results.shape)
     reportfile = open(os.path.join(section_savepath, "reportfile_low.txt"), 'w')
     for index, row in deep_regs_results.iterrows():
-        #print (index)
         count, existing = reset_count(general_regions_lr)
-        #print ("KEYS : " , count.keys())
         if True :#index > 0:
             if 'Density' not in row['type'] and "Area" not in  row['type'] and not pd.isnull(row['type']):
                 for reg in deep_regions_lr:
 
-                    #print (reg)
-                    #print ("PASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
                     if not pd.isnull(row[reg]):
                         suffix = reg[-2:]
-                        #splitted=reg.split("_")
-                        #suffix="_"+splitted[-1]
                         
                         region = reg[:-2]
-                        #region="_".join(splitted[:-1])
-                        #print (region)
-                        #print (region)
                         if '_bg' in region:#region:
                             if reg in count.keys():
-                                #print ("True that")
                                 count[acr] += float(row[reg])
                                 existing[acr] = True
                         else:
-                            #print ("False that")
-                            """print (tree.get_structures_by_acronym(["OLF"]))
-                            print (tree.get_structures_by_acronym([region])[0])
-                            print (tree.get_structures_by_acronym([region])[0]['structure_id_path'])
-                            print (tree.get_structures_by_acronym([region])[0]['structure_id_path'][2:]"""
+                            
                             try :
-                                #print ("TrueTrueTrue")
                                 parents_ids = tree.get_structures_by_acronym([region])[0]['structure_id_path'][2:]
                                 parents_acr = [id_acr[id]+suffix for id in parents_ids]
                                 for acr in parents_acr:
@@ -487,34 +472,23 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
                             except Exception as E:
                                 print (E)
 
-
-                #print (set(existing.values()))
-                #print (set(count.values()))
-                #total = np.sum(np.array(list(count.values())))
                 total = '__'                
                 blobs_color = row['type']
-                print (blobs_color,type(blobs_color))
                 #if isinstance(blobs_color,int) or blobs_color=="coloc":# == 'Red' or blobs_color == 'Green' or blobs_color == 'coloc':
                 total = row['Total']
                 reportfile.write(f'\n \n \n {blobs_color} blobs:\t{str(int(row["Total"]))} \n ')
-                #print (row.keys())
             try: data = {'Animal':row['Animal'], 'Rack': row['Rack'], 'Slide': row['Slide'], 'Section': row['Section'], 'type': row['type'], 'Total':total}
             except : data= {'Experiment': row['Experiment'], 'Animal': row['Animal'], 'Slide': row['Slide'], 'Section': row['Section'],'type': row['type']}
             obj = {}
             datafile = {}
-                #print (count.keys())
              
             for acr in count.keys():
-                #print (acr)
-                #print (acr)
                 if existing[acr]:
-                    #print ("True that ")
                     obj[acr] = count[acr]
                     #if isinstance(blobs_color,int) or blobs_color=="coloc":#if blobs_color == 'Red' or blobs_color == 'Green' or blobs_color == 'Coloc':
                     if int(count[acr]) != 0:
                         reportfile.write(f'\n {acr}:\t{str(int(count[acr]))}')
                 else:
-                    #print ("False that ")
                     obj[acr] = np.nan
                     
             data.update(obj)
@@ -530,7 +504,6 @@ def high_to_low_level_regions(section_savepath, deep_regions_lr, general_regions
                 green = general_regs_results.iloc[index-3][region]
                 if not pd.isna(area) and not pd.isna(green):
                     if area != 0 and area != '__':
-                        #print ("greeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeen",green)
                         general_regs_results.loc[general_regs_results['type'] == 'Density', region] = int(green)/int(area)
 
     return general_regs_results
