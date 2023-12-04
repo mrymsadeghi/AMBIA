@@ -23,7 +23,8 @@ import Path_Finder
 import concurrent.futures
 import time
 
-BlobColor_=[(255,0,0),(0,255,0),(0,0,255),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
+# BlobColor_=[(255,0,0),(0,255,0),(0,0,255),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
+
 settings = EasySettings("myconfigfile.conf")
 if st_switches.atlas_type == "Adult":
     from regionscode.Regions_n_colors_adult import Region_names, general_Region_names, create_regs_n_colors_per_sec_list
@@ -365,7 +366,9 @@ class Slide_Operator:
         #red_blob_type = blobs_parameters["c0_blob_type"]
         #green_blob_type = blobs_parameters["c0_blob_type"]
 
-
+        sharpening_kernel = np.array([[0, -1, 0],
+        [-1, 5, -1],
+        [0, -1, 0]])
 
 
         blobs_parameters_dict_to_save = {}
@@ -374,14 +377,14 @@ class Slide_Operator:
         self.blob_logs=[]
         
         for index,blob_type in params.items():
-            print ("currently on ",index,blob_type)
+            print ("currently on ", index, blob_type)
             pool=Pool()
             if blob_type == "Rabies" or blob_type == "r" :
                 if index in (0,1):
                     minsize = blobs_parameters[f'c{str(index)}_blob_min_size']
                     red_blobs_thresh = blobs_parameters[f"c{str(index)}_blob_thresh"]
                 else :
-                    minsize,red_blobs_thresh = st_switches.params_rabies[index]#lobs_parameters['c0_blob_min_size']
+                    minsize, red_blobs_thresh = st_switches.params_rabies[index]     #blobs_parameters['c0_blob_min_size']
                     #red_blobs_thresh = blobs_parameters["red_blob_thresh"]
                 
                 self.blob_logs.append( self.rabies_detection(czi_images[index], red_blobs_thresh, minsize, brain_mask_eroded))
@@ -397,58 +400,39 @@ class Slide_Operator:
             elif blob_type == "cFos" or blob_type=="c" :
                 if index in (0,1):
                     minsigma = blobs_parameters[f'c{str(index)}_blob_min_sigma']
-                    numsigma = 10
                     maxsigma = blobs_parameters[f'c{str(index)}_blob_max_sigma']
                     r_thresh = blobs_parameters[f'c{str(index)}_blob_thresh']
                     red_blobs_thresh = blobs_parameters[f'c{str(index)}_blob_thresh2'] /100
-                    img_channel_r_temp = cv.convertScaleAbs(czi_images[index], alpha=ALPHA, beta=0)
-                    cv.imwrite(os.path.join(self.section_savepath, f"zz_ch_{self.channel_types[st_switches.num_channels[index]]}_enhanced.png"), img_channel_r_temp)
-                    _, ch_thresh = cv.threshold(czi_images[index], r_thresh, 255, cv.THRESH_BINARY)
-                    img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
-                    cv.imwrite(os.path.join(self.section_savepath, f"zz_blobmask_{self.channel_types[st_switches.num_channels[index]]}.png"), ch_thresh)
-                    cv.imwrite(os.path.join(self.section_savepath, f"zz_img_channel_{self.channel_types[st_switches.num_channels[index]]}_masked.png"),img_channel_r)# czi_images[index])
-                    #self.blob_logs.append(  pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells"))
-                    patches,rx,cx,rstep,cstep= pool_cell_detection(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh)
-                    #self.blob_logs.append( pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells"))
-                    
-                    processes=[]
-                    outputs=[]
-                    for i in patches[:10]:
-                        processes.append(pool.apply_async(cfos_detection,[i]))
-                    for i in processes:
-                        outputs.append(i.get())
-                        #OUTPUTS.OUTPUT.append(result.get()
-                    """pool.close()
-                    pool.join()"""
-                    
-                    self.blob_logs.append(calc_new_coords(outputs,rx,cx,rstep,cstep))
-                    blobs_parameters_dict_to_save[index] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
-                else :
-                    minsigma,maxsigma,r_thresh,red_blobs_thresh = st_switches.params_cfos[index]
-                    numsigma = 10
-                    red_blobs_thresh =red_blobs_thresh /100
-                    img_channel_r_temp = cv.convertScaleAbs(czi_images[index], alpha=ALPHA, beta=0)
-                    cv.imwrite(os.path.join(self.section_savepath, f"zz_ch_{self.channel_types[st_switches.num_channels[index]]}_enhanced.png"), img_channel_r_temp)
-                    _, ch_thresh = cv.threshold(czi_images[index], r_thresh, 255, cv.THRESH_BINARY)
-                    img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
-                    cv.imwrite(os.path.join(self.section_savepath, f"zz_blobmask_{self.channel_types[st_switches.num_channels[index]]}.png"), ch_thresh)
-                    cv.imwrite(os.path.join(self.section_savepath,f"zz_img_channel_{self.channel_types[st_switches.num_channels[index]]}_masked.png"), img_channel_r)
-                    patches,rx,cx,rstep,cstep= pool_cell_detection(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh)
-                    #self.blob_logs.append( pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells"))
-                    
-                    processes=[]
-                    outputs=[]
-                    for i in patches[:10]:
-                        processes.append(pool.apply_async(cfos_detection,[i]))
-                    for i in processes:
-                        outputs.append(i.get())
-                        #OUTPUTS.OUTPUT.append(result.get()
-                    
-                    """pool.close()
-                    pool.join()"""
-                    self.blob_logs.append(calc_new_coords(outputs,rx,cx,rstep,cstep))
-                    
-                    blobs_parameters_dict_to_save[index] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
+                else:
+                    minsigma, maxsigma, r_thresh, red_blobs_thresh = st_switches.params_cfos[index]
+                    red_blobs_thresh = red_blobs_thresh /100
+
+                numsigma = 10
+                cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_czi_images.png"), czi_images[index])
+                # img_channel_r_temp = cv.convertScaleAbs(czi_images[index], alpha=ALPHA, beta=0)
+                # cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_enhanced.png"), img_channel_r_temp)
+                # _, ch_thresh = cv.threshold(img_channel_r_temp, r_thresh, 255, cv.THRESH_BINARY)
+                # img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
+                # cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_blobmask.png"), ch_thresh)
+                # cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_masked.png"), img_channel_r)
+                img_channel_r = cv.filter2D(czi_images[index], -1, sharpening_kernel)
+                cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_sharpened.png"), img_channel_r)
+                patches,rx,cx,rstep,cstep= pool_cell_detection(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh)
+                #self.blob_logs.append( pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells"))
+
+                processes=[]
+                outputs=[]
+                for i in patches[:10]:
+                    processes.append(pool.apply_async(cfos_detection,[i]))
+                for i in processes:
+                    outputs.append(i.get())
+                    #OUTPUTS.OUTPUT.append(result.get()
+                
+                """pool.close()
+                pool.join()"""
+                self.blob_logs.append(calc_new_coords(outputs,rx,cx,rstep,cstep))
+                
+                blobs_parameters_dict_to_save[index] = [minsigma, maxsigma, numsigma, red_blobs_thresh]
                      
             pool.close()
             pool.join()
