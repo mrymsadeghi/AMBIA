@@ -3,7 +3,7 @@
 num_channels = [0,1,2]   # To be defined as a list of  channels e.g [1,2,3] or [0,1], indexes starts with 0
 
 type_channels = ["GUI", "GUI", "c"]
-coloc_permutation = [(2,1),(2,0)]   #e.g [(2,1),(2,0)]
+coloc_permutation = [(2,1), (2,0)]   #e.g [(2,1),(2,0)]
 blob_sizes = [20, 20, 20]
 
 # Rabies params for each channel, in the same order as  num channesl, a two element tuple for each channel, first element minsize, second threshold

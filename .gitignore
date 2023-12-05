@@ -151,3 +151,5 @@ mb_gui/src/myconfigfile.conf
 
 #folders
 Processed/
+
+**/Switches_Static.py
