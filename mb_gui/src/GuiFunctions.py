@@ -23,7 +23,7 @@ import Path_Finder
 import concurrent.futures
 import time
 
-# BlobColor_=[(255,0,0),(0,255,0),(0,0,255),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
+BlobColor_=[(0,0,255),(0,255,0),(255,0,0),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
 
 settings = EasySettings("myconfigfile.conf")
 if st_switches.atlas_type == "Adult":
@@ -249,8 +249,8 @@ class Slide_Operator:
         
         elif self.slideformat == "czi":
             num_sections = len(brainboundcoords)
-            section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, [], rect=None)
-            section_blevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [], rect=None)
+            section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, st_switches.num_channels, rect=None)
+            section_blevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, st_switches.num_channels, rect=None)
             kernel1 = np.ones((5, 5), np.uint8)
             kernel2 = np.ones((7, 7), np.uint8)
             section_alevel = czi_channel_regulator(section_alevel)
@@ -282,6 +282,7 @@ class Slide_Operator:
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel.png"), section_blevel))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq))
+                
             for index,channel in enumerate(st_switches.num_channels):
                 #channel_name = self.channel_types[channel]
                 #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
