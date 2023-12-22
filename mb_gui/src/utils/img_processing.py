@@ -1,5 +1,4 @@
 import numpy as np
-import cv2
 from pathlib import Path
 #import Switches_Static as st_switches
 from skimage import measure
@@ -52,7 +51,7 @@ def standardize(x):
 
 def preprocessing(img):
     image = np.array(img)   
-    gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+    gray = cv.cvtColor(image,cv.COLOR_BGR2GRAY)
     image = np.zeros_like(image)
     image[:,:,0] = gray
     image[:,:,1] = gray
@@ -65,8 +64,8 @@ def load_images(path, size_y, size_x):
     EXTENSIONS = {'.png', '.jpg'}
     for img_path in Path(path).glob('*'):
         if img_path.suffix in EXTENSIONS:
-            img = cv2.imread(str(img_path))
-            img = cv2.resize(img, (size_y, size_x))
+            img = cv.imread(str(img_path))
+            img = cv.resize(img, (size_y, size_x))
             img = preprocessing(img)
 
             images.append(img)
@@ -75,8 +74,8 @@ def load_images(path, size_y, size_x):
 
 def load_image(path, size_y, size_x):
     
-    img = cv2.imread(str(path))
-    img = cv2.resize(img, (size_y, size_x))
+    img = cv.imread(str(path))
+    img = cv.resize(img, (size_y, size_x))
     img = preprocessing(img)
 
     return img
@@ -220,11 +219,11 @@ def get_groupC_quadrants(img, original, mask):
     return quadrants, quadrant_ids
 
 def five_cut(img_path, original, model):
-    img = cv2.imread(str(img_path))
-    img = cv2.resize(img, (256, 256))
+    img = cv.imread(str(img_path))
+    img = cv.resize(img, (256, 256))
     img = preprocessing(img)
     dim = max(len(original), len(original[0]))
-    original = cv2.resize(original, (dim, dim))
+    original = cv.resize(original, (dim, dim))
     mask = get_mask(img, model)
     quadrants, categories = get_groupC_quadrants(img, original, mask)
     
@@ -257,8 +256,8 @@ def four_cut(image, margin=0.1):
 
 def is_empty_quadrant(img):
     if len(img) != 0:
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        ret, binary = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        ret, binary = cv.threshold(gray, 10, 255, cv.THRESH_BINARY)
         min_area = len(binary)*len(binary[0])*0.40
         if int(np.sum(binary)/255) > min_area:
             return False
@@ -273,12 +272,11 @@ def gamma_correction(image, gamma=1.5):
 
     normalized_image = image / 255.0
     corrected_image = np.power(normalized_image, gamma)
-    corrected_image[corrected_image > 255.0] = 255.0
-    corrected_image[corrected_image < 0.0] = 0.0
+    corrected_image = np.clip(corrected_image, 0, 255).astype(np.uint8)
+
     # max_,min_=np.max(corrected_image),np.min(corrected_image)
     # corrected_image=((corrected_image-min_)/max_-min_)*255
     # Scale to [0, 255] and round
-    corrected_image = (corrected_image).astype(np.uint8)
 
     return corrected_image
 
@@ -287,9 +285,14 @@ def apply_sharpening(image):
     kernel = np.array([[-1, -1, -1],
                        [-1,  9, -1],
                        [-1, -1, -1]])
-    sharpened = cv2.filter2D(image, -1, kernel)
-    max_,min_=np.max(sharpened),np.min(sharpened)
-    sharpened=((sharpened-min_)/max_-min_)*255
-    #sharpened = np.clip(sharpened, 0, 255)
-    sharpened = sharpened.astype(np.uint8)
-    return sharpened
+    kernel = kernel / np.sum(kernel)
+    sharpened = cv.filter2D(image, -1, kernel)
+    print("min and max sharpened", np.min(sharpened), np.max(sharpened))
+    print(sharpened.dtype)
+    # corrected_image[corrected_image > 255.0] = 255.0
+    # corrected_image[corrected_image < 0.0] = 0.0
+    sharpened = np.clip(sharpened, 0, 255).astype(np.uint8)
+
+    print("man and max sharpened_normalized", np.max(sharpened_normalized), np.min(sharpened_normalized))
+
+    return sharpened_normalized

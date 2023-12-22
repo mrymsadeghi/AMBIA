@@ -1,8 +1,8 @@
 
 # Number of channels starting with 0
-num_channels = [2, 0, 1]   # To be defined as a list of  channels e.g [1,2,3] or [0,1], indexes starts with 0
+num_channels = [2, 1, 0]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
 
-type_channels = ["GUI", "GUI", "c"]
+type_channels = ["GUI", "GUI", "r"]
 coloc_permutation = [(0,2)]   #e.g [(2,1),(2,0)]
 blob_sizes = [20, 20, 20]
 
@@ -14,7 +14,7 @@ params_rabies = [(), (), (92,5)]    # (thresh, minsize)
 # third bg intensity (0-255) fourth cell intensity (0-10)
 params_cfos = [(), (), (4, 8, 10, 2)]     # (min sigma, maxsigma, bg intensity, cell intensity)
 
-gammas = ["default", "default", 2]
+gammas = ["default", 2, "default"]
 #number of patches for multiprocessing in cFos detection, output is rx*cx
 rx= 2
 cx= 2

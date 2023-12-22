@@ -23,7 +23,6 @@ def transform_target_img(target_img_path):
     if st_switches.atlas_type == "Rat":
         atlasnum = dy_switches.get_atlasnum()
         print("atlasnum ",atlasnum)
-        print(type(atlasnum))
         atlas_prepath=Path_Finder.return_atlas_path()
         image = cv.imread(os.path.join(atlas_prepath, "labeled_atlases", f"d_{str(atlasnum)}.png"))
     else:

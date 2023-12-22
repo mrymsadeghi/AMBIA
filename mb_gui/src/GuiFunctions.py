@@ -295,9 +295,9 @@ class Slide_Operator:
                 else:
                     gamma_corrected_image = imgprc.gamma_correction(blevel_channel, st_switches.gammas[index])
                 
-                sharpened_image = imgprc.apply_sharpening(gamma_corrected_image)
+                #sharpened_image = imgprc.apply_sharpening(gamma_corrected_image)
 
-                sharpened_image=cv.bitwise_and(sharpened_image, gamma_corrected_image, mask = blevel_mask)
+                sharpened_image=cv.bitwise_and(gamma_corrected_image, gamma_corrected_image, mask = blevel_mask)
 
                 blevelstack.append(sharpened_image)
                 if st_switches.rotate_flag:
@@ -340,10 +340,10 @@ class Slide_Operator:
 
         tempMARGIN = 50  # temporary margin just to avoid the borders when applying thresh, adding the margin is reversed in the parameter brain_mask_eroded
 
-        brain_blevel = cv.imread(os.path.join(self.section_savepath, 'blevel_eq.png'))#,cv.COLOR_BGR2RGB)
-        brainimgtemp_gray = cv.cvtColor(brain_blevel, cv.COLOR_BGR2GRAY)
-        _, brain_mask = cv.threshold(brainimgtemp_gray, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
-        cv.imwrite(os.path.join(self.section_savepath, 'brain_mask.jpg'), brain_mask)
+        # brain_blevel = cv.imread(os.path.join(self.section_savepath, 'blevel_eq.png'))#,cv.COLOR_BGR2RGB)
+        # brainimgtemp_gray = cv.cvtColor(brain_blevel, cv.COLOR_BGR2GRAY)
+        # _, brain_mask = cv.threshold(brainimgtemp_gray, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
+        # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask.jpg'), brain_mask)
         czi_images={}
         params={}
 
@@ -366,12 +366,10 @@ class Slide_Operator:
                 czi_images[index]=cv.imread(os.path.join(self.section_savepath, f'blevel_{name}.png'), 0)
             #img_channel_r = cv.imread(os.path.join(self.section_savepath, 'blevel_2.png'), 0)
             #img_channel_g = cv.imread(os.path.join(self.section_savepath, 'blevel_1.png'), 0)
-        
-        # brain_mask_eroded = cv.erode(brain_mask, kernel1, iterations=3)
-        brain_mask_edge_removed = self.remove_edge_blob(brain_mask)
-        # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_edge_removed.jpg'), brain_mask_edge_removed)
+
         # brain_mask_temp = cv.copyMakeBorder(brain_mask_edge_removed, tempMARGIN, tempMARGIN, tempMARGIN, tempMARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
-        brain_mask_temp =brain_mask_edge_removed
+        brain_mask_temp = cv.imread(os.path.join(self.section_savepath, 'blevel_mask_fixed.png'), cv.IMREAD_UNCHANGED)
+
         closing = cv.morphologyEx(brain_mask_temp, cv.MORPH_CLOSE, kernel2)
         # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_closed.jpg'), closing)
         brain_mask_eroded_uncut = cv.erode(closing, kernel1, iterations=3)
@@ -403,6 +401,7 @@ class Slide_Operator:
         for index,blob_type in params.items():
             print ("currently on ", index, blob_type)
             pool=Pool()
+            print("blobs_parameters  ", blobs_parameters)
             if blob_type == "Rabies" or blob_type == "r" :
                 if index in (0,1):
                     minsize = blobs_parameters[f'c{str(index)}_blob_min_size']
@@ -420,7 +419,7 @@ class Slide_Operator:
                 min_corr = blobs_parameters['red_blob_correlation']
                 stride = blobs_parameters['red_blob_stride']
                 self.blobs_log_r = MoG_detection(img_channel_r, min_corr, stride, brain_mask_eroded)
-
+            
             elif blob_type == "cFos" or blob_type=="c" :
                 if index in (0,1):
                     minsigma = blobs_parameters[f'c{str(index)}_blob_min_sigma']
@@ -430,17 +429,18 @@ class Slide_Operator:
                 else:
                     minsigma, maxsigma, r_thresh, red_blobs_thresh = st_switches.params_cfos[index]
                     red_blobs_thresh = red_blobs_thresh /100
-
+                print(index, minsigma, maxsigma, r_thresh, red_blobs_thresh)
                 numsigma = 10
                 cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_czi_images.png"), czi_images[index])
+                img_channel_r_temp = czi_images[index]
                 # img_channel_r_temp = cv.convertScaleAbs(czi_images[index], alpha=ALPHA, beta=0)
                 # cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_enhanced.png"), img_channel_r_temp)
-                # _, ch_thresh = cv.threshold(img_channel_r_temp, r_thresh, 255, cv.THRESH_BINARY)
-                # img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
-                # cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_blobmask.png"), ch_thresh)
-                # cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_masked.png"), img_channel_r)
-                img_channel_r = cv.filter2D(czi_images[index], -1, sharpening_kernel)
-                cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_sharpened.png"), img_channel_r)
+                _, ch_thresh = cv.threshold(img_channel_r_temp, r_thresh, 255, cv.THRESH_BINARY)
+                img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
+                cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_blobmask.png"), ch_thresh)
+                cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_masked.png"), img_channel_r)
+                #img_channel_r = cv.filter2D(czi_images[index], -1, sharpening_kernel)
+                #cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_sharpened.png"), img_channel_r)
                 patches,rx,cx,rstep,cstep= pool_cell_detection(img_channel_r, brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh)
                 #self.blob_logs.append( pool_cell_detection(czi_images[index], brain_mask_eroded, minsigma, maxsigma, numsigma, red_blobs_thresh, "red_cells"))
 
@@ -473,10 +473,8 @@ class Slide_Operator:
         saved_data_pickle['blobs_parameters'] = blobs_parameters_dict_to_save
 
         screenimg_path = os.path.join(self.section_savepath, 'blevel_eq.png')
-        print (czi_images)
-        for index in czi_images:
-            
 
+        for index in czi_images:
             img=czi_images[index].copy()
             for j in self.blob_logs[index]:
                 img=cv.circle(img,(j[1],j[0]),st_switches.blob_sizes[index],(255,255,255))
