@@ -265,12 +265,16 @@ def is_empty_quadrant(img):
     return True
 
 
-def gamma_correction(image, gamma=0.2):
+def gamma_correction(image, gamma=0.15):
     if gamma <= 0:
         raise ValueError("Gamma must be greater than zero.")
     normalized_image = image / 255.0
     corrected_image = np.power(normalized_image, gamma)
     corrected_image = (corrected_image * 255).astype(np.uint8)
+    max_,min_=np.max(corrected_image),np.min(corrected_image)
+    corrected_image=((corrected_image-min_)/max_-min_)*255
+    #sharpened = np.clip(sharpened, 0, 255)
+    corrected_image = corrected_image.astype(np.uint8)
     return corrected_image
 
 def apply_sharpening(image):
@@ -278,6 +282,8 @@ def apply_sharpening(image):
                        [-1,  9, -1],
                        [-1, -1, -1]])
     sharpened = cv2.filter2D(image, -1, kernel)
-    sharpened = np.clip(sharpened, 0, 255)
+    max_,min_=np.max(sharpened),np.min(sharpened)
+    sharpened=((sharpened-min_)/max_-min_)*255
+    #sharpened = np.clip(sharpened, 0, 255)
     sharpened = sharpened.astype(np.uint8)
     return sharpened

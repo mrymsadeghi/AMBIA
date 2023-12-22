@@ -284,29 +284,40 @@ class Slide_Operator:
             # section_alevel = cv.copyMakeBorder(section_alevel, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
             # section_alevel_eq = cv.copyMakeBorder(section_alevel_eq, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
             #section_blevel_eq=pass
+            
+            
             if CH_O:
                 section_alevel_eq[:,:,CH_O-1] = 0
             if st_switches.rotate_flag:
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel.png"), cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel_eq.png"), cv.rotate(section_alevel_eq, cv.ROTATE_90_CLOCKWISE)))
-                pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE)))
+                #pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE)))
             else:
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel.png"), section_alevel))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel.png"), section_blevel))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq))
-                pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq))
-                
+                #pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq))
+            blevel=[]
             for index,channel in enumerate(st_switches.num_channels):
                 #channel_name = self.channel_types[channel]
                 #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
                 blevel_channel=section_blevel[...,index]
                 print (blevel_channel.shape,"shapessssssssssss")
+                sharpened_image = imgprc.apply_sharpening(imgprc.gamma_correction(blevel_channel,0.15))
+                #sharpened_image=cv.bitwise_and(sharpened_image, sharpened_image, mask = alevel_mask_ref)
+                blevel.append(sharpened_image)
                 if st_switches.rotate_flag:
-                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))
+                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"),cv.rotate(sharpened_image, cv.ROTATE_90_CLOCKWISE))
+                    #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))
                 else : 
-                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), blevel_channel)
-            
+                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"),sharpened_image)
+                    #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), blevel_channel)
+            section_blevel_eq=czi_channel_regulator(np.dstack(blevel))
+            if st_switches.rotate_flag:
+                cv.imwrite (os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE))
+            else :
+                cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq )
 
         blob_detection_file_name = os.path.join(self.section_savepath,"blevel_eq.png")
         tissue_lm_detection_filename = os.path.join(self.section_savepath,"alevel_eq.png")
@@ -465,6 +476,15 @@ class Slide_Operator:
         saved_data_pickle['blobs_parameters'] = blobs_parameters_dict_to_save
 
         screenimg_path = os.path.join(self.section_savepath, 'blevel_eq.png')
+        print (czi_images)
+        for index in czi_images:
+            
+
+            img=czi_images[index].copy()
+            for j in self.blob_logs[index]:
+                img=cv.circle(img,(j[1],j[0]),st_switches.blob_sizes[index],(255,255,255))
+            cv.imwrite(os.path.join(self.section_savepath,f"{self.channel_types[st_switches.num_channels[index]]}_blobs.png"),img)
+
         return number_of_blobs, match_counts, screenimg_path, self.blob_logs, blob_locs_co
         #return number_of_blobs_r, number_of_blobs_g, matchcount, screenimg_path, self.blobs_log_r, self.blobs_log_g, blob_locs_co
     
