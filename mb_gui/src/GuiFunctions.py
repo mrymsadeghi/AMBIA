@@ -10,6 +10,7 @@ from collections import Counter
 from math import sqrt
 from easysettings import EasySettings
 from utils.img_processing import equalize_img
+import utils.img_processing as imgprc
 from utils.reading_czi import CZI, czi_channel_regulator,histogram_equalization
 import Switches_Static as st_switches
 import Switches_Dynamic as dy_switches
@@ -43,7 +44,6 @@ MARGIN = st_switches.MARGIN
 ALEVEL_MASK_THRESH = st_switches.alevel_mask_threshold
 BLEVEL_MASK_THRESH = st_switches.blevel_mask_threshold
 CH_O = st_switches.channel_to_omit
-ALPHA = st_switches.cfos_contrast_enhance
 
 saved_data_pickle = {}
 
@@ -251,25 +251,39 @@ class Slide_Operator:
             num_sections = len(brainboundcoords)
             section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, st_switches.num_channels, rect=None)
             section_blevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, st_switches.num_channels, rect=None)
+            section_alevel_ref=self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, st_switches.num_channels, rect=None)
+            print (section_alevel.shape,"shape fixed1")
+            print (section_blevel.shape,"shape blevel")
             kernel1 = np.ones((5, 5), np.uint8)
             kernel2 = np.ones((7, 7), np.uint8)
             section_alevel = czi_channel_regulator(section_alevel)
-            section_blevel = czi_channel_regulator(section_blevel,st_switches.num_channels)
-            
+            section_alevel_ref = czi_channel_regulator(section_alevel_ref)
+            section_blevel = czi_channel_regulator(section_blevel)#,st_switches.num_channels)
+            print (section_alevel.shape,"shape fixed2")
+            print (section_blevel.shape,"shape blevel")
+            cv.imwrite(os.path.join(self.section_savepath,"alevel_noeq.png"), section_alevel)
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_noeq.png"), section_blevel)
             section_alevel_eq0 = histogram_equalization(section_alevel)
             section_blevel_eq = histogram_equalization(section_blevel) 
+            section_alevel_ref_eq=histogram_equalization(section_alevel_ref)
             section_alevel_gr0 = cv.cvtColor(section_alevel_eq0, cv.COLOR_BGR2GRAY)
             section_alevel_gr = cv.convertScaleAbs(section_alevel_gr0, alpha=(255.0/65535.0))
+            section_alevel_ref_eq=cv.cvtColor(section_alevel_ref_eq, cv.COLOR_BGR2GRAY)
+            section_alevel_ref_eq=cv.convertScaleAbs(section_alevel_ref_eq, alpha=(255.0/65535.0))
             _, alevel_mask = cv.threshold(section_alevel_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
+            _, alevel_mask_ref = cv.threshold(section_alevel_ref_eq, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
             # alevel_mask_eroded = cv.erode(alevel_mask, kernel1, iterations=3)
             # cv.imwrite(os.path.join(self.section_savepath,"alevel_mask.png"), alevel_mask)
             # cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_eroded.png"), alevel_mask_eroded)
             alevel_mask_fixed = self.remove_edge_blob(alevel_mask)
+            alevel_mask_ref= self.remove_edge_blob(alevel_mask_ref)
             cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_fixed.png"), alevel_mask_fixed)
+            cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_ref_fixed.png"), alevel_mask_ref)
             # alevel_mask_fixed =cv.morphologyEx(alevel_mask_fixed, cv.MORPH_CLOSE, kernel2)
             section_alevel_eq = cv.bitwise_and(section_alevel_eq0, section_alevel_eq0, mask = alevel_mask_fixed)
             # section_alevel = cv.copyMakeBorder(section_alevel, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
             # section_alevel_eq = cv.copyMakeBorder(section_alevel_eq, MARGIN, MARGIN, MARGIN, MARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
+            #section_blevel_eq=pass
             if CH_O:
                 section_alevel_eq[:,:,CH_O-1] = 0
             if st_switches.rotate_flag:
@@ -287,6 +301,7 @@ class Slide_Operator:
                 #channel_name = self.channel_types[channel]
                 #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
                 blevel_channel=section_blevel[...,index]
+                print (blevel_channel.shape,"shapessssssssssss")
                 if st_switches.rotate_flag:
                     cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))
                 else : 
@@ -317,7 +332,7 @@ class Slide_Operator:
 
         tempMARGIN = 50  # temporary margin just to avoid the borders when applying thresh, adding the margin is reversed in the parameter brain_mask_eroded
 
-        brain_blevel = cv.imread(os.path.join(self.section_savepath, 'blevel_eq.png'))
+        brain_blevel = cv.imread(os.path.join(self.section_savepath, 'blevel_eq.png'))#,cv.COLOR_BGR2RGB)
         brainimgtemp_gray = cv.cvtColor(brain_blevel, cv.COLOR_BGR2GRAY)
         _, brain_mask = cv.threshold(brainimgtemp_gray, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
         cv.imwrite(os.path.join(self.section_savepath, 'brain_mask.jpg'), brain_mask)
@@ -771,7 +786,7 @@ class Slide_Operator:
         #global saved_data_pickle
         blobs_fp_fn = {}
         reportfile = open(os.path.join(self.section_savepath, "reportfile_fpfn.txt"), 'w')
-        for i in st_switches.num_channels:
+        for i,j in enumerate(st_switches.num_channels):
             blobs_channel=final_blobs[i]
             blobs_detected=detected_blobs[i]
             blobs_detected = [(sub[1], sub[0]) for sub in blobs_detected] 
