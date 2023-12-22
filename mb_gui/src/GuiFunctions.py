@@ -188,7 +188,7 @@ class Slide_Operator:
         print(f"SectionDetection took {time2-time1}")
         return brainboundcoords, tissuemask_fullpath
     
-    def remove_edge_blob(self, img):
+    def remove_edge_blob(self, img, min_contour_area=100, margin=2):
         # Get the contours of all blobs in the image
         if img.dtype != np.uint8:
             img = np.array(img, np.uint8)
@@ -197,8 +197,9 @@ class Slide_Operator:
         contours, _ = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         contours = sorted(contours, key=cv.contourArea)
         for i, cnt in enumerate(contours[:-1]):
-            x, y, w, h = cv.boundingRect(cnt)
-            if x == 0 or y == 0 or x+w == img.shape[1] or y+h == img.shape[0]:
+            x, y, w, h = cv.boundingRect(cnt)   #c,r,c,r
+            contour_area = cv.contourArea(cnt)
+            if x == 0 or y == 0 or (x+w - img.shape[1] < margin) or (y+h - img.shape[0] < margin) or (contour_area < min_contour_area):
                 cv.drawContours(img, contours, i, (0, 0, 0), -1)
         return img
 
@@ -256,26 +257,19 @@ class Slide_Operator:
             section_blevel = czi_channel_regulator(section_blevel)  #st_switches.num_channels)
 
             section_alevel_eq = histogram_equalization(section_alevel)
-            # cv.imwrite(os.path.join(self.section_savepath,"alevel_eq0.png"), section_alevel_eq0)
             section_blevel_eq = histogram_equalization(section_blevel) 
-            #section_alevel_ref_eq=histogram_equalization(section_alevel_ref)
             section_alevel_eq_gr0 = cv.cvtColor(section_alevel_eq, cv.COLOR_BGR2GRAY)
-            #cv.imwrite(os.path.join(self.section_savepath,"alevel_eq0_gr.png"), section_alevel_gr0)
             section_alevel_eq_gr = cv.convertScaleAbs(section_alevel_eq_gr0, alpha=(255.0/65535.0))
-            #cv.imwrite(os.path.join(self.section_savepath,"alevel_gr_scaleAb.png"), section_alevel_gr)
             section_blevel_eq_gr0=cv.cvtColor(section_blevel_eq, cv.COLOR_BGR2GRAY)
             section_blevel_eq_gr=cv.convertScaleAbs(section_blevel_eq_gr0, alpha=(255.0/65535.0))
             _, alevel_mask = cv.threshold(section_alevel_eq_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
             _, blevel_mask = cv.threshold(section_blevel_eq_gr, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
-
-            alevel_mask_fixed = self.remove_edge_blob(alevel_mask)
-            blevel_mask_fixed = self.remove_edge_blob(blevel_mask)
+            alevel_mask_fixed = self.remove_edge_blob(alevel_mask, 20000)
+            blevel_mask_fixed = self.remove_edge_blob(blevel_mask, 20000*(2**(self.alevel-self.blevel)))
             cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_fixed.png"), alevel_mask_fixed)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_mask_fixed.png"), blevel_mask_fixed)
             # alevel_mask_fixed =cv.morphologyEx(alevel_mask_fixed, cv.MORPH_CLOSE, kernel2)
             section_alevel_eq = cv.bitwise_and(section_alevel_eq, section_alevel_eq, mask = alevel_mask_fixed)
-
-            
             
             if CH_O:
                 section_alevel_eq[:,:,CH_O-1] = 0
@@ -283,19 +277,17 @@ class Slide_Operator:
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel.png"), cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel_eq.png"), cv.rotate(section_alevel_eq, cv.ROTATE_90_CLOCKWISE)))
-                #pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE)))
             else:
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel.png"), section_alevel))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel.png"), section_blevel))
                 pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq))
-                #pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq))
 
             blevelstack=[]
 
             for index,channel in enumerate(st_switches.num_channels):
                 #channel_name = self.channel_types[channel]
                 #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
-                blevel_channel=section_blevel[...,index]
+                blevel_channel = section_blevel[..., index]
                 print (blevel_channel.shape,"shapessssssssssss")
 
                 if st_switches.gammas[index]=="default":
@@ -303,9 +295,9 @@ class Slide_Operator:
                 else:
                     gamma_corrected_image = imgprc.gamma_correction(blevel_channel, st_switches.gammas[index])
                 
-                #sharpened_image = imgprc.apply_sharpening(gamma_corrected_image)
+                sharpened_image = imgprc.apply_sharpening(gamma_corrected_image)
 
-                sharpened_image=cv.bitwise_and(gamma_corrected_image, gamma_corrected_image, mask = blevel_mask)
+                sharpened_image=cv.bitwise_and(sharpened_image, gamma_corrected_image, mask = blevel_mask)
 
                 blevelstack.append(sharpened_image)
                 if st_switches.rotate_flag:
@@ -314,8 +306,9 @@ class Slide_Operator:
                 else : 
                     cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), sharpened_image)
                     #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), blevel_channel)
-            section_blevel_eq=czi_channel_regulator(np.dstack(blevelstack))
-            print("Shape of blevel stack: ", section_blevel_eq.shape)
+            
+            section_blevel_eq = czi_channel_regulator(np.dstack(blevelstack))
+
             if st_switches.rotate_flag:
                 cv.imwrite (os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE))
             else :
