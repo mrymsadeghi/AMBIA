@@ -1,6 +1,6 @@
 
 # Number of channels starting with 0
-num_channels = [2,0,1]#,2]   # To be defined as a list of  channels e.g [1,2,3] or [0,1], indexes starts with 0
+num_channels = [2, 0, 1]   # To be defined as a list of  channels e.g [1,2,3] or [0,1], indexes starts with 0
 
 type_channels = ["GUI", "GUI", "c"]
 coloc_permutation = [(0,2)]   #e.g [(2,1),(2,0)]
@@ -14,6 +14,7 @@ params_rabies = [(), (), (92,5)]    # (thresh, minsize)
 # third bg intensity (0-255) fourth cell intensity (0-10)
 params_cfos = [(), (), (4, 8, 10, 2)]     # (min sigma, maxsigma, bg intensity, cell intensity)
 
+gammas = ["default", "default", 2]
 #number of patches for multiprocessing in cFos detection, output is rx*cx
 rx= 2
 cx= 2
@@ -29,8 +30,8 @@ section_QL_on = False
 rotate_flag=False
 czi_maskthresh = 10                  # This threshold is used for the section detection on the whole slide image
 contrast_enhancement = 12.0           # This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
-blevel_mask_threshold = 10           # This parameter adjust the threshold for brain_mask
-alevel_mask_threshold = 7
+blevel_mask_threshold = 5           # This parameter adjust the threshold for brain_mask
+alevel_mask_threshold = 5
 channel_to_omit = 1                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
 CELL_OVERLAP = 0.5                  # If two detected cfos cells have more than this amount overlap, only one will be counted
 ## Atlas Type:

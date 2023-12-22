@@ -101,12 +101,12 @@ class CZI:
 
 
 
-
-
-
-
 def czi_channel_regulator(image,num_channels=None):
     if not num_channels:
+        if image.shape[2]==1:
+            chan2 = np.zeros_like(image[:,:,0])
+            chan3 = np.zeros_like(image[:,:,0])
+            image = np.dstack((image, chan2, chan3))
         if image.shape[2]==2:
             chan3 = np.zeros_like(image[:,:,0])
             image = np.dstack((image, chan3))

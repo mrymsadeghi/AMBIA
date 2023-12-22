@@ -265,17 +265,23 @@ def is_empty_quadrant(img):
     return True
 
 
-def gamma_correction(image, gamma=0.15):
+
+def gamma_correction(image, gamma=1.5):
+    # Input validation
     if gamma <= 0:
         raise ValueError("Gamma must be greater than zero.")
+
     normalized_image = image / 255.0
     corrected_image = np.power(normalized_image, gamma)
-    corrected_image = (corrected_image * 255).astype(np.uint8)
-    max_,min_=np.max(corrected_image),np.min(corrected_image)
-    corrected_image=((corrected_image-min_)/max_-min_)*255
-    #sharpened = np.clip(sharpened, 0, 255)
-    corrected_image = corrected_image.astype(np.uint8)
+    corrected_image[corrected_image > 255.0] = 255.0
+    corrected_image[corrected_image < 0.0] = 0.0
+    # max_,min_=np.max(corrected_image),np.min(corrected_image)
+    # corrected_image=((corrected_image-min_)/max_-min_)*255
+    # Scale to [0, 255] and round
+    corrected_image = (corrected_image).astype(np.uint8)
+
     return corrected_image
+
 
 def apply_sharpening(image):
     kernel = np.array([[-1, -1, -1],
