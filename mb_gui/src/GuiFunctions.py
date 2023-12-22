@@ -405,7 +405,7 @@ class Slide_Operator:
             if blob_type == "Rabies" or blob_type == "r" :
                 if index in (0,1):
                     minsize = blobs_parameters[f'c{str(index)}_blob_min_size']
-                    red_blobs_thresh = blobs_parameters[f"c{str(index)}_blob_thresh"]
+                    red_blobs_thresh = blobs_parameters[f"c{str(index)}_blob_rabies_thresh"]
                 else :
                     minsize, red_blobs_thresh = st_switches.params_rabies[index]     #blobs_parameters['c0_blob_min_size']
                     #red_blobs_thresh = blobs_parameters["red_blob_thresh"]
@@ -424,8 +424,8 @@ class Slide_Operator:
                 if index in (0,1):
                     minsigma = blobs_parameters[f'c{str(index)}_blob_min_sigma']
                     maxsigma = blobs_parameters[f'c{str(index)}_blob_max_sigma']
-                    r_thresh = blobs_parameters[f'c{str(index)}_blob_thresh']
-                    red_blobs_thresh = blobs_parameters[f'c{str(index)}_blob_thresh2'] /100
+                    r_thresh = blobs_parameters[f'c{str(index)}_blob_cfos_thresh1']
+                    red_blobs_thresh = blobs_parameters[f'c{str(index)}_blob_cfos_thresh2'] /100
                 else:
                     minsigma, maxsigma, r_thresh, red_blobs_thresh = st_switches.params_cfos[index]
                     red_blobs_thresh = red_blobs_thresh /100

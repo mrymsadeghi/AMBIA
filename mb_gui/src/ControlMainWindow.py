@@ -126,25 +126,27 @@ class ControlMainWindow(QMainWindow):
         try:
             self.ui.cmbRedTypes.setCurrentText(settings.get("c0_blob_type"))
             self.ui.txtRedMinSize.setValue(settings.get("c0_blob_min_size"))
-            self.ui.txtRedThresh.setValue(settings.get("c0_blob_thresh"))
+            self.ui.txtRedThresh.setValue(settings.get("c0_blob_rabies_thresh"))
             self.ui.txtRedCorrelation.setValue(settings.get("c0_blob_correlation"))
             self.ui.txtRedStride.setValue(settings.get("c0_blob_stride"))
             self.ui.txtRedMinSigma.setValue(settings.get("c0_blob_min_sigma"))
             self.ui.txtRedMaxSigma.setValue(settings.get("c0_blob_max_sigma"))
             # self.ui.txtRedNumSigma.setValue(settings.get("red_blob_num_sigma"))
-            self.ui.txtRedThreshold2.setValue(settings.get("c0_blob_thresh2"))
+            self.ui.txtRedNumSigma.setValue(settings.get("c0_blob_cfos_thresh1"))
+            self.ui.txtRedThreshold2.setValue(settings.get("c0_blob_cfos_thresh2"))
 
         
            
             self.ui.cmbGreenTypes.setCurrentText(settings.get("c1_blob_type"))
             self.ui.txtGreenMinSize.setValue(settings.get("c1_blob_min_size"))
-            self.ui.txtGreenThresh.setValue(settings.get("c1_blob_thresh"))
+            self.ui.txtGreenThresh.setValue(settings.get("c1_blob_rabies_thresh"))
             self.ui.txtGreenCorrelation.setValue(settings.get("c1_blob_correlation"))
             self.ui.txtGreenStride.setValue(settings.get("c1_blob_stride"))
             self.ui.txtGreenMinSigma.setValue(settings.get("c1_blob_min_sigma"))
             self.ui.txtGreenMaxSigma.setValue(settings.get("c1_blob_max_sigma"))
             # self.ui.txtGreenNumSigma.setValue(settings.get("green_blob_num_sigma"))
-            self.ui.txtGreenThreshold2.setValue(settings.get("c1_blob_thresh2"))
+            self.ui.txtGreenNumSigma.setValue(settings.get("c1_blob_cfos_thresh1"))
+            self.ui.txtGreenThreshold2.setValue(settings.get("c1_blob_cfos_thresh2"))
 
            
         except:
@@ -709,7 +711,7 @@ class ControlMainWindow(QMainWindow):
         blob_detection_parameters['c0_blob_type'] = self.ui.cmbRedTypes.currentText()
 
         blob_detection_parameters['c0_blob_min_size'] = self.ui.txtRedMinSize.value()
-        blob_detection_parameters['c0_blob_thresh'] = self.ui.txtRedThresh.value()
+        blob_detection_parameters['c0_blob_rabies_thresh'] = self.ui.txtRedThresh.value()
 
         blob_detection_parameters['c0_blob_correlation'] = self.ui.txtRedCorrelation.value()
         blob_detection_parameters['c0_blob_stride'] = self.ui.txtRedStride.value()
@@ -718,18 +720,18 @@ class ControlMainWindow(QMainWindow):
         blob_detection_parameters['c0_blob_max_sigma'] = self.ui.txtRedMaxSigma.value()
         
         # Change hard code
-        blob_detection_parameters['c0_blob_num_sigma'] =RED_BLOB_NUM_SIGMA
+        blob_detection_parameters['c0_blob_num_sigma'] = RED_BLOB_NUM_SIGMA
         # blob_detection_parameters['red_blob_num_sigma'] = self.ui.txtRedNumSigma.value()
 
-
-        blob_detection_parameters['c0_blob_thresh2'] = self.ui.txtRedThreshold2.value()
+        blob_detection_parameters['c0_blob_cfos_thresh1'] = self.ui.txtRedNumSigma.value()
+        blob_detection_parameters['c0_blob_cfos_thresh2'] = self.ui.txtRedThreshold2.value()
         
 
         ## Green Blob parameters
         blob_detection_parameters['c1_blob_type'] = self.ui.cmbGreenTypes.currentText()
 
         blob_detection_parameters['c1_blob_min_size'] = self.ui.txtGreenMinSize.value()
-        blob_detection_parameters['c1_blob_thresh'] = self.ui.txtGreenThresh.value()
+        blob_detection_parameters['c1_blob_rabies_thresh'] = self.ui.txtGreenThresh.value()
 
         blob_detection_parameters['c1_blob_correlation'] = self.ui.txtGreenCorrelation.value()
         blob_detection_parameters['c1_blob_stride'] = self.ui.txtGreenStride.value()
@@ -740,34 +742,37 @@ class ControlMainWindow(QMainWindow):
         # Change hard code
         blob_detection_parameters['c1_blob_num_sigma'] = GREEN_BLOB_NUM_SIGMA
         # blob_detection_parameters['green_blob_num_sigma'] = self.ui.txtGreenNumSigma.value()
-        
-        blob_detection_parameters['c1_blob_thresh2'] = self.ui.txtGreenThreshold2.value()
+
+        blob_detection_parameters['c1_blob_cfos_thresh1'] = self.ui.txtGreenNumSigma.value()
+        blob_detection_parameters['c1_blob_cfos_thresh2'] = self.ui.txtGreenThreshold2.value()
         
       # Save Settings
         
         settings.set("c0_blob_type", blob_detection_parameters['c0_blob_type'])
         
         settings.set("c0_blob_min_size", blob_detection_parameters['c0_blob_min_size'])
-        settings.set("c0_blob_thresh", blob_detection_parameters['c0_blob_thresh'])
+        settings.set("c0_blob_rabies_thresh", blob_detection_parameters['c0_blob_rabies_thresh'])
 
         settings.set("c0_blob_correlation", blob_detection_parameters['c0_blob_correlation'])
         settings.set("c0_blob_stride", blob_detection_parameters['c0_blob_stride'])
         settings.set("c0_blob_min_sigma", blob_detection_parameters['c0_blob_min_sigma'])
         settings.set("c0_blob_max_sigma", blob_detection_parameters['c0_blob_max_sigma'])
         settings.set("c0_blob_num_sigma", blob_detection_parameters['c0_blob_num_sigma'])
-        settings.set("c0_blob_thresh2", blob_detection_parameters['c0_blob_thresh2'])
+        settings.set("c0_blob_cfos_thresh1", blob_detection_parameters['c0_blob_cfos_thresh1'])
+        settings.set("c0_blob_cfos_thresh2", blob_detection_parameters['c0_blob_cfos_thresh2'])
 
 
         
         settings.set("c1_blob_type", blob_detection_parameters['c1_blob_type'])
         settings.set("c1_blob_min_size", blob_detection_parameters['c1_blob_min_size'])
-        settings.set("c1_blob_thresh", blob_detection_parameters['c1_blob_thresh'])
+        settings.set("c1_blob_rabies_thresh", blob_detection_parameters['c1_blob_rabies_thresh'])
         settings.set("c1_blob_correlation", blob_detection_parameters['c1_blob_correlation'])
         settings.set("c1_blob_stride", blob_detection_parameters['c1_blob_stride'])
         settings.set("c1_blob_min_sigma", blob_detection_parameters['c1_blob_min_sigma'])
         settings.set("c1_blob_max_sigma", blob_detection_parameters['c1_blob_max_sigma'])
         settings.set("c1_blob_num_sigma", blob_detection_parameters['c1_blob_num_sigma'])
-        settings.set("c1_blob_thresh2", blob_detection_parameters['c1_blob_thresh2'])
+        settings.set("c1_blob_cfos_thresh1", blob_detection_parameters['c1_blob_cfos_thresh1'])
+        settings.set("c1_blob_cfos_thresh2", blob_detection_parameters['c1_blob_cfos_thresh2'])
         settings.save()
 
         return blob_detection_parameters
