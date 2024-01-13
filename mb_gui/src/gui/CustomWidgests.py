@@ -16,8 +16,10 @@ class BlobColor(Enum):
     cyan=(0,255,255)
     yellow=[255,255,0]
     white=[255,255,255]
+    purple=[127,0,127]
+names=["blue","green","red","magenta","cyan","white","yellow","purple"]
 BlobColor_=[(255,0,0),(0,255,0),(0,0,255),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
-BlobColor_object=[BlobColor.red,BlobColor.green,BlobColor.blue,BlobColor.magenta,BlobColor.cyan,BlobColor.white,BlobColor.yellow]
+BlobColor_object=[BlobColor.blue,BlobColor.green,BlobColor.red,BlobColor.magenta,BlobColor.cyan,BlobColor.white,BlobColor.yellow,BlobColor.purple]
 
 class PhotoViewer(QtWidgets.QGraphicsView):
     photoClicked = QtCore.pyqtSignal(QtCore.QPoint)
@@ -28,7 +30,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self._enable_double_mode=0
         self._enable_zoom=0
         self._blob_mode=0
-        self._blob_color=BlobColor.red
+        self._blob_color=BlobColor.blue
         self._blob_color_index=0
         self.point_list=[]
         self.label_list=[]
@@ -148,7 +150,9 @@ class PhotoViewer(QtWidgets.QGraphicsView):
     def return_all_blobs(self):
         points=self.point_list
         nodes=[]
-        for i in BlobColor_object[:len(num_channels)]:
+        for j,i in enumerate(BlobColor_object[:len(num_channels)]):
+            
+
             temp=[]
             for node in points:
                 if node.point_type==i:
@@ -159,7 +163,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             nodes.append(temp)
         return nodes
     def get_all_red_blob(self):
-        nodes=[(node.x ,node.y)  for node in self.point_list if node.point_type==BlobColor.red]
+        nodes=[(node.x ,node.y)  for node in self.point_list if node.point_type==BlobColor.blue]
         return nodes
 
     def get_all_green_blob(self):
@@ -235,7 +239,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             else:
 
                 # self.add_point(xx,yy,self.auto_detect,self.caption_mode)
-                self.add_point(xx,yy,fill_color=BlobColor.white)
+                self.add_point(xx,yy,fill_color=BlobColor_object[-2])
 
     # def add_point(self,x,y,is_auto_detect=0,has_caption=True,border_color=[BlobColor.red],fill_color=None):
           
@@ -356,7 +360,8 @@ class Point(QtWidgets.QGraphicsEllipseItem):
             self.point_border=self.setPen(pen)
         
         if fill_color is not None:
-            color=fill_color#.value
+            color=fill_color.value
+            
             self.point_color=self.setBrush(QtGui.QColor(color[0],color[1],color[2]))
 
         else:

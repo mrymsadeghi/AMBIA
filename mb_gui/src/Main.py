@@ -160,7 +160,9 @@ if __name__ == '__main__':
                 if len(self.final_blobs)>0:
                     try:registered_coords[i]=func_convert_coords(self.reg_code,self.final_blobs[i], str(i),self.GuiFunctions)
                     except : registered_coords[i]=[]
+            print (self.final_colocalized_blobs,"self.final_colocalized_blobs")
             for i in  self.final_colocalized_blobs:
+                print (i,"iiiiiiii")
                 tmp=[]
                 #for j in i :
                 try:tmp.append( func_convert_coords(self.reg_code, i, 'coloc',self.GuiFunctions))
@@ -384,7 +386,7 @@ if __name__ == '__main__':
             self.change_status_bar_waiting()
             self.set_status_bar_text("Please Wait")
             self.remove_all_blobs()
-            self.set_blob_detection_cells_count(0, 0, 0) # Sets the counted Neuron numbers in GUI
+            self.set_blob_detection_cells_count(0,0 ,[0]) # Sets the counted Neuron numbers in GUI
 
             blob_detection_file_name, tissue_lm_detection_filename = self.GuiFunctions.section_flip_operation()
 

@@ -1,6 +1,6 @@
 
 # Number of channels starting with 0
-num_channels = [2, 1, 0]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
+num_channels = [2, 0]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
 
 type_channels = ["GUI", "GUI", "r"]
 coloc_permutation = [(0,2)]   #e.g [(2,1),(2,0)]

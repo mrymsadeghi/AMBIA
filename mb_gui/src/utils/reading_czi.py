@@ -56,7 +56,7 @@ class CZI:
             if image.shape[2]>=4:
                 image = image[:,:,0:3]
             img=(image/256).astype(np.uint8)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img_output = histogram_equalization(img)
             plt.imshow(img_output)
             plt.subplots_adjust(wspace=0.1, hspace=0.1)

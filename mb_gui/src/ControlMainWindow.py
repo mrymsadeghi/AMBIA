@@ -1,4 +1,4 @@
-from gui.CustomWidgests import BlobColor,BlobColor_,BlobColor_object
+from gui.CustomWidgests import BlobColor,BlobColor_,BlobColor_object,names
 from gui.GUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QPoint,Qt
@@ -12,7 +12,7 @@ import os
 import time
 from pathlib import Path 
 from easysettings import EasySettings
-from Switches_Static import blob_sizes# blob1_size_red, blob1_size_green, blob1_size_yellow
+from Switches_Static import coloc_permutation, blob_sizes# blob1_size_red, blob1_size_green, blob1_size_yellow
 
 
 settings = EasySettings("myconfigfile.conf")
@@ -596,7 +596,10 @@ class ControlMainWindow(QMainWindow):
     def set_blob_detection_cells_count(self,red_count,green_count,co_count):
         self.ui.lblRedBlobCount.setText(str(red_count))
         self.ui.lblGreenBlobCount.setText(str(green_count))
-        self.ui.lblCoBlobCount.setText(str(co_count))
+        c=""
+        for j in co_count:
+            c+=str(j)+","
+        self.ui.lblCoBlobCount.setText(c)#str(co_count))
 
 
     def set_tissue_landmark_detection_image(self, file_address):
@@ -836,6 +839,7 @@ class ControlMainWindow(QMainWindow):
 
     def add_auto_detect_blobs(self,list_of_blobs,list_of_co_blobs_permute):
         for i in range(len(list_of_blobs)):
+            print (f"channel {i} color : {names[i]}")
             for j in list_of_blobs[i]:
                 self.ui.viewBlobDetection.add_point(
                 j[1], j[0],
@@ -844,8 +848,9 @@ class ControlMainWindow(QMainWindow):
                 size=blob_sizes[i]
                 )
         index=4
-        for nodes in list_of_co_blobs_permute:
-
+        
+        for j,nodes in enumerate(list_of_co_blobs_permute):
+            print (f"permute {j} {coloc_permutation[j]} color : {names[index]}")
             for yellow_node in nodes:
                 self.ui.viewBlobDetection.add_point(
                     yellow_node[1], yellow_node[0],

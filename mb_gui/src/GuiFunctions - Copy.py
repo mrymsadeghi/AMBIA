@@ -1,5 +1,4 @@
 import numpy as np
-from copy import deepcopy
 import slideio
 import pandas as pd
 import os,sys
@@ -220,7 +219,7 @@ class Slide_Operator:
             Slide = openslide.OpenSlide(self.slidepath)
             Dims = Slide.level_dimensions
             #if len (st_switches.num_channels)>
-            brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb)).convert("BGR")#.convert("RGB")
+            brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb)).convert("RGB")
             brainimg2 = np.array(brainimg)
             section_blevel = cv.rotate(brainimg2, cv.ROTATE_90_CLOCKWISE)
             
@@ -230,7 +229,7 @@ class Slide_Operator:
                 section_blevel2[:,:,2]= section_blevel[:,:,1]
                 section_blevel = section_blevel2
             section_blevel_eq = equalize_img(section_blevel)
-            braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa)).convert("BGR")#.convert("RGB")
+            braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa)).convert("RGB")
             braina_dark = np.array(braina)
             braina_rot = cv.rotate(braina_dark, cv.ROTATE_90_CLOCKWISE)
             section_alevel = braina_rot
@@ -264,9 +263,7 @@ class Slide_Operator:
             section_blevel_eq_gr0=cv.cvtColor(section_blevel_eq, cv.COLOR_BGR2GRAY)
             section_blevel_eq_gr=cv.convertScaleAbs(section_blevel_eq_gr0, alpha=(255.0/65535.0))
             _, alevel_mask = cv.threshold(section_alevel_eq_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
-            
             _, blevel_mask = cv.threshold(section_blevel_eq_gr, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
-            cv.imwrite (os.path.join(self.section_savepath,"blevel_test.png"),blevel_mask)
             alevel_mask_fixed = self.remove_edge_blob(alevel_mask, 20000)
             blevel_mask_fixed = self.remove_edge_blob(blevel_mask, 20000*(2**(self.alevel-self.blevel)))
             cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_fixed.png"), alevel_mask_fixed)
@@ -291,6 +288,7 @@ class Slide_Operator:
                 #channel_name = self.channel_types[channel]
                 #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
                 blevel_channel = section_blevel[..., index]
+                print (blevel_channel.shape,"shapessssssssssss")
 
                 if st_switches.gammas[index]=="default":
                     gamma_corrected_image = imgprc.gamma_correction(blevel_channel)
@@ -431,7 +429,7 @@ class Slide_Operator:
                 else:
                     minsigma, maxsigma, r_thresh, red_blobs_thresh = st_switches.params_cfos[index]
                     red_blobs_thresh = red_blobs_thresh /100
-                #print(index, minsigma, maxsigma, r_thresh, red_blobs_thresh)
+                print(index, minsigma, maxsigma, r_thresh, red_blobs_thresh)
                 numsigma = 10
                 cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_czi_images.png"), czi_images[index])
                 img_channel_r_temp = czi_images[index]
@@ -527,19 +525,12 @@ class Slide_Operator:
         atlas_width = mappedatlas_labled_showimg.shape[1]
 
         
-        atlas_pil = Image.open(unlabeled_atlas_filepath).convert("RGB")#.convert('RGB')#ERROR
+        atlas_pil = Image.open(unlabeled_atlas_filepath).convert('RGB')
         atlas_colors = Counter(atlas_pil.getdata())
         #red_blobs_coords = red_blobs_modified #(c,r
         saved_data_pickle['blobs_coords_registered'] = blobs_coords
         increamenter=0
         reportfile = open(os.path.join(self.section_savepath, "reportfile.txt"), 'w')
-        for i in range(len(st_switches.num_channels)):
-            blobs = blobs_coords[i]
-            coloc=deepcopy(blobs)
-            for coord in range(len(coloc)):
-                #try:
-                if coloc[coord][0]<0 or coloc[coord][1]<0:
-                    blobs.remove((coloc[coord][0],coloc[coord][1]))
         for i in range(len(st_switches.num_channels)):
             redpointcolors = []
             redpointtags = []
@@ -548,7 +539,7 @@ class Slide_Operator:
                 try:
                     bb,gg,rr = mappedatlas_detection[ro2, co2]
                     pointcolor = (bb,gg,rr) 
-                    pointcolor_rgb = (bb,gg,rr) #(rr,gg,bb) 
+                    pointcolor_rgb = (rr,gg,bb) 
                 except:
                     pointcolor = (0,0,0) 
                     pointcolor_rgb = (0,0,0)
@@ -616,23 +607,10 @@ class Slide_Operator:
             
 
 
-
+        
         for i in range(len(colocalized_blobs_coords)):
-            colocalized_blobs = colocalized_blobs_coords[i][0]
-            coloc=deepcopy(colocalized_blobs)
-            for coord in range(len(coloc)):
-                #try:
-                if coloc[coord][0]<0 or coloc[coord][1]<0:
-                    colocalized_blobs.remove((coloc[coord][0],coloc[coord][1]))
-                
-                #except IndexError:
-                #    break
-                
-
-        for i in range(len(colocalized_blobs_coords)):
-            colocalized_blobs = colocalized_blobs_coords[i][0]
+            colocalized_blobs = colocalized_blobs_coords[i]
             matchcount = len(colocalized_blobs)
-            #print (matchcount,"countttt")
             #blob_colocs = np.array(colocalized_blobs)
             reportfile.write('\n')
             reportfile.write('{} Co-localization in:\n'.format(matchcount))
@@ -642,7 +620,7 @@ class Slide_Operator:
                     try:
                         bb,gg,rr = mappedatlas_detection[ro2, co2]
                         pointcolor = (bb,gg,rr) 
-                        pointcolor_rgb = (bb,gg,rr) #(rr,gg,bb) 
+                        pointcolor_rgb = (rr,gg,bb) 
                     except:
                         pointcolor = (0,0,0) 
                         pointcolor_rgb = (0,0,0) 
@@ -705,10 +683,11 @@ class Slide_Operator:
 
             if brnum in self.Report_df["Section"].values:
                 ms=self.Report_df.index[self.Report_df['Section'] == brnum]
+           
                 #Report_subdf=Report_subdf.set_index(ms)
 
-                tmp1=self.Report_df.loc[0:min(ms)-1]
-                tmp2=self.Report_df.loc[max(ms)+1:]
+                tmp1=self.Report_df.loc[0:min(ms)]
+                tmp2=self.Report_df.loc[max(ms):]
                 self.Report_df=pd.concat([tmp1,Report_subdf,tmp2],axis=0)
                 self.Report_df=self.Report_df.drop_duplicates(["type","Section"])
                 #self.Report_df.loc[ms]=Report_subdf.loc[:]
@@ -796,17 +775,14 @@ class Slide_Operator:
             cv.imwrite(os.path.join(self.section_savepath,"blevel_1.png"), blevel_g)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_2.png"), blevel_r)
         elif self.slideformat == "czi":
-            for index,channel in enumerate(st_switches.num_channels):
-                blevel_ch0=cv.flip(cv.imread(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png")), 1)
-                cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"),blevel_ch0)
-            """blevel_ch0 = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel_0.png")), 1)
+            blevel_ch0 = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel_0.png")), 1)
             blevel_ch1 = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel_1.png")), 1)
             blevel_ch2 = cv.flip(cv.imread(os.path.join(self.section_savepath,"blevel_2.png")), 1)
 
             cv.imwrite(os.path.join(self.section_savepath,"blevel_0.png"), blevel_ch0)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_1.png"), blevel_ch1)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_2.png"), blevel_ch2)
-            """
+
         cv.imwrite(os.path.join(self.section_savepath,"alevel.png"), section_alevel)
         cv.imwrite(os.path.join(self.section_savepath,"blevel.png"), section_blevel)
         cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq)
