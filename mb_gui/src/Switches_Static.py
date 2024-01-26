@@ -1,14 +1,14 @@
 
 # Number of channels starting with 0
-num_channels = [2, 0]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
+num_channels = [0, 1, 2]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
 
 type_channels = ["GUI", "GUI", "r"]
-coloc_permutation = [(0,2)]   #e.g [(2,1),(2,0)]
+coloc_permutation = [(0,2), (1,2)]   #e.g [(2,1),(2,0)]
 blob_sizes = [20, 20, 20]
 
 # Rabies params for each channel, in the same order as  num channesl, a two element tuple for each channel, first element minsize, second threshold
 # First two tuples can be left empty so they can be modified in gui
-params_rabies = [(), (), (92,5)]    # (thresh, minsize)
+params_rabies = [(), (), (8, 150)]    # (minsize, thresh)
 
 # cfos params for each channel, in the same order as num channels, a 4 element tuple per channel, first element min sigma, second maxsigma
 # third bg intensity (0-255) fourth cell intensity (0-10)
@@ -32,7 +32,7 @@ czi_maskthresh = 10                  # This threshold is used for the section de
 contrast_enhancement = 12.0           # This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
 blevel_mask_threshold = 5           # This parameter adjust the threshold for brain_mask
 alevel_mask_threshold = 5
-channel_to_omit = 1                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
+channel_to_omit = 0                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
 CELL_OVERLAP = 0.5                  # If two detected cfos cells have more than this amount overlap, only one will be counted
 ## Atlas Type:
 atlas_type = "Adult"        # Adult or P56 or Rat
