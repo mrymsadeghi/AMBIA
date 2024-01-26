@@ -14,7 +14,10 @@ params_rabies = [(), (), (8, 150)]    # (minsize, thresh)
 # third bg intensity (0-255) fourth cell intensity (0-10)
 params_cfos = [(), (), (4, 8, 10, 2)]     # (min sigma, maxsigma, bg intensity, cell intensity)
 
+# Use gamma to increase the contrast of the channels individually. 0.5 to 2.5
 gammas = ["default", 2, "default"]
+
+
 #number of patches for multiprocessing in cFos detection, output is rx*cx
 rx= 2
 cx= 2
@@ -29,7 +32,7 @@ section_QL_on = False
 # Image Processing parameters
 rotate_flag=False
 czi_maskthresh = 10                  # This threshold is used for the section detection on the whole slide image
-contrast_enhancement = 12.0           # This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
+contrast_enhancement = 12.0           # for alevel image contras enhancement. This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
 blevel_mask_threshold = 5           # This parameter adjust the threshold for brain_mask
 alevel_mask_threshold = 5
 channel_to_omit = 0                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
