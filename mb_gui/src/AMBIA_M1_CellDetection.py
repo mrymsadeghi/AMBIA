@@ -10,38 +10,46 @@ class OUTPUTS:
     OUTPUT=[]
 def calculate_norms(arr,X):
   return np.linalg.norm(X-arr.reshape(1,arr.shape[0]),axis=1)
-
+def filter (arr):
+    return np.any(arr<6)
 def calculate_colocalized_blobs(blobs_log):
     blobs_log_=[]
     colocalized_blobs=[]
     colocalized_blobs_counts=[]
     for i in blobs_log:
+        #filtering out all instances except the coordinates
         blobs_log_.append(np.array([x for x in i if isinstance(x, tuple)]))
     permutation=st_switches.coloc_permutation
     for i in permutation:
         no_coloc=False
+        #setting two indexes for the first and second (last) channel
         index=st_switches.num_channels.index(i[0])
         index2=st_switches.num_channels.index(i[1])
         channel_to_start=blobs_log_[index]
         if len (channel_to_start)<1 or len(blobs_log_[index2])<1:
+            #checking if the first channel has any cell detected, if not function set an empty list
+            #and move to the next permute(if exist)
             no_coloc=True
             colocalized_blobs.append([])
             colocalized_blobs_counts.append(0)
             continue
+        #calculating the distance between every pair of cells
+        
         norms=np.apply_along_axis(calculate_norms,axis=1,arr=channel_to_start,X=blobs_log_[index2])
+       
+        coords=np.apply_along_axis(filter,axis=1,arr=norms)
+        print (coords)
 
-        coords=np.where(norms<6)
-
-        try : channel_to_start=channel_to_start[np.unique(coords[1])]#[np.all(norms<6,axis=0)]
-        except :channel_to_start=channel_to_start[np.unique(coords[0])]
+        
+        channel_to_start=channel_to_start[coords]
         if len(i)>2:
             for j in i[2:]:
                 try :
                     index_=st_switches.num_channels.index(j)
                     norms=np.apply_along_axis(calculate_norms,axis=1,arr=channel_to_start,X=blobs_log_[index_])
-                    coords=np.where(norms<6)
-                    try : channel_to_start=channel_to_start[np.unique(coords[1])]
-                    except : channel_to_start=channel_to_start[np.unique(coords[0])]
+                    coords=np.apply_along_axis(filter,axis=1,arr=norms)
+                    channel_to_start=channel_to_start[coords]
+
                 except:
                     no_coloc=True
                     break

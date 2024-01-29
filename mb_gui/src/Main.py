@@ -477,6 +477,7 @@ if __name__ == '__main__':
             ''' This function is called when Apply button in LMDetection Stage is clicked	
             This func was originally intended for automatic LM detection. 	
             '''	
+            
 
             atlasnum = self.get_atlas_number()
             dy_switches.set_atlasnum(atlasnum)

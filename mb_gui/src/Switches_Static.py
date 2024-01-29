@@ -1,14 +1,15 @@
 
 # Number of channels starting with 0
-num_channels = [2, 0]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
+num_channels = [0, 1,2]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
 
 type_channels = ["GUI", "GUI", "r"]
-coloc_permutation = [(0,2)]   #e.g [(2,1),(2,0)]
+#permutes must be in respect to the original channels
+coloc_permutation = [(0,1,2)]   #e.g [(2,1),(2,0)]
 blob_sizes = [20, 20, 20]
 
 # Rabies params for each channel, in the same order as  num channesl, a two element tuple for each channel, first element minsize, second threshold
 # First two tuples can be left empty so they can be modified in gui
-params_rabies = [(), (), (92,5)]    # (thresh, minsize)
+params_rabies = [(), (), (8,150)]    # (thresh, minsize)
 
 # cfos params for each channel, in the same order as num channels, a 4 element tuple per channel, first element min sigma, second maxsigma
 # third bg intensity (0-255) fourth cell intensity (0-10)
