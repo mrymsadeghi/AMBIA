@@ -1,21 +1,35 @@
 
 # Number of channels starting with 0
+<<<<<<< HEAD
 num_channels = [0, 1,2]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
 
 type_channels = ["GUI", "GUI", "r"]
 #permutes must be in respect to the original channels
 coloc_permutation = [(0,1,2)]   #e.g [(2,1),(2,0)]
+=======
+num_channels = [0, 1, 2]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
+
+type_channels = ["GUI", "GUI", "r"]
+coloc_permutation = [(0,2), (1,2)]   #e.g [(2,1),(2,0)]
+>>>>>>> 1f9bcc10c06112df745f6ca3ee91fc725aab0547
 blob_sizes = [20, 20, 20]
 
 # Rabies params for each channel, in the same order as  num channesl, a two element tuple for each channel, first element minsize, second threshold
 # First two tuples can be left empty so they can be modified in gui
+<<<<<<< HEAD
 params_rabies = [(), (), (8,150)]    # (thresh, minsize)
+=======
+params_rabies = [(), (), (8, 150)]    # (minsize, thresh)
+>>>>>>> 1f9bcc10c06112df745f6ca3ee91fc725aab0547
 
 # cfos params for each channel, in the same order as num channels, a 4 element tuple per channel, first element min sigma, second maxsigma
 # third bg intensity (0-255) fourth cell intensity (0-10)
 params_cfos = [(), (), (4, 8, 10, 2)]     # (min sigma, maxsigma, bg intensity, cell intensity)
 
+# Use gamma to increase the contrast of the channels individually. 0.5 to 2.5
 gammas = ["default", 2, "default"]
+
+
 #number of patches for multiprocessing in cFos detection, output is rx*cx
 rx= 2
 cx= 2
@@ -30,10 +44,10 @@ section_QL_on = False
 # Image Processing parameters
 rotate_flag=False
 czi_maskthresh = 10                  # This threshold is used for the section detection on the whole slide image
-contrast_enhancement = 12.0           # This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
+contrast_enhancement = 12.0           # for alevel image contras enhancement. This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
 blevel_mask_threshold = 5           # This parameter adjust the threshold for brain_mask
 alevel_mask_threshold = 5
-channel_to_omit = 1                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
+channel_to_omit = 0                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
 CELL_OVERLAP = 0.5                  # If two detected cfos cells have more than this amount overlap, only one will be counted
 ## Atlas Type:
 atlas_type = "Adult"        # Adult or P56 or Rat
