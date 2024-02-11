@@ -182,9 +182,10 @@ if __name__ == '__main__':
             reg_code_status = dy_switches.get_reg_code()
             atlas_path = self.get_atlas_preview_name()
             atlasnum = os.path.split(atlas_path)[-1].split(".")[0]
+            blobs_parameters = self.get_all_blob_detection_parameters()
             mappingimgpath, report_image_file_name = self.GuiFunctions.funcAnalysis(atlasnum, self.brnum, atlas_prepath,
                                                                                     registered_coords,
-                                                                                    colocalized_converted_coords)
+                                                                                    colocalized_converted_coords,blobs_parameters)
             if report_image_file_name == "em2":
                 error_msg_2.exec_()
                 return

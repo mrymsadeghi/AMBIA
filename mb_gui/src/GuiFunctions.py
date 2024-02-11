@@ -222,8 +222,11 @@ class Slide_Operator:
             #if len (st_switches.num_channels)>
             brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb)).convert("BGR")#.convert("RGB")
             brainimg2 = np.array(brainimg)
-            section_blevel = cv.rotate(brainimg2, cv.ROTATE_90_CLOCKWISE)
-            
+            if st_switches.rotate_flag:
+    
+                section_blevel = cv.rotate(brainimg2, cv.ROTATE_90_CLOCKWISE)
+            else : 
+                section_blevel = brainimg2
             if st_switches.color_switch_on:
                 section_blevel2 = section_blevel.copy()
                 section_blevel2[:,:,1]= section_blevel[:,:,2]
@@ -232,8 +235,12 @@ class Slide_Operator:
             section_blevel_eq = equalize_img(section_blevel)
             braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa)).convert("BGR")#.convert("RGB")
             braina_dark = np.array(braina)
-            braina_rot = cv.rotate(braina_dark, cv.ROTATE_90_CLOCKWISE)
-            section_alevel = braina_rot
+            if st_switches.rotate_flag:
+
+                braina_rot = cv.rotate(braina_dark, cv.ROTATE_90_CLOCKWISE)
+                section_alevel = braina_rot
+            else : 
+                section_alevel = braina_dark
             if st_switches.color_switch_on:
                 section_alevel2 = section_alevel.copy()
                 section_alevel2[:,:,1]= section_alevel[:,:,2]
@@ -251,9 +258,12 @@ class Slide_Operator:
         
         elif self.slideformat == "czi":
             num_sections = len(brainboundcoords)
+            
             section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, st_switches.num_channels, rect=None)
             section_blevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, st_switches.num_channels, rect=None)
-
+            if st_switches.rotate_flag:
+                section_alevel=cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)
+                section_blevel=cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)
             section_alevel = czi_channel_regulator(section_alevel)
             section_blevel = czi_channel_regulator(section_blevel)  #st_switches.num_channels)
 
@@ -276,14 +286,14 @@ class Slide_Operator:
             
             if CH_O:
                 section_alevel_eq[:,:,CH_O-1] = 0
-            if st_switches.rotate_flag:
+            """if st_switches.rotate_flag:
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel.png"), cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"blevel.png"), cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)))
                 pool.apply_async(cv.imwrite, (os.path.join(self.section_savepath,"alevel_eq.png"), cv.rotate(section_alevel_eq, cv.ROTATE_90_CLOCKWISE)))
-            else:
-                pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel.png"), section_alevel))
-                pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel.png"), section_blevel))
-                pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq))
+            else:"""
+            pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel.png"), section_alevel))
+            pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"blevel.png"), section_blevel))
+            pool.apply_async(cv.imwrite,(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq))
 
             blevelstack=[]
 
@@ -302,19 +312,19 @@ class Slide_Operator:
                 sharpened_image=cv.bitwise_and(gamma_corrected_image, gamma_corrected_image, mask = blevel_mask)
 
                 blevelstack.append(sharpened_image)
-                if st_switches.rotate_flag:
+                """if st_switches.rotate_flag:
                     cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(sharpened_image, cv.ROTATE_90_CLOCKWISE))
-                    #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))
-                else : 
-                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), sharpened_image)
-                    #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), blevel_channel)
+                    #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))"""
+                #else : 
+                cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), sharpened_image)
+                #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), blevel_channel)
             
             section_blevel_eq = czi_channel_regulator(np.dstack(blevelstack))
 
-            if st_switches.rotate_flag:
+            """if st_switches.rotate_flag:
                 cv.imwrite (os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE))
-            else :
-                cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq )
+            else :"""
+            cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq )
 
         blob_detection_file_name = os.path.join(self.section_savepath,"blevel_eq.png")
         tissue_lm_detection_filename = os.path.join(self.section_savepath,"alevel_eq.png")
@@ -487,12 +497,21 @@ class Slide_Operator:
     
 
     #def funcAnalysis(self,atlasnum, brnum, atlas_prepath, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords):
-    def funcAnalysis(self,atlasnum, brnum, atlas_prepath, blobs_coords, colocalized_blobs_coords):
+    def funcAnalysis(self,atlasnum, brnum, atlas_prepath, blobs_coords, colocalized_blobs_coords,blobs_parameters):
         """ Inputs red/green_blobs_modified as a list of blob coords (c, r)
         these include detected blob coords after user modification
         red/green_blobs_modified coords are in blevel
         Intermediate variable blob_locs_r/g np array  [r,c]
         """
+
+        ### Parameters
+        params={}
+        params[0]=blobs_parameters["c0_blob_type"]
+        params[1]=blobs_parameters["c1_blob_type"]
+        if len(st_switches.type_channels)>2:
+            for j in range(2,len(st_switches.type_channels)+1):
+                params[j]=st_switches.type_channels[j]
+
 
         regmargin = 5  #for color averaging
         if os.path.exists(self.report_xls_path):
@@ -591,7 +610,7 @@ class Slide_Operator:
                 if regname_r not in row_red:
                     row_red[regname_r]=0
             Report_subdf = Report_subdf._append(row_red,ignore_index=True)
-            if "c" in st_switches.type_channels[i].lower():
+            if "c" in params[i].lower():#st_switches.type_channels[i].lower() or "c" in params[i].lower():
                 
                 dict_density = {'type': f'Density_{self.channel_types[st_switches.num_channels[i]]}({i})', 'Total': '__'}
                 dict_area = {'type': f'Area_{self.channel_types[st_switches.num_channels[i]]}({i})', 'Total': '__'}

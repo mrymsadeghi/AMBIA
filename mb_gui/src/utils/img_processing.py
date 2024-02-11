@@ -273,6 +273,7 @@ def gamma_correction(image, gamma=1.5):
     normalized_image = image / 255.0
     corrected_image = np.power(normalized_image, gamma)
     corrected_image = np.clip(corrected_image, 0, 255).astype(np.uint8)
+    print (corrected_image[corrected_image>0].shape,np.min(corrected_image),np.max(corrected_image))
 
     # max_,min_=np.max(corrected_image),np.min(corrected_image)
     # corrected_image=((corrected_image-min_)/max_-min_)*255
