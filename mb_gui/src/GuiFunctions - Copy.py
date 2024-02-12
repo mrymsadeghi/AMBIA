@@ -415,7 +415,7 @@ class Slide_Operator:
                 print ("herererrrrr")
                 for j in range(brain_blevel.shape[2]):
                     brain_blevel[...,j]=(-1)*brain_blevel[...,j]
-                    brain_blevel[...,j]=(brain_blevel[...,j]-np.min(brain_blevel[...,j])).astype(np.uint8)
+                    brain_blevel[...,j]=brain_blevel[...,j]-np.min(brain_blevel[...,j])
 
             brainimgtemp_gray = cv.cvtColor(brain_blevel, cv.COLOR_BGR2GRAY)
             _, brain_mask = cv.threshold(brainimgtemp_gray, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
@@ -430,10 +430,9 @@ class Slide_Operator:
             czi_images[2]=img_channel_2
             if st_switches.Bright_field:
                 for j in range(len(czi_images)):
-                    
                     czi_images[j]=(-1)*czi_images[j]
-                    czi_images[j]=(czi_images[j]-np.min(czi_images[j])).astype(np.uint8)
-                    cv.imwrite(os.path.join(self.section_savepath, f'blevel_{j}_invert.png'), czi_images[j])
+                    czi_images[j]=czi_images[j]-np.min(czi_images[j])
+
 
 
         elif self.slideformat == "czi":
@@ -448,8 +447,8 @@ class Slide_Operator:
 
         # brain_mask_temp = cv.copyMakeBorder(brain_mask_edge_removed, tempMARGIN, tempMARGIN, tempMARGIN, tempMARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
         brain_mask_temp = cv.imread(os.path.join(self.section_savepath, 'blevel_mask_fixed.png'), cv.IMREAD_UNCHANGED)
-        #print (os.path.join(self.section_savepath, 'blevel_mask_fixed.png'))
-        #print (brain_mask_temp)
+        print (os.path.join(self.section_savepath, 'blevel_mask_fixed.png'))
+        print (brain_mask_temp)
         closing = cv.morphologyEx(brain_mask_temp, cv.MORPH_CLOSE, kernel2)
         # cv.imwrite(os.path.join(self.section_savepath, 'brain_mask_closed.jpg'), closing)
         brain_mask_eroded_uncut = cv.erode(closing, kernel1, iterations=3)
