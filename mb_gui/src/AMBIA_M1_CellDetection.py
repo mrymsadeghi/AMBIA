@@ -38,7 +38,7 @@ def calculate_colocalized_blobs(blobs_log):
         norms=np.apply_along_axis(calculate_norms,axis=1,arr=channel_to_start,X=blobs_log_[index2])
        
         coords=np.apply_along_axis(filter,axis=1,arr=norms)
-        print (coords)
+        #print (coords)
 
         
         channel_to_start=channel_to_start[coords]

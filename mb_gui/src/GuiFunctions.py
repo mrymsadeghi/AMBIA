@@ -413,7 +413,6 @@ class Slide_Operator:
         if self.slideformat == "mrxs":
             brain_blevel = cv.imread(os.path.join(self.section_savepath, 'blevel_eq.png'))#,cv.COLOR_BGR2RGB)
             if st_switches.Bright_field:
-                print ("herererrrrr")
                 for j in range(brain_blevel.shape[2]):
                     brain_blevel[...,j]=(-1)*brain_blevel[...,j]
                     brain_blevel[...,j]=(brain_blevel[...,j]-np.min(brain_blevel[...,j])).astype(np.uint8)

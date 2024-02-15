@@ -91,7 +91,6 @@ if __name__ == '__main__':
                     tmp1.append(j)
             tmp.sort(key=int)
             tmp1.sort()
-            print (tmp,tmp1)
             return tmp+tmp1
         return file_list
 
