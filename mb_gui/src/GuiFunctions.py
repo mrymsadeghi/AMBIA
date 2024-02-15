@@ -236,7 +236,7 @@ class Slide_Operator:
             brainimg2[:,:,0]=brainimg2[:,:,2]
             brainimg2[:,:,2]=_"""
             #brainimg2=cv.cvtColor(brainimg2,cv.COLOR_RGB2BGR)
-            print (brainimg2.shape , "brainimgbrainimgbrainimgbrainimg",brainimg2[brainimg2>20].shape)
+            #print (brainimg2.shape , "brainimgbrainimgbrainimgbrainimg",brainimg2[brainimg2>20].shape)
             if not st_switches.rotate_flag:
     
                 section_blevel = cv.rotate(brainimg2, cv.ROTATE_90_CLOCKWISE)
@@ -261,7 +261,7 @@ class Slide_Operator:
             braina_dark[:,:,0]=braina_dark[:,:,2]
             braina_dark[:,:,2]=_"""
             #braina_dark=cv.cvtColor(braina_dark,cv.COLOR_RGB2BGR)
-            if st_switches.rotate_flag:
+            if not st_switches.rotate_flag:
 
                 braina_rot = cv.rotate(braina_dark, cv.ROTATE_90_CLOCKWISE)
                 section_alevel = braina_rot
@@ -300,7 +300,8 @@ class Slide_Operator:
             blevel_b, blevel_g, blevel_r = cv.split(section_blevel)
             cv.imwrite(os.path.join(self.section_savepath,"alevel.png"), section_alevel)
             cv.imwrite(os.path.join(self.section_savepath,"blevel.png"), section_blevel)
-            cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq)
+            if st_switches.Bright_field : cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq*(-1)-np.min(section_alevel_eq*(-1)))
+            else : cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_2.png"), blevel_b)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_1.png"), blevel_g)
