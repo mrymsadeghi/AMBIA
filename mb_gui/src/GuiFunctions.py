@@ -351,12 +351,13 @@ class Slide_Operator:
                 #channel_name = self.channel_types[channel]
                 #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
                 blevel_channel = section_blevel[..., index]
-
-                if st_switches.gammas[index]=="default":
-                    gamma_corrected_image = imgprc.gamma_correction(blevel_channel)
-                else:
-                    gamma_corrected_image = imgprc.gamma_correction(blevel_channel, st_switches.gammas[index])
-                
+                if st_switches.gamma_enhancement_flag:
+                    if st_switches.gammas[index]=="default":
+                        gamma_corrected_image = imgprc.gamma_correction(blevel_channel)
+                    else:
+                        gamma_corrected_image = imgprc.gamma_correction(blevel_channel, st_switches.gammas[index])
+                else :
+                    gamma_corrected_image=blevel_channel
                 #sharpened_image = imgprc.apply_sharpening(gamma_corrected_image)
 
                 sharpened_image=cv.bitwise_and(gamma_corrected_image, gamma_corrected_image, mask = blevel_mask)
@@ -577,7 +578,7 @@ class Slide_Operator:
         params[0]=blobs_parameters["c0_blob_type"]
         params[1]=blobs_parameters["c1_blob_type"]
         if len(st_switches.type_channels)>2:
-            for j in range(2,len(st_switches.type_channels)+1):
+            for j in range(2,len(st_switches.type_channels)):
                 params[j]=st_switches.type_channels[j]
 
 
@@ -689,7 +690,8 @@ class Slide_Operator:
                         region_cfos_count = value[1] 
                         #if st_switches.atlas
                         region_area = atlas_colors[value[0]]
-                        region_density =  region_cfos_count / region_area 
+                        try :region_density =  region_cfos_count / region_area 
+                        except : region_density=0
                         dict_area[regname] = region_area 
                         dict_density[regname] = region_density
 

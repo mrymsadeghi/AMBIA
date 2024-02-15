@@ -80,8 +80,19 @@ if __name__ == '__main__':
         try:
             file_list.sort(key=int)
         except:
-            print('error lin 88')
-            file_list.sort()
+            #print('error lin 88')
+            tmp=[] 
+            tmp1=[]
+            for j in file_list:
+                try :
+                    int (j)
+                    tmp.append(j)
+                except :
+                    tmp1.append(j)
+            tmp.sort(key=int)
+            tmp1.sort()
+            print (tmp,tmp1)
+            return tmp+tmp1
         return file_list
 
 
@@ -90,8 +101,8 @@ if __name__ == '__main__':
         if not labeled_atlas_folder:
             labeled_atlas_folder = MainWindow.get_atlas_folder(atlas_prepath)
         images_list = get_images_name_in_folder(labeled_atlas_folder)
-        MainWindow.set_file_list(images_list)
-        MainWindow.set_default_atlas_item_by_name ("42")
+        #MainWindow.set_file_list(images_list)
+        MainWindow.set_default_atlas_item_by_name (images_list[0])
 
 
 
