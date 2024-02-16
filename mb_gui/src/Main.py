@@ -11,7 +11,20 @@ if __name__ == '__main__':
     import Switches_Dynamic as dy_switches
     from AMBIA_M1_CellDetection import calculate_colocalized_blobs
     from AMBIA_M4_Registration import func_ambia_registration, func_convert_coords, resize_images_for_registration, get_overlayed_registered_img
-
+    import cv2
+    from PyQt5.QtWidgets import (
+        QApplication,
+        QWidget,
+        QLabel,
+        QSlider,
+        QHBoxLayout,
+        QVBoxLayout,
+    )
+    from PyQt5.QtGui import QPixmap, QImage, QIcon
+    from PyQt5.QtCore import Qt
+    import utils.img_processing as imgprc
+    from PIL import Image
+    import numpy as np
     import sys
     ################################################
     ###settings and configs
@@ -122,9 +135,10 @@ if __name__ == '__main__':
 
             print(e,"error line 188")
 
+  
+        
 
-
-
+    
 
 
     class Window(ControlMainWindow):
@@ -406,11 +420,61 @@ if __name__ == '__main__':
             status_message = "Section : {} has been selected".format(self.brnum)
             self.set_status_bar_text(status_message)
             self.change_status_bar_default()  
-
+        def slider_value_change(self):
+            self.angle_value=self.slider.value()
+            arr=self.angle_img
+            self.slider.value()
+            arr=imgprc.rotate_by_angle(arr, int(self.angle_value))
+            cv2.imwrite("angle_image.png",arr)
+            #arr2 = np.require(arr, np.uint8, 'C')
+            #qImg = QImage(arr2, arr.shape[1], arr.shape[0],QImage.Format_RGB888)
+            pixmap = QPixmap("angle_image.png")
+            pixmap = pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio)  # Scale to fit
+            self.image_label.setPixmap(pixmap)
 
         def section_select_operation(self):
-            ''' This function is called when Select button is clicked'''
             
+            self.angle_img=self.GuiFunctions.get_section_images_angle(self.brnum, self.brainboundcoords)
+            cv2.imwrite("angle_image.png",self.angle_img)
+            qImg = QImage("angle_image.png")#self.angle_img, self.angle_img.shape[1], self.angle_img.shape[0],QImage.Format_RGB888)
+            pixmap = QPixmap(qImg)
+            if self.angle_img.shape[1]> self.angle_img.shape[0]:
+                by_width=1
+            else : 
+                by_width=0
+            ratio=self.angle_img.shape[1]/ self.angle_img.shape[0]
+            
+
+            self.rotate_dialog=QtWidgets.QDialog(self)
+            self.rotate_dialog.setWindowTitle("Rotate Dialog")
+            self.rotate_dialog.setFixedSize(QtCore.QSize(600,600))
+            self.image_label = QLabel(self.rotate_dialog)
+            h=580//ratio
+            if by_width :
+                self.image_label.setFixedSize(580,int(580/ratio))
+            else :
+                self.image_label.setFixedSize(int(580*ratio),580)
+            self.image_label.move(10,0)
+            self.image_label.setAlignment(Qt.AlignCenter)  # Center image within label
+            pixmap = pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio)  # Scale to fit
+            self.image_label.setPixmap(pixmap)
+            self.angle_value=0
+            self.slider = QSlider(Qt.Horizontal)
+            self.slider.setParent(self.rotate_dialog)
+            self.slider.setFixedSize(QtCore.QSize(580,20))
+            self.slider.move(10,580)
+            self.slider.setMinimum(0) 
+            self.slider.setMaximum(360)  
+            self.slider.setTickPosition(QSlider.TicksBelow)  
+            self.slider.setTickInterval(1)
+            self.rotate_dialog.closeEvent=self.__section_select_operation
+            self.slider.valueChanged.connect(self.slider_value_change)
+            self.rotate_dialog.exec_()
+
+
+        def __section_select_operation(self,Nothing):
+            ''' This function is called when Select button is clicked'''
+            os.remove("angle_image.png")
             self.change_status_bar_waiting()
             self.set_status_bar_text("Please Wait")
             self.brnum = self.accept_selection_region()
@@ -418,7 +482,7 @@ if __name__ == '__main__':
             dy_switches.set_ardent_reg_done_to_false()
             
 
-            self.blob_detection_file_name, self.tissue_lm_detection_filename = self.GuiFunctions.get_section_images(self.brnum, self.brainboundcoords)
+            self.blob_detection_file_name, self.tissue_lm_detection_filename = self.GuiFunctions.get_section_images(self.brnum, self.brainboundcoords,self.angle_value)
             
 
 
@@ -482,6 +546,7 @@ if __name__ == '__main__':
             self.change_status_bar_default()
             self.set_status_bar_text('Loading Slide Image Done!')
             self.clear_landmark_nodes()
+            self.section_detection_operation()
 
 
         def landmark_auto_detect_operation(self,atlas_address=None):

@@ -8,7 +8,17 @@ def check_switch(parameter):
     if parameter.section_classifier_on or parameter.segmentation_1_20_on or parameter.section_QL_on:
         import tensorflow
         tf=tensorflow
+def rotate_by_angle(image, angle, center = None, scale = 1.0):
+        (h, w) = image.shape[:2]
 
+        if center is None:
+            center = (w / 2, h / 2)
+
+        # Perform the rotation
+        M = cv.getRotationMatrix2D(center, angle, scale)
+        rotated = cv.warpAffine(image, M, (w, h))
+
+        return rotated
 
 def rotate_img(img):
     img_rot = np.zeros((img.shape[1], img.shape[0], img.shape[2]))      ###########  optimize

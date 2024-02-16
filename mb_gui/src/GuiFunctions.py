@@ -209,7 +209,7 @@ class Slide_Operator:
                 cv.drawContours(img, contours, i, (0, 0, 0), -1)
         return img
 
-    def get_section_images(self,brnum0, brainboundcoords):
+    def get_section_images(self,brnum0, brainboundcoords,rotation_angle):
         num_processes = 5  # Adjust this to the number of processes you want
         pool = multiprocessing.Pool(processes=num_processes)
         time3=time.time()
@@ -231,6 +231,7 @@ class Slide_Operator:
             except : """
             brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb))#.convert("BGR")#.convert("RGB")
             brainimg2 = cv.cvtColor(np.array(brainimg),cv.COLOR_BGR2RGB)
+            brainimg2=imgprc.rotate_by_angle(brainimg2,rotation_angle)
             #brainimg2 = cv.cvtColor(np.array(brainimg2),cv.COLOR_BGR2RGB)
             """_=brainimg2[:,:,0]
             brainimg2[:,:,0]=brainimg2[:,:,2]
@@ -256,6 +257,7 @@ class Slide_Operator:
             braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa))#.convert("BGR")#.convert("RGB")
             
             braina_dark = cv.cvtColor(np.array(braina),cv.COLOR_BGR2RGB)
+            braina_dark=imgprc.rotate_by_angle(braina_dark,rotation_angle)
             #braina_dark = cv.cvtColor(np.array(braina_dark),cv.COLOR_BGR2RGB)
             """_=braina_dark[:,:,0]
             braina_dark[:,:,0]=braina_dark[:,:,2]
@@ -312,6 +314,8 @@ class Slide_Operator:
             
             section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, st_switches.num_channels, rect=None)
             section_blevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, st_switches.num_channels, rect=None)
+            section_alevel=imgprc.rotate_by_angle(section_alevel,rotation_angle)
+            section_blevel=imgprc.rotate_by_angle(section_blevel,rotation_angle)
             if st_switches.rotate_flag:
                 section_alevel=cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)
                 section_blevel=cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)
@@ -392,7 +396,38 @@ class Slide_Operator:
     
     
 
+    def get_section_images_angle(self,brnum0, brainboundcoords):
 
+        if self.slideformat == "mrxs":
+            x, y, w, h = brainboundcoords[brnum0-1]  # mlevel
+            [xb, yb, wb, hb] = [x * self.dfmb, y * self.dfmb, w * self.dfmb, h * self.dfmb]
+            [xa, ya, wa, ha] = [x * self.dfma, y * self.dfma, w * self.dfma, h * self.dfma]
+            Slide = openslide.OpenSlide(self.slidepath)
+            Dims = Slide.level_dimensions
+
+            braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa))#.convert("BGR")#.convert("RGB")
+            
+            braina_dark = cv.cvtColor(np.array(braina),cv.COLOR_BGR2RGB)
+
+            if not st_switches.rotate_flag:
+
+                braina_rot = cv.rotate(braina_dark, cv.ROTATE_90_CLOCKWISE)
+                section_alevel = braina_rot
+            else : 
+                section_alevel = braina_dark
+            
+            return equalize_img(section_alevel)
+        
+        elif self.slideformat == "czi":
+            num_sections = len(brainboundcoords)
+            
+            section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, st_switches.num_channels, rect=None)
+            if st_switches.rotate_flag:
+                section_alevel=cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)
+            section_alevel = czi_channel_regulator(section_alevel)
+
+            #section_alevel_eq = histogram_equalization(section_alevel)
+            return imgprc.gamma_correction(equalize_img(section_alevel))
     def funcBlobDetection(self, brnum, blobs_parameters):
         """ Returns blobs_log_r, blobs_log_g, colocalized_blobs:: list of blob coords (r,c) before 
         adding the blobs added/removed manually by user
