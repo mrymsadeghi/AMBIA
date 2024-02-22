@@ -1,7 +1,8 @@
 import numpy as np
 from pathlib import Path
-#import Switches_Static as st_switches
+import Switches_Static as st_switches
 from skimage import measure
+
 import cv2 as cv
 def check_switch(parameter):
     global tf
@@ -10,13 +11,21 @@ def check_switch(parameter):
         tf=tensorflow
 def rotate_by_angle(image, angle, center = None, scale = 1.0):
         (h, w) = image.shape[:2]
+        borderValue=(0,0,0)
+        if st_switches.Bright_field:
+            padded_image = cv.copyMakeBorder(image, st_switches.rotation_padding, st_switches.rotation_padding,
+                                              st_switches.rotation_padding, st_switches.rotation_padding, 
+                                              cv.BORDER_CONSTANT, value=[255, 255, 255])
+            h,w=h+(st_switches.rotation_padding*2),w+(st_switches.rotation_padding*2)
+            borderValue=(255,255,255)
 
         if center is None:
             center = (w / 2, h / 2)
 
         # Perform the rotation
+        
         M = cv.getRotationMatrix2D(center, angle, scale)
-        rotated = cv.warpAffine(image, M, (w, h))
+        rotated = cv.warpAffine(padded_image, M, (w, h) ,borderValue=borderValue)
 
         return rotated
 

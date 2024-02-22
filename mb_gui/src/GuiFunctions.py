@@ -427,7 +427,7 @@ class Slide_Operator:
             section_alevel = czi_channel_regulator(section_alevel)
 
             #section_alevel_eq = histogram_equalization(section_alevel)
-            return imgprc.gamma_correction(equalize_img(section_alevel))
+            return imgprc.gamma_correction(equalize_img(section_alevel),2)
     def funcBlobDetection(self, brnum, blobs_parameters):
         """ Returns blobs_log_r, blobs_log_g, colocalized_blobs:: list of blob coords (r,c) before 
         adding the blobs added/removed manually by user

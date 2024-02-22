@@ -422,6 +422,7 @@ if __name__ == '__main__':
             self.change_status_bar_default()  
         def slider_value_change(self):
             self.angle_value=self.slider.value()
+            self.angle_value_label.setText(f"Rotation degree : {self.angle_value}")
             arr=self.angle_img
             self.slider.value()
             arr=imgprc.rotate_by_angle(arr, int(self.angle_value))
@@ -433,8 +434,9 @@ if __name__ == '__main__':
             self.image_label.setPixmap(pixmap)
 
         def section_select_operation(self):
-            
+            self.brnum = self.accept_selection_region()
             self.angle_img=self.GuiFunctions.get_section_images_angle(self.brnum, self.brainboundcoords)
+            #print (self.brnum,"brnummmmmmmmmmmmmmmmmmmmmmmmm")
             cv2.imwrite("angle_image.png",self.angle_img)
             qImg = QImage("angle_image.png")#self.angle_img, self.angle_img.shape[1], self.angle_img.shape[0],QImage.Format_RGB888)
             pixmap = QPixmap(qImg)
@@ -446,6 +448,7 @@ if __name__ == '__main__':
             
 
             self.rotate_dialog=QtWidgets.QDialog(self)
+            #self.rotate_dialog.ret
             self.rotate_dialog.setWindowTitle("Rotate Dialog")
             self.rotate_dialog.setFixedSize(QtCore.QSize(600,600))
             self.image_label = QLabel(self.rotate_dialog)
@@ -459,14 +462,31 @@ if __name__ == '__main__':
             pixmap = pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio)  # Scale to fit
             self.image_label.setPixmap(pixmap)
             self.angle_value=0
+
+            hint_label=QtWidgets.QLabel(self.rotate_dialog)
+            hint_label.setStyleSheet("QLabel { font-size : 14px; color : white; }")
+            hint_label.setText("""Use arrow keys to modify the rotation degree (-45 to +45)\nPress 'Esc' key to cancel operation 'Enter' to accept rotation or just close the window
+                               """)
+            hint_label.move(10,510)
+            self.angle_value_label=QtWidgets.QLabel(self.rotate_dialog)
+            self.angle_value_label.setText(f"Rotation degree : {self.angle_value}        ")
+            self.angle_value_label.setStyleSheet("QLabel { font-size : 16px; color : white; }")
+            self.angle_value_label.move(10,545)
+            
             self.slider = QSlider(Qt.Horizontal)
             self.slider.setParent(self.rotate_dialog)
             self.slider.setFixedSize(QtCore.QSize(580,20))
-            self.slider.move(10,580)
-            self.slider.setMinimum(0) 
-            self.slider.setMaximum(360)  
+            self.slider.move(10,570)
+            self.slider.setValue(0)
+            self.slider.setMinimum(-45) 
+            self.slider.setMaximum(45)  
             self.slider.setTickPosition(QSlider.TicksBelow)  
             self.slider.setTickInterval(1)
+            self.angle_accept_button=QtWidgets.QPushButton(self.rotate_dialog)
+            self.angle_accept_button.move(50,545)
+            self.angle_accept_button.resize(0,0)
+            self.angle_accept_button.setStyleSheet("QPushButton { font-size : 16px; color : white; }")
+            self.angle_accept_button.clicked.connect(self.rotate_dialog.close)  
             self.rotate_dialog.closeEvent=self.__section_select_operation
             self.slider.valueChanged.connect(self.slider_value_change)
             self.rotate_dialog.exec_()
@@ -474,6 +494,8 @@ if __name__ == '__main__':
 
         def __section_select_operation(self,Nothing):
             ''' This function is called when Select button is clicked'''
+            #self.angle_value_label.close()
+            #print ("destroyed")
             os.remove("angle_image.png")
             self.change_status_bar_waiting()
             self.set_status_bar_text("Please Wait")
