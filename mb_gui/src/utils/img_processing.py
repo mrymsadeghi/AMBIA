@@ -12,13 +12,15 @@ def check_switch(parameter):
 def rotate_by_angle(image, angle, center = None, scale = 1.0):
         (h, w) = image.shape[:2]
         borderValue=(0,0,0)
+        pad_value=(0, 0, 0)
         if st_switches.Bright_field:
-            padded_image = cv.copyMakeBorder(image, st_switches.rotation_padding, st_switches.rotation_padding,
-                                              st_switches.rotation_padding, st_switches.rotation_padding, 
-                                              cv.BORDER_CONSTANT, value=[255, 255, 255])
-            h,w=h+(st_switches.rotation_padding*2),w+(st_switches.rotation_padding*2)
+            pad_value=(255, 255, 255)
+            
             borderValue=(255,255,255)
-
+        padded_image = cv.copyMakeBorder(image, st_switches.rotation_padding, st_switches.rotation_padding,
+                                              st_switches.rotation_padding, st_switches.rotation_padding, 
+                                              cv.BORDER_CONSTANT,pad_value)
+        h,w=h+(st_switches.rotation_padding*2),w+(st_switches.rotation_padding*2)
         if center is None:
             center = (w / 2, h / 2)
 
