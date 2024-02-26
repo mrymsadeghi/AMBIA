@@ -231,7 +231,7 @@ class Slide_Operator:
             except : """
             brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb))#.convert("BGR")#.convert("RGB")
             brainimg2 = cv.cvtColor(np.array(brainimg),cv.COLOR_BGR2RGB)
-            brainimg2=imgprc.rotate_by_angle(brainimg2,rotation_angle)
+            brainimg2=imgprc.rotate_by_angle(brainimg2,rotation_angle,b_level=True,b_level_scale=self.alevel-self.blevel)
             #brainimg2 = cv.cvtColor(np.array(brainimg2),cv.COLOR_BGR2RGB)
             """_=brainimg2[:,:,0]
             brainimg2[:,:,0]=brainimg2[:,:,2]
@@ -269,13 +269,11 @@ class Slide_Operator:
                 section_alevel = braina_rot
             else : 
                 section_alevel = braina_dark
-            print (section_alevel.shape,"shap[eeeeeeeeee]")
             if st_switches.color_switch_on:
                 section_alevel2 = section_alevel.copy()
                 section_alevel2[:,:,1]= section_alevel[:,:,2]
                 section_alevel2[:,:,2]= section_alevel[:,:,1]
                 section_alevel = section_alevel2
-            print (section_alevel.shape,"shap[eeeeeeeeee]")
             section_alevel_eq = equalize_img(section_alevel)
             
             #####

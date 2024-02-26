@@ -205,6 +205,7 @@ class Ui_MainWindow(object):
         self.label_9.raise_()
         self.btnLoadSlide.raise_()
         self.btnBrainDetecting.raise_()
+        self.btnBrainDetecting.hide()
         self.btnSelectBrain.raise_()
         self.label_18.raise_()
         self.label_10.raise_()
@@ -321,6 +322,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setSpacing(0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.btnBrainDetection = QtWidgets.QPushButton(self.frame_3)
+        
         self.btnBrainDetection.setMaximumSize(QtCore.QSize(40, 40))
         self.btnBrainDetection.setStyleSheet("")
         self.btnBrainDetection.setText("")
@@ -1475,9 +1477,10 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "AMBIA- Automated Mouse Brain Image Analysis "))
+        MainWindow.setWindowTitle(_translate("MainWindow", "AMBIA- Automated Mouse Brain Image Analysis Version 2.1 "))
         self.label_9.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:9pt; color:#ffffff;\">Load</span></p></body></html>"))
         self.label_10.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:9pt; color:#ffffff;\">Detect</span></p></body></html>"))
+        self.label_10.hide()
         self.btnLoadSlide.setText(_translate("MainWindow", "test"))
         self.btnBrainDetecting.setText(_translate("MainWindow", "..."))
         self.btnSelectBrain.setText(_translate("MainWindow", "..."))
@@ -1508,11 +1511,11 @@ class Ui_MainWindow(object):
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'Ubuntu\'; font-size:10pt; color:#ffffff;\"><br /></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a name=\"docs-internal-guid-24127dc0-7fff-ed61-7c66-1295abf44f4f\"></a><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">1</span><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">- Load the slide in .mrxs or .czi format.</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'Arial\'; font-size:10pt; color:#ffffff;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%;\"><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">2- Click on the \'Detect\' Button to detect individual sections.</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%;\"><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">2- Choose the Section of Interest.</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%; font-family:\'Arial\'; font-size:10pt; color:#ffffff;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%;\"><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">3- Choose the Section of Interest.</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%;\"><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">3- Click on the \'Accept\' button to continue with the selection.</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%; font-family:\'Arial\'; font-size:10pt; color:#ffffff;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:138%;\"><span style=\" font-family:\'Arial\'; font-size:10pt; color:#ffffff; background-color:transparent;\">4- Click on the \'Accept\' button to continue with the selection.</span></p>\n"
+
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#ffffff;\"><br /></span></p></body></html>"))
         self.lblSlide.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" color:#ffffff;\">Slide</span></p></body></html>"))
         self.lblMask.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" color:#ffffff;\">Mask</span></p></body></html>"))

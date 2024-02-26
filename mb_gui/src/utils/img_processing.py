@@ -9,18 +9,34 @@ def check_switch(parameter):
     if parameter.section_classifier_on or parameter.segmentation_1_20_on or parameter.section_QL_on:
         import tensorflow
         tf=tensorflow
-def rotate_by_angle(image, angle, center = None, scale = 1.0):
+def rotate_by_angle(image, angle, center = None, scale = 1.0,b_level=False,b_level_scale=1):
+        if b_level : 
+            pad_size=st_switches.rotation_padding
+            pad_size=pad_size *( 2**b_level_scale)
+        else : pad_size=st_switches.rotation_padding
         (h, w) = image.shape[:2]
-        borderValue=(0,0,0)
-        pad_value=(0, 0, 0)
+        upper_pad=np.zeros((pad_size,w,3),dtype=np.uint8)
+        side_pad=np.zeros((h+(pad_size*2),pad_size,3),dtype=np.uint8)
         if st_switches.Bright_field:
-            pad_value=(255, 255, 255)
-            
             borderValue=(255,255,255)
-        padded_image = cv.copyMakeBorder(image, st_switches.rotation_padding, st_switches.rotation_padding,
-                                              st_switches.rotation_padding, st_switches.rotation_padding, 
-                                              cv.BORDER_CONSTANT,pad_value)
-        h,w=h+(st_switches.rotation_padding*2),w+(st_switches.rotation_padding*2)
+            upper_pad+=255
+            side_pad+=255
+            """#padded_image = cv.copyMakeBorder(image, st_switches.rotation_padding, st_switches.rotation_padding,
+                                                st_switches.rotation_padding, st_switches.rotation_padding, 
+                                                cv.BORDER_CONSTANT,(0,255,0))"""
+        else :
+            borderValue=(0,0,0)
+            """pad=(0,0,0)
+            padded_image = cv.copyMakeBorder(image, st_switches.rotation_padding, st_switches.rotation_padding,
+                                                st_switches.rotation_padding, st_switches.rotation_padding, 
+                                                cv.BORDER_CONSTANT,(0,0,0))
+        """
+        padded_image=np.concatenate((upper_pad,image,upper_pad),axis=0)
+
+        padded_image=np.concatenate((side_pad,padded_image,side_pad),axis=1)
+        
+        #h,w=h+(st_switches.rotation_padding*2),w+(st_switches.rotation_padding*2)
+        (h, w) = padded_image.shape[:2]
         if center is None:
             center = (w / 2, h / 2)
 
