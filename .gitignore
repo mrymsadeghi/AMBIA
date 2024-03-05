@@ -151,5 +151,3 @@ cython_debug/
 
 #folders
 Processed/
-
-**/Switches_Static.py
