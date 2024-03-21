@@ -33,10 +33,10 @@ Download and install the 64-bit Git for Windows Setup
 `cd mb_gui\src` \
 `python Main.py` 
 
-You can create a desktop shortcut icon:
-1- Open a notebook. Write the 3 lines below and save it with any name but the the suffix .bat not .txt. And save this file anywhen (e.g. on the desktop) as the AMBIA icon. Replace C in the codes below by the drive letter AMBIA is installed in.
-`C:`
-`cd the_path_for_ambia\AMBIA\mb_gui\src`
+You can create a desktop shortcut icon:\
+1- Open a notebook. Write the 3 lines below and save it with any name but the the suffix .bat not .txt. And save this file anywhen (e.g. on the desktop) as the AMBIA icon. Replace C in the codes below by the drive letter AMBIA is installed in.\
+`C:`\
+`cd the_path_for_ambia\AMBIA\mb_gui\src`\
 `Python Main.py`
 
 
