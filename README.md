@@ -17,17 +17,18 @@ AMBIA is intentionally designed with few requirements. You can easily run AMBIA 
 1. Install python 3.9 \
 https://www.python.org/downloads/release/python-3910/ \
 Download and run the Windows installer (64-bit) \
-In your installation check Add to PATH \
-2. Install Git
+In your installation check Add to PATH 
+
+3. Install Git
 https://git-scm.com/download/win \
-Download and install the 64-bit Git for Windows Setup \
-3. Open Command prompt go the the path that you want to install AMBIA \
+Download and install the 64-bit Git for Windows Setup 
+4. Open Command prompt go the the path that you want to install AMBIA \
 `cd the_path_to_install_ambia`
 4- Run the command below to clone AMBIA. \
-`Git clone -b develop https://github.com/mrymsadeghi/AMBIA.git` \
+`Git clone -b develop https://github.com/mrymsadeghi/AMBIA.git` 
 5. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions. \
 `cd AMBIA` \
-`pip install -r requirements.txt` \
+`pip install -r requirements.txt` 
 7. Run AMBIA \
 `cd mb_gui\src` \
 `python Main.py` \
