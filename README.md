@@ -23,7 +23,7 @@ In your installation check Add to PATH
 https://git-scm.com/download/win \
 Download and install the 64-bit Git for Windows Setup 
 4. Open Command prompt go the the path that you want to install AMBIA \
-`cd the_path_to_install_ambia`
+`cd the_path_to_install_ambia`\
 4- Run the command below to clone AMBIA. \
 `Git clone -b develop https://github.com/mrymsadeghi/AMBIA.git` 
 5. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions. \
@@ -31,7 +31,7 @@ Download and install the 64-bit Git for Windows Setup
 `pip install -r requirements.txt` 
 7. Run AMBIA \
 `cd mb_gui\src` \
-`python Main.py` \
+`python Main.py` 
 
 You can create a desktop shortcut icon:
 1- Open a notebook. Write the 3 lines below and save it with any name but the the suffix .bat not .txt. And save this file anywhen (e.g. on the desktop) as the AMBIA icon. Replace C in the codes below by the drive letter AMBIA is installed in.
