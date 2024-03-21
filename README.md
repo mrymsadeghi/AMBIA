@@ -14,13 +14,30 @@ AMBIA is intentionally designed with few requirements. You can easily run AMBIA 
 
 ## Installation
 
-1. Install python, ideally version 3.7.9, on your system. 
-2. Download AMBIA package files from this Git repository \
-or you can use \
-`Git clone https://github.com/mrymsadeghi/AMBIA.git` 
-3. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions \
+1. Install python 3.9
+https://www.python.org/downloads/release/python-3910/
+Download and run the Windows installer (64-bit)
+In your installation check Add to PATH
+2. Install Git
+https://git-scm.com/download/win
+Download and install the 64-bit Git for Windows Setup
+3. Open Command prompt go the the path that you want to install AMBIA
+`cd the_path_to_install_ambia
+4- Run the command below to clone AMBIA.
+`Git clone -b develop https://github.com/mrymsadeghi/AMBIA.git`
+5. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions .
+`cd AMBIA`
 `pip install -r requirements.txt`
-4. Run the Main.py file to run AMBIA
+7. Run AMBIA
+`cd mb_gui\src`
+`python Main.py`
+
+You can create a desktop shortcut icon:
+1- Open a notebook. Write the 3 lines below and save it with any name but the the suffix .bat not .txt. And save this file anywhen (e.g. on the desktop) as the AMBIA icon. Replace C in the codes below by the drive letter AMBIA is installed in.
+`C:`
+`cd the_path_for_ambia\AMBIA\mb_gui\src`
+`Python Main.py`
+
 
 ## Structure of files and folders
 The files and folders in the AMBIA Git repository consists of the following folers:
