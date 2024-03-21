@@ -33,7 +33,7 @@ Download and install the 64-bit Git for Windows Setup
 `cd mb_gui\src` \
 `python Main.py` 
 
-You can create a desktop shortcut icon:\
+You can create a desktop shortcut icon:
 1. Open a notebook. Write the 3 lines below \
 `C:`\
 `cd the_path_for_ambia\AMBIA\mb_gui\src`\
