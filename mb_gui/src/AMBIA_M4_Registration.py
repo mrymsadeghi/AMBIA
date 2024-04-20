@@ -74,7 +74,7 @@ def func_ardent_registration(section_savepath, source_img_path, target_img_path)
     classify_and_weight_voxels, spatially_varying_contrast_map = False, False
     artifact_prior, background_prior = 0.2, 0.01
     multiscales = 8, 4
-    num_iterations              = 50, 100
+    num_iterations              = 50, 200
     num_affine_only_iterations  = 50, 25
     num_rigid_affine_iterations = 25, 0
     calibrate, show = True, False  
