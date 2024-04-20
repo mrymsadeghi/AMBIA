@@ -301,7 +301,9 @@ class Slide_Operator:
             cv.imwrite(os.path.join(self.section_savepath,"alevel.png"), section_alevel)
             cv.imwrite(os.path.join(self.section_savepath,"blevel.png"), section_blevel)
             if st_switches.Bright_field : cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq*(-1)-np.min(section_alevel_eq*(-1)))
-            else : cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq)
+            else :
+                
+                cv.imwrite(os.path.join(self.section_savepath,"alevel_eq.png"), section_alevel_eq)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_2.png"), blevel_b)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_1.png"), blevel_g)
@@ -324,7 +326,8 @@ class Slide_Operator:
             section_blevel_eq = histogram_equalization(section_blevel) 
             section_alevel_eq_gr0 = cv.cvtColor(section_alevel_eq, cv.COLOR_BGR2GRAY)
             section_alevel_eq_gr = cv.convertScaleAbs(section_alevel_eq_gr0, alpha=(255.0/65535.0))
-            section_blevel_eq_gr0=cv.cvtColor(section_blevel_eq, cv.COLOR_BGR2GRAY)
+            section_blevel_eq_gr0=cv.cvtColor(section_blevel_eq, cv.COLOR_BGR2GRAY) 
+
             section_blevel_eq_gr=cv.convertScaleAbs(section_blevel_eq_gr0, alpha=(255.0/65535.0))
             _, alevel_mask = cv.threshold(section_alevel_eq_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
             
@@ -335,7 +338,18 @@ class Slide_Operator:
             cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_fixed.png"), alevel_mask_fixed)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_mask_fixed.png"), blevel_mask_fixed)
             # alevel_mask_fixed =cv.morphologyEx(alevel_mask_fixed, cv.MORPH_CLOSE, kernel2)
-            section_alevel_eq = cv.bitwise_and(section_alevel_eq, section_alevel_eq, mask = alevel_mask_fixed)
+            #ones=np.ones(section_alevel_eq.shape,dtype=np.uint8)#*50
+            section_alevel_eq=(section_alevel_eq*st_switches.alevel_gamma_factor).astype("uint16")
+            alevel_max=np.max(section_alevel_eq)
+            alevel_min=np.min(section_alevel_eq)
+            section_alevel_eq=(((section_alevel_eq-alevel_min)/alevel_max)*255).astype("uint8")
+            section_alevel_eq=cv.bitwise_and(section_alevel_eq,section_alevel_eq,mask=alevel_mask_fixed)
+            """            print (section_alevel_eq[section_alevel_eq>255].shape,"dashagh")
+            section_alevel_eq[section_alevel_eq>255]=255
+            section_alevel_eq=section_alevel_eq.astype(np.uint8)"""
+            #section_alevel_eq=section_alevel_eq+50#cv.add(section_alevel_eq,ones,dtype= cv.CV_8U)
+            #section_alevel_eq=cv.bitwise_and(section_alevel_eq,section_alevel_eq,mask=alevel_mask_fixed)
+            #section_alevel_eq = cv.bitwise_and(section_alevel_eq, section_alevel_eq, mask = cv.cvtColor(alevel_mask_fixed))
             
             if CH_O:
                 section_alevel_eq[:,:,CH_O-1] = 0
