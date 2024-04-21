@@ -25,7 +25,7 @@ Download and install the 64-bit Git for Windows Setup
 4. Open Command prompt go the the path that you want to install AMBIA \
 `cd the_path_to_install_ambia`\
 4- Run the command below to clone AMBIA. \
-`Git clone -b develop https://github.com/mrymsadeghi/AMBIA.git` 
+`Git clone https://github.com/mrymsadeghi/AMBIA.git` 
 5. Use the requirements.txt file provided in the package to install the necessary python packages with optimal versions. \
 `cd AMBIA` \
 `pip install -r requirements.txt` 
