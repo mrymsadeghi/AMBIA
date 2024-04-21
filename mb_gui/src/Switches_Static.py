@@ -44,14 +44,15 @@ blevel_mask_threshold = 5           # This parameter adjust the threshold for br
 alevel_mask_threshold = 5
 channel_to_omit = 0                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
 CELL_OVERLAP = 0.5                  # If two detected cfos cells have more than this amount overlap, only one will be counted
+alevel_gamma_factor = 1.4
 
 #we need padding for
-#  rotation to prevent disformation, set 0 if no padding is needed, only for brightfield
+#  rotation to prevent disformation, set 0 if no padding is needed
 rotation_padding = 50
 
 ## Atlas Type:
 atlas_type = "Adult"        # Adult or P56 or Rat
-Bright_field = True
+Bright_field = False
 q5value = 70
 
 ###### Mirax format parametes

@@ -6,12 +6,20 @@ from skimage.feature import blob_log
 import Switches_Static as st_switches
 from Switches_Static import rx,cx
 import time
+
+# Class to hold outputs; now using list as a class attribute rather than an instance attribute
 class OUTPUTS:
     OUTPUT=[]
+
+# Function to calculate Euclidean norms between an array and each row in another array
 def calculate_norms(arr,X):
   return np.linalg.norm(X-arr.reshape(1,arr.shape[0]),axis=1)
+
+# Function to check if any element in an array is below a threshold
 def filter (arr):
     return np.any(arr<6)
+
+# Main function to calculate colocalized blobs
 def calculate_colocalized_blobs(blobs_log):
     blobs_log_=[]
     colocalized_blobs=[]
@@ -34,13 +42,8 @@ def calculate_colocalized_blobs(blobs_log):
             colocalized_blobs_counts.append(0)
             continue
         #calculating the distance between every pair of cells
-        
         norms=np.apply_along_axis(calculate_norms,axis=1,arr=channel_to_start,X=blobs_log_[index2])
-       
         coords=np.apply_along_axis(filter,axis=1,arr=norms)
-        #print (coords)
-
-        
         channel_to_start=channel_to_start[coords]
         if len(i)>2:
             for j in i[2:]:
@@ -49,7 +52,6 @@ def calculate_colocalized_blobs(blobs_log):
                     norms=np.apply_along_axis(calculate_norms,axis=1,arr=channel_to_start,X=blobs_log_[index_])
                     coords=np.apply_along_axis(filter,axis=1,arr=norms)
                     channel_to_start=channel_to_start[coords]
-
                 except:
                     no_coloc=True
                     break
@@ -60,8 +62,6 @@ def calculate_colocalized_blobs(blobs_log):
             colocalized_blobs.append(list(channel_to_start))
             colocalized_blobs_counts.append(len(list(channel_to_start)))
     return colocalized_blobs_counts,colocalized_blobs
-
-
 
 
 def MoG_detection(img_channel, maxsigma, numsigma, thresh, brain_mask_eroded):
@@ -94,12 +94,11 @@ def cfos_detection(args):
     return (blobs_log,args[-2],args[-1])
     
 
-
-
 def log_result(result):
     OUTPUTS.OUTPUT.append(result)
-def pool_cell_detection(img_channel, brain_mask_eroded, minsigma, maxsigma, numsigma, blobs_thresh):
 
+
+def pool_cell_detection(img_channel, brain_mask_eroded, minsigma, maxsigma, numsigma, blobs_thresh):
     blobs_log = []
     OUTPUTS.OUTPUT.clear()
     r,c = img_channel.shape[0:2]

@@ -220,51 +220,33 @@ class Slide_Operator:
             os.makedirs(self.section_savepath)
         if self.slideformat == "mrxs":
             x, y, w, h = brainboundcoords[brnum0-1]  # mlevel
-            [xb, yb, wb, hb] = [x * self.dfmb, y * self.dfmb, w * self.dfmb, h * self.dfmb]
-            [xa, ya, wa, ha] = [x * self.dfma, y * self.dfma, w * self.dfma, h * self.dfma]
+            [_, _, wb, hb] = [x * self.dfmb, y * self.dfmb, w * self.dfmb, h * self.dfmb]
+            [_, _, wa, ha] = [x * self.dfma, y * self.dfma, w * self.dfma, h * self.dfma]
+
             Slide = openslide.OpenSlide(self.slidepath)
             Dims = Slide.level_dimensions
-            #if len (st_switches.num_channels)>
-            """try :
-                brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb)).convert("BGR")#.convert("RGB")
-                brainimg2 = np.array(brainimg)
-            except : """
             brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb))#.convert("BGR")#.convert("RGB")
             brainimg2 = cv.cvtColor(np.array(brainimg),cv.COLOR_BGR2RGB)
-            brainimg2=imgprc.rotate_by_angle(brainimg2,rotation_angle,b_level=True,b_level_scale=self.alevel-self.blevel)
-            #brainimg2 = cv.cvtColor(np.array(brainimg2),cv.COLOR_BGR2RGB)
-            """_=brainimg2[:,:,0]
-            brainimg2[:,:,0]=brainimg2[:,:,2]
-            brainimg2[:,:,2]=_"""
-            #brainimg2=cv.cvtColor(brainimg2,cv.COLOR_RGB2BGR)
-            #print (brainimg2.shape , "brainimgbrainimgbrainimgbrainimg",brainimg2[brainimg2>20].shape)
+            brainimg2 = imgprc.rotate_by_angle(brainimg2, rotation_angle, b_level=True, b_level_scale=self.alevel-self.blevel)
+
             if not st_switches.rotate_flag:
-    
                 section_blevel = cv.rotate(brainimg2, cv.ROTATE_90_CLOCKWISE)
             else : 
                 section_blevel = brainimg2
+
             if st_switches.color_switch_on:
                 section_blevel2 = section_blevel.copy()
                 section_blevel2[:,:,1]= section_blevel[:,:,2]
                 section_blevel2[:,:,2]= section_blevel[:,:,1]
                 section_blevel = section_blevel2
+                
             section_blevel_eq = equalize_img(section_blevel)
-            """ try :
-                braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa)).convert("BGR")#.convert("RGB")
-                braina_dark = np.array(braina)
-                #braina_dark = cv.cvtColor(np.array(braina),cv.COLOR_RGB2BGR)
-            except : """
             braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa))#.convert("BGR")#.convert("RGB")
             
             braina_dark = cv.cvtColor(np.array(braina),cv.COLOR_BGR2RGB)
             braina_dark=imgprc.rotate_by_angle(braina_dark,rotation_angle)
-            #braina_dark = cv.cvtColor(np.array(braina_dark),cv.COLOR_BGR2RGB)
-            """_=braina_dark[:,:,0]
-            braina_dark[:,:,0]=braina_dark[:,:,2]
-            braina_dark[:,:,2]=_"""
             #braina_dark=cv.cvtColor(braina_dark,cv.COLOR_RGB2BGR)
             if not st_switches.rotate_flag:
-
                 braina_rot = cv.rotate(braina_dark, cv.ROTATE_90_CLOCKWISE)
                 section_alevel = braina_rot
             else : 
@@ -275,27 +257,7 @@ class Slide_Operator:
                 section_alevel2[:,:,2]= section_alevel[:,:,1]
                 section_alevel = section_alevel2
             section_alevel_eq = equalize_img(section_alevel)
-            
-            #####
-            """blevelstack=[]
-            for index in range(section_blevel.shape[2]):
-                #channel_name = self.channel_types[channel]
-                #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
-                blevel_channel = section_blevel[..., index]
-                if st_switches.gammas[index]=="default":
-                    gamma_corrected_image = imgprc.gamma_correction(blevel_channel)
-                else:
-                    gamma_corrected_image = imgprc.gamma_correction(blevel_channel, st_switches.gammas[index])
-                #sharpened_image = imgprc.apply_sharpening(gamma_corrected_image)
-                #sharpened_image=cv.bitwise_and(gamma_corrected_image, gamma_corrected_image, mask = blevel_mask)
 
-                blevelstack.append(gamma_corrected_image)
-                if st_switches.rotate_flag:
-                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(sharpened_image, cv.ROTATE_90_CLOCKWISE))
-                    #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))
-
-            blevel_b, blevel_g, blevel_r =cv.split(section_blevel)# blevelstack#cv.split(section_blevel)
-            section_blevel_eq = czi_channel_regulator(np.dstack(blevelstack))"""
             #section_alevel_eq = equalize_img(section_alevel)
             blevel_b, blevel_g, blevel_r = cv.split(section_blevel)
             cv.imwrite(os.path.join(self.section_savepath,"alevel.png"), section_alevel)
@@ -314,8 +276,14 @@ class Slide_Operator:
             
             section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, st_switches.num_channels, rect=None)
             section_blevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, st_switches.num_channels, rect=None)
-            section_alevel=imgprc.rotate_by_angle(section_alevel,rotation_angle)
-            section_blevel=imgprc.rotate_by_angle(section_blevel,rotation_angle)
+            print("+++++++++ alevel size: ", section_alevel.shape)
+            print("+++++++++ blevel size: ", section_blevel.shape)
+            section_alevel=imgprc.rotate_by_angle(section_alevel, rotation_angle)
+            section_blevel=imgprc.rotate_by_angle(section_blevel, rotation_angle, b_level=True, b_level_scale=self.alevel-self.blevel)
+            print("after rotation")
+            print("+++++++++ alevel size: ", section_alevel.shape)
+            print("+++++++++ blevel size: ", section_blevel.shape)
+
             if st_switches.rotate_flag:
                 section_alevel=cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)
                 section_blevel=cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)
