@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="512px" height="512px" class=""><g><g>
+	<g>
+		<rect x="139.636" y="372.364" width="232.727" height="46.545" data-original="#000000" class="active-path" data-old_color="#000000" fill="#FFFFFF"/>
+	</g>
+</g><g>
+	<g>
+		<polygon points="139.636,465.455 139.636,488.727 139.636,512 372.364,512 372.364,488.727 372.364,465.455   " data-original="#000000" class="active-path" data-old_color="#000000" fill="#FFFFFF"/>
+	</g>
+</g><g>
+	<g>
+		<path d="M507.338,133.843L413.823,9.3c-4.395-5.854-11.29-9.3-18.61-9.3h-38.364v23.273v23.273v147.394    c0,12.851-10.42,23.273-23.273,23.273H116.364c-12.853,0-23.273-10.422-23.273-23.273V46.545V23.273V0H23.273    C10.42,0,0,10.422,0,23.273v465.455C0,501.578,10.42,512,23.273,512h69.818v-23.273v-23.273v-23.273v-93.091    c0-12.854,10.42-23.273,23.273-23.273h279.273c12.853,0,23.273,10.418,23.273,23.273v93.091v23.273v23.273V512h69.818    C501.58,512,512,501.578,512,488.727v-340.91C512,142.778,510.363,137.872,507.338,133.843z" data-original="#000000" class="active-path" data-old_color="#000000" fill="#FFFFFF"/>
+	</g>
+</g><g>
+	<g>
+		<polygon points="139.636,0 139.636,23.273 139.636,46.545 139.636,170.667 310.303,170.667 310.303,46.545 310.303,23.273     310.303,0   " data-original="#000000" class="active-path" data-old_color="#000000" fill="#FFFFFF"/>
+	</g>
+</g></g> </svg>
