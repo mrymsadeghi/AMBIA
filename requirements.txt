@@ -32,6 +32,7 @@ defusedxml==0.7.1
 distro==1.8.0
 easydev==0.12.1
 EasySettings==4.0.1
+easysettings
 entrypoints==0.4
 et-xmlfile==1.1.0
 fastjsonschema==2.18.0
