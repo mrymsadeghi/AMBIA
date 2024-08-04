@@ -92,9 +92,9 @@ AMBIA demostrates visually where the detected cells are located in the registere
 ## Video Tutorial
 You can find video tutorials on how to install and use AMBIA in the following links: 
 
-[Installation and how to start]()  (Available soon)\
-[How to Use AMBIA]()  (Available soon)\
-[How to modify the code of AMBIA]()  (Available soon)
+[Installation and how to start](https://www.youtube.com/watch?v=OhoCNqi_kjY)\
+[How to Use AMBIA](https://www.youtube.com/watch?v=uGtkMtiZ4C4)\
+[How to modify the parameters](https://www.youtube.com/watch?v=cctSaKZP0fc)
 
 ## Publication
 - Sadeghi, Maryam, et al. "Localization and Registration of 2D Histological Mouse Brain Images in 3D Atlas Space." Neuroinformatics (2023): 1-16.
