@@ -25,6 +25,7 @@ def transform_target_img(target_img_path):
         atlasnum = dy_switches.get_atlasnum()
         print("atlasnum ",atlasnum)
         atlas_prepath=Path_Finder.return_atlas_path()
+        print (os.path.join(atlas_prepath, "labeled_atlases", f"d_{str(atlasnum)}.png"),"PAT")
         image = cv.imread(os.path.join(atlas_prepath, "labeled_atlases", f"d_{str(atlasnum)}.png"))
     else:
         lower_lg = np.array([187,221,66], dtype = "uint16")

@@ -111,12 +111,12 @@ class Slide_Operator:
             self.mlevel = st_switches.mrx_mlevel  # mask level
             self.blevel = st_switches.mrx_blevel  # Blob detection level
             self.alevel = st_switches.mrx_alevel  # Atlas mapping level
+            print (slide_fullpath)
             Slide = openslide.OpenSlide(slide_fullpath)
             Dims = Slide.level_dimensions
             slideimage = Slide.read_region((0, 0), self.mlevel, (Dims[self.mlevel][0], Dims[self.mlevel][1]))
             
             slideimage = cv.cvtColor(np.array(slideimage), cv.COLOR_RGB2BGR)
-            print (slideimage.shape,"slidddddddddddde")
             if st_switches.Bright_field:
                 slideimage=(-1)*slideimage
                 slideimage=np.apply_along_axis(lambda arr: arr-np.min(arr),arr=slideimage,axis=2)
@@ -705,8 +705,19 @@ class Slide_Operator:
                         region_cfos_count = value[1] 
                         #if st_switches.atlas
                         region_area = atlas_colors[value[0]]
+                        """if not st_switches.Bright_field:
+                            rr,gg,bb=value[0]
+                            #region_area = atlas_colors[value[0]]"""
+
+                            
                         try :region_density =  region_cfos_count / region_area 
-                        except : region_density=0
+                        except : 
+                            rr,gg,bb=value[0]
+                            region_area=atlas_colors[(bb,gg,rr)]
+                            #region_density=0
+                            region_density =  region_cfos_count / region_area
+                            #print ("zero area divison error")
+                            
                         dict_area[regname] = region_area 
                         dict_density[regname] = region_density
 

@@ -184,9 +184,7 @@ if __name__ == '__main__':
                 if len(self.final_blobs)>0:
                     try:registered_coords[i]=func_convert_coords(self.reg_code,self.final_blobs[i], str(i),self.GuiFunctions)
                     except : registered_coords[i]=[]
-            print (self.final_colocalized_blobs,"self.final_colocalized_blobs")
             for i in  self.final_colocalized_blobs:
-                print (i,"iiiiiiii")
                 tmp=[]
                 #for j in i :
                 try:tmp.append( func_convert_coords(self.reg_code, i, 'coloc',self.GuiFunctions))
@@ -568,7 +566,7 @@ if __name__ == '__main__':
             self.change_status_bar_default()
             self.set_status_bar_text('Loading Slide Image Done!')
             self.clear_landmark_nodes()
-            self.section_detection_operation()
+            #self.section_detection_operation()
 
 
         def landmark_auto_detect_operation(self,atlas_address=None):
@@ -576,7 +574,7 @@ if __name__ == '__main__':
             This func was originally intended for automatic LM detection. 	
             '''	
             
-
+            print ("landmark")
             atlasnum = self.get_atlas_number()
             dy_switches.set_atlasnum(atlasnum)
             labeled_atlas_LM_filepath = os.path.join(atlas_prepath,"labeled_atlases", str(atlasnum)+".png")
