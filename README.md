@@ -10,7 +10,8 @@ AMBIA (**A**ccurate **M**ouse **B**rain **I**mage **A**nalysis) is a tool to fas
 
 AMBIA is intentionally designed with few requirements. You can easily run AMBIA on your local computer. Ofcourse computers with higher ram and stronger CPUs make AMBIA run faster. Following a the requirements before you install AMBIA:
 - Python > 3.7
-
+Tested with Python 3.11.0
+python
 
 ## Installation
 
