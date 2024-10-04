@@ -8,18 +8,42 @@ from Switches_Static import num_channels,blob_sizes
 
 BLOB_SIZE=30
 PEN_SIZE=2
+BlobColorsRGB={
+    "blue":(0,0,255),
+    "green":[0,255,0],
+    "red":[255,0,0],
+    "magenta":(255,0,255),
+    "cyan":(0,255,255),
+    "yellow":[255,255,0],
+    "white":[255,255,255],
+    "purple":[127,0,127],
+}
+
+BlobColorsBGR={
+    "blue":(255,0,0),
+    "green":[0,255,0],
+    "red":[0,0,255],
+    "magenta":(255,0,255),
+    "cyan":(255,255,0),
+    "yellow":[0,255,255],
+    "white":[255,255,255],
+    "purple":[127,0,127],
+}
+#names=list(BlobColorsRGB.keys())
+
+
 class BlobColor(Enum):
+    blue=(0,0,255)
     green=[0,255,0]
     red=[255,0,0]
-    blue=(0,0,255)
     magenta=(255,0,255)
     cyan=(0,255,255)
     yellow=[255,255,0]
     white=[255,255,255]
     purple=[127,0,127]
-names=["blue","green","red","magenta","cyan","white","yellow","purple"]
-BlobColor_=[(255,0,0),(0,255,0),(0,0,255),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
-BlobColor_object=[BlobColor.blue,BlobColor.green,BlobColor.red,BlobColor.magenta,BlobColor.cyan,BlobColor.white,BlobColor.yellow,BlobColor.purple]
+names=["blue","green","red","magenta","cyan","yellow","white","purple"]
+BlobColor_=[(255,0,0),[0,255,0],(0,0,255),(255,0,255),(255,255,0),(0,255,255),(255,255,255),[127,0,127]]
+BlobColor_object=[BlobColor.blue,BlobColor.green,BlobColor.red,BlobColor.magenta,BlobColor.cyan,BlobColor.yellow,BlobColor.white,BlobColor.purple]
 
 class PhotoViewer(QtWidgets.QGraphicsView):
     photoClicked = QtCore.pyqtSignal(QtCore.QPoint)

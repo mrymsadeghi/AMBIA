@@ -2,9 +2,9 @@
 # Number of channels starting with 0
 num_channels = [ 0,1, 2]   # To be defined as a list of channels e.g [1,2,3] or [0,1], indexes starts with 0 -- displayed as BGR
 
-type_channels = ["GUI", "GUI", "r"]
+type_channels = ["GUI", "GUI", "c"]
 #permutes must be in respect to the original channels
-coloc_permutation = [(0,1,2)]   #e.g [(2,1),(2,0)]
+coloc_permutation = [(0,1),(1,2),(0,2),(0,1,2)]   #e.g [(2,1),(2,0)]
 
 #type_channels = ["GUI", "GUI", "r"]
 #coloc_permutation = [(0,2), (1,2)]   #e.g [(2,1),(2,0)]
@@ -51,7 +51,7 @@ alevel_gamma_factor = 1.4
 rotation_padding = 50
 
 ## Atlas Type:
-atlas_type = "Adult"        # Adult or P56 or Rat
+atlas_type = "Rat"        # Adult or P56 or Rat
 Bright_field = False
 q5value = 70
 
@@ -95,3 +95,4 @@ target_resolution = 100
 
 
 Delauney_strength = 6      # higher the value less freedom
+

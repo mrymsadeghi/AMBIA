@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "C:\Users\amirb\AppData\Local\Programs\Python\Python39\lib\runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\amirb\AppData\Local\Programs\Python\Python39\lib\runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "E:\AMBIA\ambia_env\Scripts\pip.exe\__main__.py", line 4, in <module>
+ModuleNotFoundError: No module named 'pip'

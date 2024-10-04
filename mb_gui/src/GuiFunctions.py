@@ -24,9 +24,9 @@ from utils.allen_functions import high_to_low_level_regions
 import Path_Finder
 import concurrent.futures
 import time
-
-BlobColor_=[(0,0,255),(0,255,0),(255,0,0),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
-
+from Switches_Static import coloc_permutation
+from gui.CustomWidgests import BlobColor,BlobColor_object,names,BlobColor_
+#BlobColor_=[(255,0,0),(0,255,0),(0,0,255),(255,0,255),(0,255,255),(255,255,0),(255,255,255)]
 settings = EasySettings("myconfigfile.conf")
 if st_switches.atlas_type == "Adult":
     from regionscode.Regions_n_colors_adult import Region_names, general_Region_names, create_regs_n_colors_per_sec_list
@@ -114,9 +114,9 @@ class Slide_Operator:
             print (slide_fullpath)
             Slide = openslide.OpenSlide(slide_fullpath)
             Dims = Slide.level_dimensions
-            slideimage = Slide.read_region((0, 0), self.mlevel, (Dims[self.mlevel][0], Dims[self.mlevel][1]))
-            
-            slideimage = cv.cvtColor(np.array(slideimage), cv.COLOR_RGB2BGR)
+            slideimage = Slide.read_region((0, 0), self.mlevel, (Dims[self.mlevel][0], Dims[self.mlevel][1])).convert("RGB")
+            slideimage=np.array(slideimage)
+            #slideimage = cv.cvtColor(np.array(slideimage), cv.COLOR_RGB2BGR)
             if st_switches.Bright_field:
                 slideimage=(-1)*slideimage
                 slideimage=np.apply_along_axis(lambda arr: arr-np.min(arr),arr=slideimage,axis=2)
@@ -225,8 +225,9 @@ class Slide_Operator:
 
             Slide = openslide.OpenSlide(self.slidepath)
             Dims = Slide.level_dimensions
-            brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb))#.convert("BGR")#.convert("RGB")
-            brainimg2 = cv.cvtColor(np.array(brainimg),cv.COLOR_BGR2RGB)
+            brainimg = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.blevel, (hb, wb)).convert("RGB")
+            #brainimg2 = cv.cvtColor(np.array(brainimg),cv.COLOR_BGR2RGB)
+            brainimg2=np.array(brainimg)
             brainimg2 = imgprc.rotate_by_angle(brainimg2, rotation_angle, b_level=True, b_level_scale=self.alevel-self.blevel)
 
             if not st_switches.rotate_flag:
@@ -241,9 +242,10 @@ class Slide_Operator:
                 section_blevel = section_blevel2
                 
             section_blevel_eq = equalize_img(section_blevel)
-            braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa))#.convert("BGR")#.convert("RGB")
+            braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa)).convert("RGB")#.convert("BGR")#.convert("RGB")
             
-            braina_dark = cv.cvtColor(np.array(braina),cv.COLOR_BGR2RGB)
+            #braina_dark = cv.cvtColor(np.array(braina),cv.COLOR_BGR2RGB)
+            braina_dark=np.array(braina)
             braina_dark=imgprc.rotate_by_angle(braina_dark,rotation_angle)
             #braina_dark=cv.cvtColor(braina_dark,cv.COLOR_RGB2BGR)
             if not st_switches.rotate_flag:
@@ -385,9 +387,9 @@ class Slide_Operator:
             Slide = openslide.OpenSlide(self.slidepath)
             Dims = Slide.level_dimensions
 
-            braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa))#.convert("BGR")#.convert("RGB")
+            braina = Slide.read_region((y * self.dfm0, Dims[0][1] - ((x + w) * self.dfm0)), self.alevel, (ha, wa)).convert("RGB")#.convert("RGB")
             
-            braina_dark = cv.cvtColor(np.array(braina),cv.COLOR_BGR2RGB)
+            braina_dark = np.array(braina)#cv.cvtColor(np.array(braina),cv.COLOR_BGR2RGB)
 
             if not st_switches.rotate_flag:
 
@@ -716,6 +718,7 @@ class Slide_Operator:
                             region_area=atlas_colors[(bb,gg,rr)]
                             #region_density=0
                             region_density =  region_cfos_count / region_area
+                            #print (region_cfos_count,region_area,"ERR")
                             #print ("zero area divison error")
                             
                         dict_area[regname] = region_area 
@@ -743,8 +746,12 @@ class Slide_Operator:
                 #except IndexError:
                 #    break
                 
-
+        index=3
         for i in range(len(colocalized_blobs_coords)):
+            index+=1
+            coloc_color=BlobColor_object[index]
+            
+            print (f"permute {i} {coloc_permutation[i]} color : {names[index]} ")
             colocalized_blobs = colocalized_blobs_coords[i][0]
             matchcount = len(colocalized_blobs)
             #print (matchcount,"countttt")
@@ -752,8 +759,10 @@ class Slide_Operator:
             reportfile.write('\n')
             reportfile.write('{} Co-localization in:\n'.format(matchcount))
             matchpointtags = []
+            
             if matchcount > 0:
                 for point in colocalized_blobs:
+                    co2, ro2 = point
                     try:
                         bb,gg,rr = mappedatlas_detection[ro2, co2]
                         pointcolor = (bb,gg,rr) 
@@ -761,9 +770,10 @@ class Slide_Operator:
                     except:
                         pointcolor = (0,0,0) 
                         pointcolor_rgb = (0,0,0) 
-                    cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 255, 255), -1)
+                    
+                    cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, BlobColor_[index],-1)#(0, 255, 255), -1)
                     cv.circle(mappedatlas_unlabled_showimg, (co2, ro2), 5, (0, 150, 150), 1)
-                    cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 255, 255), -1)
+                    cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, BlobColor_[index],-1)#(0, 255, 255), -1)
                     cv.circle(mappedatlas_labled_showimg, (co2, ro2), 4, (0, 0, 0), 1)
                     colorindex = self.coords_to_colorindex(pointcolor_rgb)
                     #colorindex = recheck_colorindex(colorindex, mappedatlas_detection, yo2, xo2)
