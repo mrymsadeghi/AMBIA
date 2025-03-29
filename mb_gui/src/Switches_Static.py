@@ -51,7 +51,7 @@ alevel_gamma_factor = 1.4
 rotation_padding = 50
 
 ## Atlas Type:
-atlas_type = "Rat"        # Adult or P56 or Rat
+atlas_type = "Adult"        # Adult or P56 or Rat
 Bright_field = False
 q5value = 70
 

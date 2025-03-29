@@ -333,11 +333,14 @@ def func_delauney_registration(section_savepath, source_lms, target_lms, source_
     return registered_img, delauney_reg_img_path
 
 
-def resize_images_for_registration(source_img_path,labeled_atlas_LM_filepath,unlabeled_atlas_LM_filepath, sectionpath, general_unlabeled_atlas_filepath):
+def resize_images_for_registration(source_img_path,labeled_atlas_LM_filepath,unlabeled_atlas_LM_filepath, sectionpath, general_unlabeled_atlas_filepath=None):
     target_rgb = cv.imread(unlabeled_atlas_LM_filepath)
     target_rgb2 = cv.imread(labeled_atlas_LM_filepath)
     source_rgb = cv.imread(source_img_path)
-    target_rgb3 = cv.imread(general_unlabeled_atlas_filepath)
+
+    if general_unlabeled_atlas_filepath: 
+        target_rgb3 = cv.imread(general_unlabeled_atlas_filepath)
+
     target_img_path = os.path.join(sectionpath, "atlas_unlabeled.png")
     target_img_path2 = os.path.join(sectionpath, "atlas_labeled.png")
     target_img_path3 = os.path.join(sectionpath, "atlas_unlabeled_low.png")
@@ -348,16 +351,24 @@ def resize_images_for_registration(source_img_path,labeled_atlas_LM_filepath,unl
         source_rgb_resized = cv.resize(source_rgb, (int(source_shape[1]/(TEMP_DF*ACC_DF)), int(source_shape[0]/(TEMP_DF*ACC_DF))))
         target_rgb_resized = cv.resize(target_rgb, (int(target_shape[1]/(TARG_DF*ACC_DF)), int(target_shape[0]/(TARG_DF*ACC_DF))))
         target_rgb_resized2 = cv.resize(target_rgb2, (int(target_shape[1]/(TARG_DF*ACC_DF)), int(target_shape[0]/(TARG_DF*ACC_DF))))
-        target_rgb_resized3 = cv.resize(target_rgb3, (int(target_shape[1]/(TARG_DF*ACC_DF)), int(target_shape[0]/(TARG_DF*ACC_DF))))
+        
+        if general_unlabeled_atlas_filepath: 
+            target_rgb_resized3 = cv.resize(target_rgb3, (int(target_shape[1]/(TARG_DF*ACC_DF)), int(target_shape[0]/(TARG_DF*ACC_DF))))
+       
         cv.imwrite(source_img_path, source_rgb_resized)
         cv.imwrite(target_img_path, target_rgb_resized)
         cv.imwrite(target_img_path2, target_rgb_resized2)
-        cv.imwrite(target_img_path3, target_rgb_resized3)
+
+        if general_unlabeled_atlas_filepath:
+            cv.imwrite(target_img_path3, target_rgb_resized3)
+            
     else:
         cv.imwrite(source_img_path, source_rgb)
         cv.imwrite(target_img_path, target_rgb)
         cv.imwrite(target_img_path2, target_rgb2)
-        cv.imwrite(target_img_path3, target_rgb3)
+        
+        if general_unlabeled_atlas_filepath:
+            cv.imwrite(target_img_path3, target_rgb3)
 
     return source_img_path, target_img_path
 

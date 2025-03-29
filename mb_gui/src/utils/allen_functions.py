@@ -7,8 +7,7 @@ from colormap import hex2rgb
 from allensdk.core.reference_space_cache import ReferenceSpaceCache, ReferenceSpace
 import json 
 import Switches_Dynamic #import get_rootpath
-
-
+import pickle
 prepath = Switches_Dynamic.get_rootpath()
 allen_files_path = os.path.join(prepath, "models", "Allen_files")
 
@@ -17,24 +16,27 @@ def get_volume(volume_path, region_names0=None, json_color_code=None):
     global region_names
     # Get hierarchy and list of regions
     rspc = ReferenceSpaceCache(10, 'annotation/ccf_2017', manifest=os.path.join(allen_files_path, 'manifest.json'))
-    tree = rspc.get_structure_tree(structure_graph_id=1) 
+    tree = rspc.get_structure_tree(structure_graph_id=1) #this is simply a tree containing the hierarchy
     
     if region_names0 == None:
         
         region_names = ['FRP', 'MO', 'SS', 'GU', 'VISC', 'AUD', 'VIS', 'ACA', 'PL', 'ILA', 'ORB', 'AI', 'RSP', 'PTLp', 'TEa', 'PERI', 'ECT', 'MOB', 'AOB', 'AON', 'TT', 'DP', 'PIR', 'NLOT', 'COA', 'PAA', 'TR', 'HIP', 'RHP', 'CLA', 'EP', 'LA', 'BLA', 'BMA', 'PA', 'STRd', 'STRv', 'LSX', 'sAMY', 'PALd', 'PALv', 'PALm', 'PALc', 'VENT', 'SPF', 'SPA', 'PP', 'GENd', 'LAT', 'ATN', 'MED', 'MTN', 'ILM', 'RT', 'GENv', 'EPI', 'PVZ', 'PVR', 'MEZ', 'LZ', 'ME', 'SCs', 'IC', 'NB', 'SAG', 'PBG', 'MEV', 'SNr', 'VTA', 'RR', 'MRN', 'SCm', 'PAG', 'PRT', 'CUN', 'RN', 'III', 'EW', 'IV', 'VTN', 'AT', 'LT', 'SNc', 'PPN', 'RAmb', 'P-sen', 'P-mot', 'P-sat', 'MY-sen', 'MY-mot', 'MY-sat', 'LING', 'CENT', 'CUL', 'DEC', 'FOTU', 'PYR', 'UVU', 'NOD', 'SIM', 'AN', 'PRM', 'COPY', 'PFL', 'FL', 'FN', 'IP', 'DN', 'fiber tracts', 'VS', 'OLF', 'CTX', 'HY', 'TH', 'MB', 'P', 'MY', 'CB']
         
     else:
+        print ("region names available")
         region_names = region_names0
 
-    vol, metaVol = nrrd.read(volume_path)
+    vol, metaVol = nrrd.read(volume_path)# volum is the raw data
     
     if json_color_code != None:
         cm_left, cm_right, level_map = import_colors_json(json_color_code, tree, region_names)
         
     else:
-        cm_left, cm_right, level_map = new_colors(region_names, tree)
-    
-    return vol, cm_left, cm_right, level_map, tree
+        #just a color mapping to specify the assigned color to each region we have
+        cm_left, cm_right, level_map,level_map_id_to_name = new_colors(region_names, tree)
+
+    #print (cm_left,len(cm_left))
+    return vol, cm_left, cm_right, level_map, tree,level_map_id_to_name
 
 def get_atlas(slice_number, vol, level_map, tree, alpha_number=0, beta_number=0, cm_left={}, cm_right={}, print_regions=False):
     
@@ -69,6 +71,8 @@ def get_atlas(slice_number, vol, level_map, tree, alpha_number=0, beta_number=0,
         img_left += [row]
     values = np.unique(img_left)
     img_left = np.array(img_left).astype('float64')
+
+    img_left_by_id=np.reshape([point for point in img_left.flat], list(img_left.shape)).astype('int32')
     img_left = np.reshape([cm_left[point] for point in img_left.flat], list(img_left.shape) + [3]).astype(np.uint8)
 
     img_right = []
@@ -83,17 +87,20 @@ def get_atlas(slice_number, vol, level_map, tree, alpha_number=0, beta_number=0,
             row += [vol[number][i][j]]
         img_right += [row]
     img_right = np.array(img_right).astype('float64')
+    img_righ_by_id=np.reshape([point for point in img_right.flat], list(img_right.shape)).astype('int32')
     img_right = np.reshape([cm_right[point] for point in img_right.flat], list(img_right.shape) + [3]).astype(np.uint8)
+    
 
     img = [np.concatenate((img_left[i], img_right[i])) for i in range(len(img_right))]
-    
+    img_by_id=[np.concatenate((img_left_by_id[i], img_righ_by_id[i])) for i in range(len(img_right))]
     
     if print_regions:
         values = np.delete(values, np.where(values == 0))
         acrs = [tree.get_structures_by_id([level_map[v]])[0]['acronym'] for v in values]
-        #print(set(acrs))
+        keys = [tree.get_structures_by_id([level_map[v]])[0]['rgb_triplet'] for v in values]
+        #print(set(acrs),keys)
     
-    return np.array(img)
+    return np.array(img),np.array(img_by_id)
 
 def get_off_plane_atlas(slice_number, vol, level_map, tree, alpha_left=0, alpha_right=0, beta_left=0, beta_right=0, cm_left={}, cm_right={}, print_regions=False):
     
@@ -223,29 +230,37 @@ def import_colors_json(json_color_code, tree, region_names):
 
 def new_colors(region_names, tree):
     
-    atlas_values = list(tree.get_id_acronym_map().values())
-    
-    # Create color correspondence map and get list of ids to assign color
-    level_map = create_map(tree, atlas_values, region_names)
-    
-    # List of IDs of the regions that need a color assigned (region_names and roots)
-    ids_to_color = list(set(level_map.values())) 
-    
-    # Gets the color for the specified regions in region names
-    specified_cm_left, specified_cm_right = assign_colors(ids_to_color)
-
-    # Attribute a color to EVERY region at any level
-    cm_left = {}
-    cm_right = {}
-
-    for i in range(len(atlas_values)):
-        cm_left[atlas_values[i]] = specified_cm_left[level_map[atlas_values[i]]]
-        cm_right[atlas_values[i]] = specified_cm_right[level_map[atlas_values[i]]]
+    color_map_path = os.path.join(prepath, 'accessories','color_map.pkl')
+    try : 
+        with open (color_map_path,"rb") as f :
+            color_map=pickle.load(f)
+        cm_left,cm_right,level_map,level_map_id_to_name=color_map
+    except:
+        atlas_values = list(tree.get_id_acronym_map().values())
         
-    cm_left[0] = [0, 0, 0]
-    cm_right[0] = [0, 0, 0]
+        # Create color correspondence map and get list of ids to assign color
+        level_map,level_map_id_to_name = create_map(tree, atlas_values, region_names)
         
-    return cm_left, cm_right, level_map
+        # List of IDs of the regions that need a color assigned (region_names and roots)
+        ids_to_color = list(set(level_map.values())) 
+        # Gets the color for the specified regions in region names
+        specified_cm_left, specified_cm_right = assign_colors(ids_to_color)
+
+        # Attribute a color to EVERY region at any level
+        cm_left = {}
+        cm_right = {}
+
+        for i in range(len(atlas_values)):
+            cm_left[atlas_values[i]] = specified_cm_left[level_map[atlas_values[i]]]
+            cm_right[atlas_values[i]] = specified_cm_right[level_map[atlas_values[i]]]
+            
+        cm_left[0] = [0, 0, 0]
+        cm_right[0] = [0, 0, 0]
+        color_map=[cm_left,cm_right,level_map,level_map_id_to_name]
+        with open (color_map_path,"wb") as f:
+            pickle.dump(color_map,f)
+        
+    return cm_left, cm_right, level_map,level_map_id_to_name
 
 def assign_colors(atlas_values):
     rgb_values_left = []
@@ -299,29 +314,41 @@ def assign_colors(atlas_values):
     return cm_left, cm_right
 
 def create_map(tree, atlas_values, region_names):
- 
+    #print (len(region_names), "regions")
     # Create correspondence map to relate regions not in region_names to the closest parent in region_names
     level_map = {}
+    level_map_id_to_name={}
     for value in atlas_values:
+        flag=False
         if value != 0:
             if value != 997: #root
                 if tree.get_structures_by_id([value])[0]['acronym'] in region_names:
-                    level_map[value] = value
+                    level_map[value] = value#NEEDS FIXING
+                    level_map_id_to_name[value]=tree.get_structures_by_id([value])[0]['acronym']
+                    flag=True
                 else:
+                    
                     parents = tree.parents([value])[0]['structure_id_path']
                     i = len(parents) - 1
                     while i >= 0:
                         if tree.get_structures_by_id([parents[i]])[0]['acronym'] in region_names:
                             level_map[value] = parents[i]
+                            level_map_id_to_name[value]=tree.get_structures_by_id([parents[i]])[0]['acronym']
+                            flag=True
                             i = -2
                         i -= 1
                     if i == -1:
                         level_map[value] = 997
-    
+                        flag=True
+        if not flag:
+            print (f"value {value} not in the tree")
+
     level_map[997] = 997 
     level_map[0] = 0    
+    level_map_id_to_name[0]="root"
+    level_map_id_to_name[997]="root"
             
-    return level_map
+    return level_map,level_map_id_to_name
 
 # Get list of specified regions, with respective parents and colors
 

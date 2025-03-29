@@ -9,6 +9,7 @@ if __name__ == '__main__':
     from easysettings import EasySettings
     import Switches_Static as st_switches
     import Switches_Dynamic as dy_switches
+    import AMBIA_M3_AtlasGenerator
     from AMBIA_M1_CellDetection import calculate_colocalized_blobs
     from AMBIA_M4_Registration import func_ambia_registration, func_convert_coords, resize_images_for_registration, get_overlayed_registered_img
     import cv2
@@ -155,6 +156,9 @@ if __name__ == '__main__':
             self.bind_functions()
             self.brnum=1
             self.slide_fullpath="1"
+            self.generated_3d_atlas_region_names=None
+            self.level_map_id_to_name=None
+            self.cm=None
             #self.resizeEvent=self.resize
 
         def save_report_operation(self):
@@ -205,9 +209,15 @@ if __name__ == '__main__':
             atlas_path = self.get_atlas_preview_name()
             atlasnum = os.path.split(atlas_path)[-1].split(".")[0]
             blobs_parameters = self.get_all_blob_detection_parameters()
+            if str(self.ui.tglAtlasModeSelector.value())=="1" and st_switches.atlas_type == "Adult":
+                tilted=True
+            else :
+                tilted=False
             mappingimgpath, report_image_file_name = self.GuiFunctions.funcAnalysis(atlasnum, self.brnum, atlas_prepath,
                                                                                     registered_coords,
-                                                                                    colocalized_converted_coords,blobs_parameters)
+                                                                                    colocalized_converted_coords,blobs_parameters,self.labeled_atlas_LM_filepath,self.unlabeled_atlas_LM_filepath,tilted=tilted,
+                                                                                    generated_3d_atlas_region_names=self.generated_3d_atlas_region_names,level_map_id_to_name=self.level_map_id_to_name,
+                                                                                    cm=self.cm,)
             if report_image_file_name == "em2":
                 error_msg_2.exec_()
                 return
@@ -263,7 +273,7 @@ if __name__ == '__main__':
             for item in node_list2:
                 img2coords.append((int(item.x), int(item.y)))   # Atlas image LMs
             section_img_path = os.path.join(self.sectionfolder, 'alevel_eq.png')
-            atlas_img_path = self.get_atlas_preview_name()
+            atlas_img_path = os.path.join(self.sectionfolder, "atlas_labeled.png")#self.get_atlas_preview_name()
             atlasnum = self.get_atlas_number()
             if len(img1coords)==len(img2coords):
                 
@@ -272,7 +282,7 @@ if __name__ == '__main__':
                     overlayed_registered_imgs_path, _ = m2.smartfunc_segment_1_20(section_img_path, self.sectionfolder)
                 else:
                     # source_img = section_img / target_img = atlas_img
-                    
+                    """This is where registration happens"""
                     auto_registration_state = self.get_registration_mode()
                     Ardent_reg_done = dy_switches.get_status_of_ardent_reg_done(auto_registration_state)
                     target_img_path = os.path.join(self.sectionfolder, "atlas_labeled.png")
@@ -434,7 +444,6 @@ if __name__ == '__main__':
         def section_select_operation(self):
             self.brnum = self.accept_selection_region()
             self.angle_img=self.GuiFunctions.get_section_images_angle(self.brnum, self.brainboundcoords)
-            #print (self.brnum,"brnummmmmmmmmmmmmmmmmmmmmmmmm")
             cv2.imwrite("angle_image.png",self.angle_img)
             qImg = QImage("angle_image.png")#self.angle_img, self.angle_img.shape[1], self.angle_img.shape[0],QImage.Format_RGB888)
             pixmap = QPixmap(qImg)
@@ -574,52 +583,104 @@ if __name__ == '__main__':
             This func was originally intended for automatic LM detection. 	
             '''	
             
-            print ("landmark")
-            atlasnum = self.get_atlas_number()
-            dy_switches.set_atlasnum(atlasnum)
-            labeled_atlas_LM_filepath = os.path.join(atlas_prepath,"labeled_atlases", str(atlasnum)+".png")
-            unlabeled_atlas_LM_filepath = os.path.join(atlas_prepath,"unlabeled_atlases", str(atlasnum)+".png")
-            if st_switches.atlas_type == "Adult":
-                general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Adult_full_atlases","Adult_atlases")
-            elif st_switches.atlas_type == "Rat":
-                general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Rat_atlases","Rat_atlases")
-            else:
-                print ("Incorrect atlas type, modify static switches,exiting")
-                sys.exit()
-                #general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("P56_full_atlases","P56_atlases")
-            self.change_status_bar_waiting()	
-            self.set_status_bar_text('Please wait: Atlas Selection is running')	
-            tissue_landmark_detection_file_name = os.path.join(self.sectionfolder, 'alevel_eq.png')	
-            atlas_landmark_detection_file_name = self.get_atlas_preview_name()
-            if atlas_address:	
-                if st_switches.section_QL_on:	
-                    predicted_atlasquads = self.get_Qs_textbox_parameters()	
-                    if self.get_atlas_mode():
-                        unlabeled_atlas_LM_filepath = m2.generate_tilted_atlas(predicted_atlasquads, self.sectionfolder)
-                        labeled_atlas_LM_filepath = unlabeled_atlas_LM_filepath
-            atlas_unlabled_img_path = atlas_landmark_detection_file_name.replace("labeled","unlabeled")
-            if st_switches.atlas_type == "Adult":
-                general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Adult_full_atlases","Adult_atlases")
-            
-            elif st_switches.atlas_type == "Rat":
-                general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Rat_atlases","Rat_atlases")
-            
-                #general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("P56_full_atlases","P56_atlases")
-            resized_tissue_LM_file_name, resized_atlas_LM_file_name = resize_images_for_registration(tissue_landmark_detection_file_name,labeled_atlas_LM_filepath,unlabeled_atlas_LM_filepath, self.sectionfolder, general_unlabeled_atlas_filepath)	
-            self.set_tissue_landmark_detection_image(resized_tissue_LM_file_name) #################### must be done in earlier stages or removed from here?	
-            self.set_atlas_landmark_detection_image(labeled_atlas_LM_filepath)	
-            # This part applies if there is a code for automatic LM detection in the funcLandmarkDetection funtion	
-            tissue_auto_landmarks = []	
-            atlas_auto_landmarks = []
-            list_of_autodetected_nodes_list = 1	
-            # displays the automatically detected LMs in the GUI	
-            self.add_auto_detect_landmark(list_of_autodetected_nodes_list, tissue_auto_landmarks, atlas_auto_landmarks)	
-            # Flags that Auto LM-detection is done	
-            self.landmarks_detection_perform() 	
-            self.change_status_bar_default()	
-            self.set_status_bar_text('Atlas selection done')	
-            dy_switches.set_ardent_reg_done_to_false()
-            
+            print ("landmark in the atlas selection")
+            if str(self.ui.tglAtlasModeSelector.value())=="1" and st_switches.atlas_type == "Adult":
+                self.change_status_bar_waiting()	
+                self.set_status_bar_text('Please wait: Atlas Generation is running')	
+                ###IN CASE OF MESS UP, JUST SET THIS CONDITION TO FALSE
+                print ("toggled to 3d atlas") #target image should be the created atlas
+                q1=float(self.ui.txtQ1.value())
+                q2=float(self.ui.txtQ2.value())
+                q3=float(self.ui.txtQ3.value())
+                q4=float(self.ui.txtQ4.value())
+                #print ("generating atlas")
+                generated_3d_atlas,self.generated_3d_atlas_region_names,self.level_map_id_to_name,self.cm=AMBIA_M3_AtlasGenerator.generate_Qs_atlas((q1,q2,q3,q4))#print (q1,q2,q3,q4)
+                unlabeled_atlas_LM_filepath = os.path.join(self.sectionfolder,f"generated_atlas_{str(self.brnum)}.png")
+                labeled_atlas_LM_filepath =unlabeled_atlas_LM_filepath 
+                cv2.imwrite(unlabeled_atlas_LM_filepath,generated_3d_atlas)
+                
+                tissue_landmark_detection_file_name = os.path.join(self.sectionfolder, 'alevel_eq.png')	
+                #atlas_landmark_detection_file_name = self.get_atlas_preview_name()
+                """if atlas_address:	
+                    if st_switches.section_QL_on:	
+                        predicted_atlasquads = self.get_Qs_textbox_parameters()	
+                        if self.get_atlas_mode():
+                            unlabeled_atlas_LM_filepath = m2.generate_tilted_atlas(predicted_atlasquads, self.sectionfolder)
+                            labeled_atlas_LM_filepath = unlabeled_atlas_LM_filepath
+                atlas_unlabled_img_path = atlas_landmark_detection_file_name.replace("labeled","unlabeled")
+                if st_switches.atlas_type == "Adult":
+                    general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Adult_full_atlases","Adult_atlases")
+                
+                elif st_switches.atlas_type == "Rat":
+                    general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Rat_atlases","Rat_atlases")
+                
+                    #general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("P56_full_atlases","P56_atlases")"""
+                resized_tissue_LM_file_name, resized_atlas_LM_file_name = resize_images_for_registration(tissue_landmark_detection_file_name,labeled_atlas_LM_filepath,unlabeled_atlas_LM_filepath, self.sectionfolder)#, general_unlabeled_atlas_filepath)	
+                self.set_tissue_landmark_detection_image(resized_tissue_LM_file_name) #################### must be done in earlier stages or removed from here?	
+                self.set_atlas_landmark_detection_image(labeled_atlas_LM_filepath)	
+                # This part applies if there is a code for automatic LM detection in the funcLandmarkDetection funtion	
+                tissue_auto_landmarks = []	
+                atlas_auto_landmarks = []
+                list_of_autodetected_nodes_list = 1	
+                # displays the automatically detected LMs in the GUI	
+                self.add_auto_detect_landmark(list_of_autodetected_nodes_list, tissue_auto_landmarks, atlas_auto_landmarks)	
+                # Flags that Auto LM-detection is done	
+                self.landmarks_detection_perform() 	
+                self.change_status_bar_default()	
+                self.set_status_bar_text('Atlas selection done')	
+                dy_switches.set_ardent_reg_done_to_false()
+                #cv2.imwrite("C:/Users/amirb\Documents/test.png",generated_3d_atlas)
+            else :
+                atlasnum = self.get_atlas_number()
+                dy_switches.set_atlasnum(atlasnum)
+                labeled_atlas_LM_filepath = os.path.join(atlas_prepath,"labeled_atlases", str(atlasnum)+".png")
+                unlabeled_atlas_LM_filepath = os.path.join(atlas_prepath,"unlabeled_atlases", str(atlasnum)+".png")
+                if st_switches.atlas_type == "Adult":
+                    general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Adult_full_atlases","Adult_atlases")
+                elif st_switches.atlas_type == "Rat":
+                    general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Rat_atlases","Rat_atlases")
+                else:
+                    print ("Incorrect atlas type, modify static switches,exiting")
+                    sys.exit()
+                    #general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("P56_full_atlases","P56_atlases")
+                self.change_status_bar_waiting()	
+                self.set_status_bar_text('Please wait: Atlas Selection is running')	
+                tissue_landmark_detection_file_name = os.path.join(self.sectionfolder, 'alevel_eq.png')	
+                atlas_landmark_detection_file_name = self.get_atlas_preview_name()
+                if atlas_address:	
+                    if st_switches.section_QL_on:	
+                        predicted_atlasquads = self.get_Qs_textbox_parameters()	
+                        if self.get_atlas_mode():
+                            unlabeled_atlas_LM_filepath = m2.generate_tilted_atlas(predicted_atlasquads, self.sectionfolder)
+                            labeled_atlas_LM_filepath = unlabeled_atlas_LM_filepath
+                atlas_unlabled_img_path = atlas_landmark_detection_file_name.replace("labeled","unlabeled")
+                if st_switches.atlas_type == "Adult":
+                    general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Adult_full_atlases","Adult_atlases")
+                
+                elif st_switches.atlas_type == "Rat":
+                    general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("Rat_atlases","Rat_atlases")
+                
+                    #general_unlabeled_atlas_filepath =  unlabeled_atlas_LM_filepath.replace("P56_full_atlases","P56_atlases")
+                resized_tissue_LM_file_name, resized_atlas_LM_file_name = resize_images_for_registration(tissue_landmark_detection_file_name,labeled_atlas_LM_filepath,unlabeled_atlas_LM_filepath, self.sectionfolder, general_unlabeled_atlas_filepath)	
+                self.set_tissue_landmark_detection_image(resized_tissue_LM_file_name) #################### must be done in earlier stages or removed from here?	
+                self.set_atlas_landmark_detection_image(labeled_atlas_LM_filepath)	
+                # This part applies if there is a code for automatic LM detection in the funcLandmarkDetection funtion	
+                tissue_auto_landmarks = []	
+                atlas_auto_landmarks = []
+                list_of_autodetected_nodes_list = 1	
+                # displays the automatically detected LMs in the GUI	
+                self.add_auto_detect_landmark(list_of_autodetected_nodes_list, tissue_auto_landmarks, atlas_auto_landmarks)	
+                # Flags that Auto LM-detection is done	
+                self.landmarks_detection_perform() 	
+                self.change_status_bar_default()	
+                self.set_status_bar_text('Atlas selection done')	
+                dy_switches.set_ardent_reg_done_to_false()
+            try:
+                self.labeled_atlas_LM_filepath=labeled_atlas_LM_filepath
+                self.unlabeled_atlas_LM_filepath=unlabeled_atlas_LM_filepath
+            except:
+                self.labeled_atlas_LM_filepath=None
+                self.unlabeled_atlas_LM_filepath=None                
 
 
 

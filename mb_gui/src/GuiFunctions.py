@@ -583,7 +583,8 @@ class Slide_Operator:
     
 
     #def funcAnalysis(self,atlasnum, brnum, atlas_prepath, red_blobs_modified, green_blobs_modified, colocalized_blobs_coords):
-    def funcAnalysis(self,atlasnum, brnum, atlas_prepath, blobs_coords, colocalized_blobs_coords,blobs_parameters):
+    def funcAnalysis(self,atlasnum, brnum, atlas_prepath, blobs_coords, colocalized_blobs_coords,blobs_parameters,labeled_atlas_filepath=None,
+                     unlabeled_atlas_filepath=None,tilted=False,generated_3d_atlas_region_names=None,level_map_id_to_name=None,cm=None):
         """ Inputs red/green_blobs_modified as a list of blob coords (c, r)
         these include detected blob coords after user modification
         red/green_blobs_modified coords are in blevel
@@ -613,16 +614,23 @@ class Slide_Operator:
             dict_base = {'Experiment': self.Experiment_num, 'Animal': self.rack_num, 'Slide': self.slide_num, 'Section': brnum}
             
             Report_subdf = pd.DataFrame(columns=['id', 'Experiment', 'Animal', 'Slide', 'Section', 'type', 'Total'] + Region_names)
-        Regions_n_colors_list, Bgr_Color_list, self.Rgb_Color_list =  create_regs_n_colors_per_sec_list(atlasnum)
 
         savepath = os.path.join(self.prepath, self.slidename)
-        labeled_atlas_filepath = os.path.join(atlas_prepath,"labeled_atlases", str(atlasnum)+".png")
-        if st_switches.section_QL_on:
-            labeled_atlas_filepath = os.path.join(self.section_savepath,"tilted_atlas.png")
-        elif st_switches.segmentation_1_20_on:
-            labeled_atlas_filepath = os.path.join(self.section_savepath,"segmented_atlas.png")
-        unlabeled_atlas_filepath = os.path.join(atlas_prepath,"unlabeled_atlases", str(atlasnum)+".png")
-
+        if tilted :
+            Regions_n_colors_list, Bgr_Color_list, self.Rgb_Color_list =  create_regs_n_colors_per_sec_list(-1,tilted=tilted,
+                    labeled_atlas_filepath=labeled_atlas_filepath, unlabeled_atlas_filepath=unlabeled_atlas_filepath,
+                    generated_3d_atlas_region_names=generated_3d_atlas_region_names,level_map_id_to_name=level_map_id_to_name
+                    ,cm=cm)
+        
+        else:
+            Regions_n_colors_list, Bgr_Color_list, self.Rgb_Color_list =  create_regs_n_colors_per_sec_list(atlasnum)
+            labeled_atlas_filepath = os.path.join(atlas_prepath,"labeled_atlases", str(atlasnum)+".png")
+            if st_switches.section_QL_on:
+                labeled_atlas_filepath = os.path.join(self.section_savepath,"tilted_atlas.png")
+            elif st_switches.segmentation_1_20_on:
+                labeled_atlas_filepath = os.path.join(self.section_savepath,"segmented_atlas.png")
+            unlabeled_atlas_filepath = os.path.join(atlas_prepath,"unlabeled_atlases", str(atlasnum)+".png")
+        
         mappedatlas_detection = cv.imread(unlabeled_atlas_filepath)
         mappedatlas_unlabled_showimg = cv.imread(unlabeled_atlas_filepath)
         mappedatlas_labled_showimg = cv.imread(labeled_atlas_filepath)
@@ -654,6 +662,7 @@ class Slide_Operator:
                     bb,gg,rr = mappedatlas_detection[ro2, co2]
                     pointcolor = (bb,gg,rr) 
                     pointcolor_rgb = (bb,gg,rr) #(rr,gg,bb) 
+
                 except:
                     pointcolor = (0,0,0) 
                     pointcolor_rgb = (0,0,0)
@@ -768,6 +777,7 @@ class Slide_Operator:
                         pointcolor = (bb,gg,rr) 
                         pointcolor_rgb = (bb,gg,rr) #(rr,gg,bb) 
                     except:
+                        print ("exception occurced in color finding")
                         pointcolor = (0,0,0) 
                         pointcolor_rgb = (0,0,0) 
                     
@@ -861,7 +871,10 @@ class Slide_Operator:
         except Exception as E:
             print(E)
             return self.section_savepath, "em2"
-        reportfile.write(f'\n \n Atlas number: {atlasnum} ')
+        if tilted:
+            reportfile.write(f'\n \n Atlas number: 3D')
+        else:
+            reportfile.write(f'\n \n Atlas number: {atlasnum} ')
         reportfile.close()
         
         if st_switches.atlas_type == "Rat":
@@ -967,9 +980,11 @@ class Slide_Operator:
         #save_to_pkl("blobs_coords_fp_fn.pkl", blobs_fp_fn)
         return
     def coords_to_colorindex(self,pointcolor):
+
         if pointcolor in self.Rgb_Color_list:
             colorindex = self.Rgb_Color_list.index(pointcolor)
         else:
+            print ("color not in list")
             colorindex = 0
         return colorindex
     def get_levels_n_factors(self):

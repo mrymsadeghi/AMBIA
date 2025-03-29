@@ -1,28 +1,45 @@
 
 #from regions_per_sections_adult import regs_per_section, Regions_n_colors_List
 from . import regions_per_sections_adult as rpsa
+import numpy as np
+import cv2
 #import regions_per_sections_adult as rpsa
-
 try :
     with open("./mb_gui/src/regionscode/regions_adult.txt","r") as file:# open("regionscode/regions_adult.txt","r") as file:#
         Region_names=file.read().split("\n")
+        
 except :
     with open("regionscode/regions_adult.txt","r") as file:#
         Region_names=file.read().split("\n")
-def create_regs_n_colors_per_sec_list(atlasnum):
-    regs_per_sec_List = rpsa.regs_per_section[int(atlasnum)] #list
-    regs_n_colors_per_sec_List = [('root', 'not detected', '000000', (0, 0, 0))]
-    for elem in rpsa.Regions_n_colors_List:
-        if elem[-3] in regs_per_sec_List:
-            regs_n_colors_per_sec_List.append(elem)
-   
-    Bgr_Color_List = []
-    Rgb_Color_List = []
-    for elem in regs_n_colors_per_sec_List:
-        Rgb_Color_List.append(elem[-1])
-        Bgr_Color_List.append((elem[-1][2],elem[-1][1],elem[-1][0]))
+def create_regs_n_colors_per_sec_list(atlasnum, tilted=False,labeled_atlas_filepath=None, 
+    unlabeled_atlas_filepath=None,generated_3d_atlas_region_names=None,level_map_id_to_name=None,cm=None):
 
-    return regs_n_colors_per_sec_List, Rgb_Color_List, Bgr_Color_List
+    if tilted:
+        regs_n_colors_per_sec_List = [('root', 'not detected', '000000', (0, 0, 0))]
+        generated_3d_atlas_region_names_unique=np.unique(generated_3d_atlas_region_names.flatten())
+        for elem in generated_3d_atlas_region_names_unique:
+            bb,gg,rr=cm[elem]
+            regs_n_colors_per_sec_List.append(("empty_parent",
+                                                level_map_id_to_name[elem],"hex_color",(bb,gg,rr)))
+        Bgr_Color_List = []
+        Rgb_Color_List = []
+        for elem in regs_n_colors_per_sec_List:
+            Rgb_Color_List.append(elem[-1])
+            Bgr_Color_List.append((elem[-1][2],elem[-1][1],elem[-1][0]))
+    else :
+        regs_per_sec_List = rpsa.regs_per_section[int(atlasnum)] #list
+        regs_n_colors_per_sec_List = [('root', 'not detected', '000000', (0, 0, 0))]
+        for elem in rpsa.Regions_n_colors_List:
+            if elem[-3] in regs_per_sec_List:
+                regs_n_colors_per_sec_List.append(elem)
+    
+        Bgr_Color_List = []
+        Rgb_Color_List = []
+        for elem in regs_n_colors_per_sec_List:
+            Rgb_Color_List.append(elem[-1])
+            Bgr_Color_List.append((elem[-1][2],elem[-1][1],elem[-1][0]))
+
+    return regs_n_colors_per_sec_List, Rgb_Color_List, Rgb_Color_List
 
 
 

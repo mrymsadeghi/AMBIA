@@ -44,6 +44,7 @@ class ControlMainWindow(QMainWindow):
         
         self.set_defaults()
         self.binding_elements()
+        self.set_Qs_textbox_parameters()
 
 
 
@@ -606,7 +607,7 @@ class ControlMainWindow(QMainWindow):
         self.ui.attlasViewFrist.fitInView()
         self.ui.attlasViewFrist.setPhoto(QtGui.QPixmap(file_address))
          
-    def set_Qs_textbox_parameters(self,parameters=[0,0,0,0]):
+    def set_Qs_textbox_parameters(self,parameters=[67,70,67,70]):
         self.ui.txtQ1.setValue(parameters[0])
         self.ui.txtQ2.setValue(parameters[1])
         self.ui.txtQ3.setValue(parameters[2])

@@ -1344,6 +1344,7 @@ class Ui_MainWindow(object):
         self.label_3.setGeometry(QtCore.QRect(4, 53, 24, 23))
         self.label_3.setObjectName("label_3")
         self.txtQ2 = QtWidgets.QDoubleSpinBox(self.groupBox_8)
+        #self.txtQ2.setValue(124)
         self.txtQ2.setGeometry(QtCore.QRect(40, 53, 54, 23))
         self.txtQ2.setDecimals(1)
         self.txtQ2.setObjectName("txtQ2")

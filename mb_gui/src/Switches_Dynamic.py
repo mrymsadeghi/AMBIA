@@ -30,8 +30,19 @@ elif st_switches.atlas_type == 'P56':
 elif st_switches.atlas_type == 'Rat':
     from regionscode.Regions_n_colors_rat import Region_names
 
-[region_names_for_alas_generation.append(item[:-3]) for item in Region_names if item[:-3] not in region_names_for_alas_generation]
 
+#[region_names_for_alas_generation.append(item[:-3]) for item in Region_names if item[:-3] not in region_names_for_alas_generation]
+#print (Region_names)
+for item in Region_names:
+    tmp=item.split("_")
+    if len(tmp)>2:
+        tmp=tmp[0]+"_"+tmp[1]
+    else:
+        tmp=tmp[0]
+    
+    if tmp not in region_names_for_alas_generation:
+        region_names_for_alas_generation.append(tmp)
+#print (region_names_for_alas_generation)
 def set_ardent_reg_done_to_false():
     global ardent_reg_done
     ardent_reg_done = False
