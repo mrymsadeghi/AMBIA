@@ -133,3 +133,6 @@ cython_debug/
 
 #folders
 Processed/
+
+#models
+*.onnx

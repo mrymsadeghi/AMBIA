@@ -102,7 +102,7 @@ def get_atlas(slice_number, vol, level_map, tree, alpha_number=0, beta_number=0,
     
     return np.array(img),np.array(img_by_id)
 
-def get_off_plane_atlas(slice_number, vol, level_map, tree, alpha_left=0, alpha_right=0, beta_left=0, beta_right=0, cm_left={}, cm_right={}, print_regions=False):
+"""def get_off_plane_atlas(slice_number, vol, level_map, tree, alpha_left=0, alpha_right=0, beta_left=0, beta_right=0, cm_left={}, cm_right={}, print_regions=False):
     
     # alpha = right slice number - left slice number
     # beta = bottom slice number - top slice number
@@ -169,9 +169,12 @@ def get_off_plane_atlas(slice_number, vol, level_map, tree, alpha_left=0, alpha_
 
     values = np.unique(img_left)
     img_left = np.array(img_left).astype('float64')
+    img_left_by_id=np.reshape([point for point in img_left.flat], list(img_left.shape)).astype('int32')
+    img_left_by_id = np.array([row[:int(img_left_by_id.shape[1]/2)] for row in img_left_by_id])
+
     img_left = np.reshape([cm_left[point] for point in img_left.flat], list(img_left.shape) + [3]).astype(np.uint8)
     img_left = np.array([row[:int(img_left.shape[1]/2)] for row in img_left])
-
+    
     img_right = []
     for i in range(len(right_ear_img)):
         row = []
@@ -183,17 +186,174 @@ def get_off_plane_atlas(slice_number, vol, level_map, tree, alpha_left=0, alpha_
         img_right += [row]
 
     img_right = np.array(img_right).astype('float64')
+    img_right_by_id=np.reshape([point for point in img_right.flat], list(img_right.shape)).astype('int32')
+    img_right_by_id = np.array([row[:int(img_right_by_id.shape[1]/2)] for row in img_right_by_id])
+
     img_right = np.reshape([cm_right[point] for point in img_right.flat], list(img_right.shape) + [3]).astype(np.uint8)
     img_right = np.array([row[int(img_right.shape[1]/2):] for row in img_right])
 
     img = [np.concatenate((img_left[i], img_right[i])) for i in range(len(img_right))]
+
+    img_by_id=[np.concatenate((img_left_by_id[i], img_right_by_id[i])) for i in range(len(img_right))]
 
     if print_regions:
         values = np.delete(values, np.where(values == 0))
         acrs = [tree.get_structures_by_id([level_map[v]])[0]['acronym'] for v in values]
         #print(set(acrs))
     
-    return np.array(img)
+    return np.array(img),np.array(img_by_id)"""
+
+def get_all_brain_stem_ids(tree):
+    all_brain_stem_ids = []
+    brain_stem_ids = [343, 960, 967, 784, 1000, 512, 73, 1092]
+    for val in tree.get_id_acronym_map().values():
+        if val == 0 or val == 997:
+            pass
+        else:
+            for bs_id in brain_stem_ids:
+                if bs_id in tree.parents([int(val)])[0]['structure_id_path']:
+                    all_brain_stem_ids += [val]
+
+    all_brain_stem_ids += brain_stem_ids
+    return all_brain_stem_ids
+
+def get_off_plane_atlas(left_slice_number, right_slice_number, q5_slice_number, vol, level_map, tree, beta_left=0, beta_right=0, cm_left={}, cm_right={}, print_regions=False):
+    
+    # left_slice_number: Left cerebrum average section number 
+    # right_slice_number: Right cerebrum average section number  
+    # q5_slice_number: Q5 section number
+    # beta_left: Left beta angle
+    # beta_right: Right beta angle
+    
+    # Converting section number values into volume coordinates
+    left_slice_number = int(left_slice_number * 10 - 7)
+    right_slice_number = int(right_slice_number * 10 - 7)
+    q5_slice_number = int(q5_slice_number * 10 - 7)
+    beta_left = beta_left * 10 
+    beta_right = beta_right * 10
+        
+    # Converting left beta angle into volume coordinates and generating step per row
+    interval_beta_left = vol.shape[1]*0.75 - vol.shape[1]*0.25
+    pace_beta_left = -beta_left/interval_beta_left
+    initial_beta_left = beta_left
+    
+    # Converting right beta angle into volume coordinates and generating step per row
+    interval_beta_right = vol.shape[1]*0.75 - vol.shape[1]*0.25
+    pace_beta_right = -beta_right/interval_beta_right
+    initial_beta_right = beta_right
+    
+    # Extracting Q5 image plane
+    brain_stem_img = np.array(vol[q5_slice_number])
+    
+    # Extract left cerebrum angled plane
+    left_ear_img = []
+    for i in range(vol.shape[1]):
+        left_ear_img += [vol[int(left_slice_number + pace_beta_left*i)][i]]
+    
+    # Extract right cerebrum angled plane
+    right_ear_img = []
+    for i in range(vol.shape[1]):
+        right_ear_img += [vol[int(right_slice_number + pace_beta_right*i)][i]]
+    
+    # Get values relative to brain stem
+    brain_stem_values = get_all_brain_stem_ids(tree)
+    brain_stem_ids = np.array(brain_stem_values)
+    brain_stem_values += [997]
+    brain_stem_ids_root = np.array(brain_stem_values)
+    
+    # Filter image leaving only brain stem regions
+    brain_stem_mask = np.where(np.isin(brain_stem_img, brain_stem_ids_root), 1, 0).astype('uint32')
+    brain_stem_img *= brain_stem_mask
+    
+    left_brain_stem = brain_stem_img
+    right_brain_stem = brain_stem_img
+    
+    # Filter image removing brain stem regions
+    left_ear_img = np.array(left_ear_img)
+    left_ear_mask = np.where(np.isin(left_ear_img, brain_stem_ids), 0, 1).astype('uint32')
+    left_ear_img *= left_ear_mask
+  
+    right_ear_img = np.array(right_ear_img)
+    right_ear_mask = np.where(np.isin(right_ear_img, brain_stem_ids), 0, 1).astype('uint32')
+    right_ear_img *= right_ear_mask
+    
+    # Merge brain stem and cerebrum on the left side of the atlas
+    img_left = []
+    for i in range(len(left_ear_img)):
+        row = []
+        for j in range(len(left_ear_img[0])):
+            if left_ear_img[i][j] == 0 and left_brain_stem[i][j] != 0:
+                row += [left_brain_stem[i][j]]
+            else: 
+                row += [left_ear_img[i][j]]
+        img_left += [row]
+
+    # Get unique values for printing present regions
+    values = np.unique(img_left)
+    
+    # Convert IDs to RGB
+    img_left = np.array(img_left)
+
+    img_left_by_id=np.reshape([point for point in img_left.flat], list(img_left.shape)).astype('int32')
+    img_left_by_id = np.array([row[:int(img_left_by_id.shape[1]/2)] for row in img_left_by_id])
+
+    img_left = np.reshape([cm_left[point] for point in img_left.flat], list(img_left.shape) + [3]).astype(np.uint8)
+    img_left = np.array([row[:int(img_left.shape[1]/2)] for row in img_left])
+
+    # Merge brain stem and cerebrum on the right side of the atlas
+    img_right = []
+    for i in range(len(right_ear_img)):
+        row = []
+        for j in range(len(right_ear_img[0])):
+            if right_ear_img[i][j] == 0 and right_brain_stem[i][j] != 0:
+                row += [right_brain_stem[i][j]]
+            else: 
+                row += [right_ear_img[i][j]]
+        img_right += [row]
+
+    # Convert IDs to RGB
+    img_right = np.array(img_right)
+    img_right_by_id=np.reshape([point for point in img_right.flat], list(img_right.shape)).astype('int32')
+    img_right_by_id = np.array([row[:int(img_right_by_id.shape[1]/2)] for row in img_right_by_id])
+
+    img_right = np.reshape([cm_right[point] for point in img_right.flat], list(img_right.shape) + [3]).astype(np.uint8)
+    img_right = np.array([row[int(img_right.shape[1]/2):] for row in img_right])
+
+    # Merge left and right halves
+    img = [np.concatenate((img_left[i], img_right[i])) for i in range(len(img_right))]
+    img_by_id=[np.concatenate((img_left_by_id[i], img_right_by_id[i])) for i in range(len(img_right))]
+    # Print present region
+    if print_regions:
+        
+        values = np.delete(values, np.where(values == 0))
+        values = set(values)
+    
+        acrs = []   #acronyms of the visible regions
+        ids = [] 
+        
+        for v in values:
+            acr = tree.get_structures_by_id([level_map[v]])[0]['acronym']
+            if acr not in acrs:
+                acrs += [acr]
+                ids += [level_map[v]]
+                
+        if cm_left == cm_right:
+            for i in range(len(acrs)):
+                print('\'' + acrs[i] + '\': ' + str(cm_left[ids[i]]) + ',')
+        """else:
+            continue
+            
+            print('left: {')
+            for i in range(len(acrs)):
+                print('\'' + acrs[i] + '\': ' + str(cm_left[ids[i]]) + ',')
+            print('}')
+            
+            print('right: {')
+            for i in range(len(acrs)):
+                print('\'' + acrs[i] + '\': ' + str(cm_right[ids[i]]) + ',')
+            print('}')"""
+    
+    return np.array(img),np.array(img_by_id)
 
 
 def import_colors_json(json_color_code, tree, region_names):

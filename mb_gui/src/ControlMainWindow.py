@@ -287,6 +287,10 @@ class ControlMainWindow(QMainWindow):
         self.ui.attlasListSecond.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ui.attlasListSecond.customContextMenuRequested.connect(self.open_atlas_context_menu)
 
+    def bind_smart_functions(self,func):
+        self.btn_generate_values_smart=func
+        self.ui.btnSmart.clicked.connect(self.btn_generate_values_smart)
+
     def open_tissue_context_menu(self):
         menu = QtWidgets.QMenu()
         editMenu = QtWidgets.QAction("Remove All", self)
@@ -607,7 +611,8 @@ class ControlMainWindow(QMainWindow):
         self.ui.attlasViewFrist.fitInView()
         self.ui.attlasViewFrist.setPhoto(QtGui.QPixmap(file_address))
          
-    def set_Qs_textbox_parameters(self,parameters=[67,70,67,70]):
+    def set_Qs_textbox_parameters(self,parameters=[0,0,0,0]):
+        
         self.ui.txtQ1.setValue(parameters[0])
         self.ui.txtQ2.setValue(parameters[1])
         self.ui.txtQ3.setValue(parameters[2])

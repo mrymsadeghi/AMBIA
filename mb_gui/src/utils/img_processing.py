@@ -208,7 +208,7 @@ def get_crop_halves(img, min_h, max_h, min_w, max_w, size_x=256, size_y=256):
     
     return [img[real_min_h:half_point, real_min_w:real_max_w], img[half_point:real_max_h, real_min_w:real_max_w]]
 
-def get_groupC_quadrants(img, original, mask):
+def get_groupC_quadrants( original, mask):
     
     [le, re, bs], [le_exits, re_exits, bs_exits] = get_regions(mask)
     quadrants = []

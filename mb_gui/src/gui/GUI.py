@@ -1334,8 +1334,10 @@ class Ui_MainWindow(object):
         self.stkAtlasState.addWidget(self.pgStandardAtlas)
         self.pgGeneratedAtlas = QtWidgets.QWidget()
         self.pgGeneratedAtlas.setObjectName("pgGeneratedAtlas")
+
+
         self.groupBox_8 = QtWidgets.QGroupBox(self.pgGeneratedAtlas)
-        self.groupBox_8.setGeometry(QtCore.QRect(-1, 0, 232, 75))
+        self.groupBox_8.setGeometry(QtCore.QRect(-1, 0, 232, 175))
         self.groupBox_8.setMinimumSize(QtCore.QSize(0, 75))
         self.groupBox_8.setMaximumSize(QtCore.QSize(232, 16777215))
         self.groupBox_8.setTitle("")
@@ -1364,6 +1366,7 @@ class Ui_MainWindow(object):
         self.txtQ3.setObjectName("txtQ3")
         self.label_5 = QtWidgets.QLabel(self.groupBox_8)
         self.label_5.setGeometry(QtCore.QRect(146, 53, 24, 23))
+        #self.label_5.hide()
         self.label_5.setObjectName("label_5")
         self.txtQ1 = QtWidgets.QDoubleSpinBox(self.groupBox_8)
         self.txtQ1.setGeometry(QtCore.QRect(40, 20, 54, 23))
@@ -1373,6 +1376,43 @@ class Ui_MainWindow(object):
         self.label_31.setGeometry(QtCore.QRect(0, 0, 232, 16))
         self.label_31.setAlignment(QtCore.Qt.AlignCenter)
         self.label_31.setObjectName("label_31")
+
+        self.label_Q5 = QtWidgets.QLabel(self.groupBox_8)
+        self.label_Q5.setGeometry(QtCore.QRect(4, 83, 24, 23))
+        self.label_Q5.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_Q5.setObjectName("label_Q5")
+
+
+        self.label_SL = QtWidgets.QLabel(self.groupBox_8)
+        self.label_SL.setGeometry(QtCore.QRect(146, 83, 24, 23))
+        self.label_SL.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_SL.setObjectName("label_SL")
+
+        self.txtQ5 = QtWidgets.QDoubleSpinBox(self.groupBox_8)
+        self.txtQ5.setGeometry(QtCore.QRect(40, 83, 54, 23))
+        self.txtQ5.setDecimals(1)
+        self.txtQ5.setObjectName("txtQ5")
+
+        self.txtSL = QtWidgets.QDoubleSpinBox(self.groupBox_8)
+        self.txtSL.setGeometry(QtCore.QRect(176, 83, 54, 23))
+        self.txtSL.setDecimals(1)
+        self.txtSL.setObjectName("txtSL")
+
+
+        self.btnSmart = QtWidgets.QPushButton(self.groupBox_8)
+        self.btnSmart.setGeometry(QtCore.QRect(4, 113, 230, 30))
+        #self.btnSmart.setText("Smart Generate")
+        self.btnSmart.setObjectName("btnSmart")
+        self.btnSmart.setStyleSheet("#btnSmart{\n"
+"color:#fff;\n"
+"font-size:12px;\n"
+"font-weight:bold;}")
+
+
+
+
+
+
         self.stkAtlasState.addWidget(self.pgGeneratedAtlas)
         self.verticalLayout_6.addWidget(self.stkAtlasState)
         self.btnAutoDetect = QtWidgets.QToolButton(self.groupBox)
@@ -1500,7 +1540,7 @@ class Ui_MainWindow(object):
         self.blob.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:10pt; color:#ffffff;\">Neuron Detection</span></p></body></html>"))
         self.label.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><a name=\"docs-internal-guid-540c714e-7fff-4dea-c451-bba41c4f4946\"/><span style=\" font-family:\'Arial\'; font-size:11pt; color:#ffffff; background-color:transparent;\">A</span><span style=\" font-family:\'Arial\'; font-size:11pt; color:#ffffff; background-color:transparent;\">tlas</span><span style=\" font-size:10pt; color:#ffffff;\"> selection</span></p></body></html>"))
         self.analyis.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:10pt; color:#ffffff;\">Registration</span></p></body></html>"))
-        self.label_51.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">          Final Analysis</span></p></body></html>"))
+        self.label_51.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Final Analysis</span></p></body></html>"))
         self.mainpart.setTitle(_translate("MainWindow", "GroupBox"))
         self.lblDetecInfoTitle.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" color:#ffffff;\">Information</span></p></body></html>"))
         self.lblDetecInfoContent.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
@@ -1586,12 +1626,16 @@ class Ui_MainWindow(object):
         self.label_27.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Standard Atlas</span></p></body></html>"))
         self.label_30.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Preview:</span></p></body></html>"))
         self.label_29.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Atlas File :</span></p></body></html>"))
-        self.label_3.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Q2 :</span></p></body></html>"))
-        self.label_2.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Q1 :</span></p></body></html>"))
-        self.label_4.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Q3 :</span></p></body></html>"))
+        self.label_3.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Q2:</span></p></body></html>"))
+        self.label_2.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Q1:</span></p></body></html>"))
+        self.label_4.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Q3:</span></p></body></html>"))
         self.label_5.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Q4:</span></p></body></html>"))
+        self.label_Q5.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Q5:</span></p></body></html>"))
+        self.label_SL.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">SL:</span></p></body></html>"))
+
         self.label_31.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; color:#ffffff;\">Tilted Atlas</span></p></body></html>"))
         self.btnAutoDetect.setText(_translate("MainWindow", "Apply"))
+        self.btnSmart.setText(_translate("MainWindow", "Smart Generate"))
         self.lblLandmark.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" color:#ffffff;\">Section Image</span></p></body></html>"))
         self.lblLandmarkAtlas.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" color:#ffffff;\">Atlas Image</span></p></body></html>"))
         self.mainTab.setTabText(self.mainTab.indexOf(self.tabLandmarks), _translate("MainWindow", "LandMark Detection"))

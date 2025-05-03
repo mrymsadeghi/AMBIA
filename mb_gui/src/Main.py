@@ -243,7 +243,23 @@ if __name__ == '__main__':
             self.bind_registration_accept_opration(self.registration_accept)
             self.bind_registration_preview_accept_opration(self.registration_preview_accept)
             self.bind_save_report_opration(self.save_report_operation)
+            self.bind_smart_functions(self.generate_values_smart)
 
+        def generate_values_smart(self,):
+            try:
+                section=os.path.join(self.sectionfolder, 'alevel_eq.png')
+                section_stats=AMBIA_M3_AtlasGenerator.generate_Qs_smart(section)
+                self.ui.txtQ1.setValue(section_stats["q1"])
+                self.ui.txtQ2.setValue(section_stats["q2"])
+                self.ui.txtQ3.setValue(section_stats["q3"])
+                self.ui.txtQ4.setValue(section_stats["q4"])
+                self.ui.txtQ5.setValue(section_stats["q5"])
+                self.ui.txtSL.setValue(section_stats["sl"])
+                self.landmark_auto_detect_operation(smart=True)
+            #print ("gen pressed")
+            except Exception as e:
+                print (e)
+                print ("smart values generation failed, Follow the AMBIA pipeline in order")
         def registration_accept(self):
             ''' This function is called when Register button in LMDetection Stage is clicked
             Uses the funcAMBIAregister / outputs the registered section or atlas
@@ -578,7 +594,7 @@ if __name__ == '__main__':
             #self.section_detection_operation()
 
 
-        def landmark_auto_detect_operation(self,atlas_address=None):
+        def landmark_auto_detect_operation(self,atlas_address=None,smart=False):
             ''' This function is called when Apply button in LMDetection Stage is clicked	
             This func was originally intended for automatic LM detection. 	
             '''	
@@ -593,8 +609,11 @@ if __name__ == '__main__':
                 q2=float(self.ui.txtQ2.value())
                 q3=float(self.ui.txtQ3.value())
                 q4=float(self.ui.txtQ4.value())
+                q5=float(self.ui.txtQ5.value())
+                sl=float(self.ui.txtSL.value())
+                section_stats={"q1":q1,"q2":q2,"q3":q3,"q4":q4,"q5":q5,"sl":sl}
                 #print ("generating atlas")
-                generated_3d_atlas,self.generated_3d_atlas_region_names,self.level_map_id_to_name,self.cm=AMBIA_M3_AtlasGenerator.generate_Qs_atlas((q1,q2,q3,q4))#print (q1,q2,q3,q4)
+                generated_3d_atlas,self.generated_3d_atlas_region_names,self.level_map_id_to_name,self.cm=AMBIA_M3_AtlasGenerator.generate_Qs_atlas(section_stats,smart=smart)#print (q1,q2,q3,q4)
                 unlabeled_atlas_LM_filepath = os.path.join(self.sectionfolder,f"generated_atlas_{str(self.brnum)}.png")
                 labeled_atlas_LM_filepath =unlabeled_atlas_LM_filepath 
                 cv2.imwrite(unlabeled_atlas_LM_filepath,generated_3d_atlas)
