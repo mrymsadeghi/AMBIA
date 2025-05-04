@@ -34,7 +34,7 @@ try :
     ql_model_output_name=ql_model.get_outputs()[0].name
 except  ort.capi.onnxruntime_pybind11_state.NoSuchFile :
     print ("""Smart models were not found. You will not be able to use AMBIA smart functions.
-Please contact one of the following to receive the model files: "the.maryam.sadeghi@gmail.com" or "amir.bakhtiary@ut.ac.ir" """)
+Please contact the following to receive the model files:  "amir.bakhtiary@ut.ac.ir" """)
 
 annotations_file_path = os.path.join(rootpath, 'accessories','annotation_10_ccf17.nrrd')
 #print (annotations_file_path,"anot")
