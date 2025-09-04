@@ -420,6 +420,8 @@ if __name__ == '__main__':
                 self.number_of_blobs,self.CO_COUNT,self._,self.blobs_log,self.colocalized_blobs = self.GuiFunctions.funcBlobDetection(self.brnum, blobs_parameters)
                 self.add_auto_detect_blobs(self.blobs_log,self.colocalized_blobs) # Displays the detected Neurons with circles in GUI
                 #MainWindow.set_blob_detection_image(blob_detection_file_name)
+                if len(self.number_of_blobs)==1:
+                    self.number_of_blobs=self.number_of_blobs+[0]
                 self.set_blob_detection_cells_count(self.number_of_blobs[0], self.number_of_blobs[1], self.CO_COUNT)
                 #self.set_blob_detection_cells_count(RED_COUNT, GREEN_COUNT, CO_COUNT) # Sets the counted Neuron numbers in GUI
                 self.blob_detection_perform() # Flags that blob detection is done

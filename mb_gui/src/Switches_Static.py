@@ -28,31 +28,37 @@ gammas = ["default", "default", "default"]
 rx= 2
 cx= 2
 
+
 ## Smart Functions:
 auto_registration = True
 section_classifier_on = False
 color_switch_on = False
 segmentation_1_20_on = False
 section_QL_on = False
+
+U2NET_bg_removal=True
+U2NET_THRESHOLD=0.04
+
 #++++++++++++++++++++++++++++++++++++++
 # Image Processing parameters
-rotate_flag = False
-gamma_enhancement_flag = True
-czi_maskthresh = 10                  # This threshold is used for the section detection on the whole slide image
+rotate_flag = True
+gamma_enhancement_flag = False
+czi_maskthresh = 5                  # This threshold is used for the section detection on the whole slide image
 contrast_enhancement = 12.0           # for alevel image contras enhancement. This parameter controls the contrast enhancement range [0,20], the higher -> the more contrast enhanced
-blevel_mask_threshold = 5           # This parameter adjust the threshold for brain_mask
-alevel_mask_threshold = 5
+blevel_mask_threshold = 5  #5         # This parameter adjust the threshold for brain_mask
+alevel_mask_threshold = 5 #5
 channel_to_omit = 0                 # This is an integer value 1,2,3 which indicates which channel should be omited for registration, set to 0 for none
 CELL_OVERLAP = 0.5                  # If two detected cfos cells have more than this amount overlap, only one will be counted
 alevel_gamma_factor = 1.4
-
+enable_image_enhancements=0
+set_white_to_black=0
 #we need padding for
 #  rotation to prevent disformation, set 0 if no padding is needed
 rotation_padding = 50
 
 ## Atlas Type:
 atlas_type = "Adult"        # Adult or P56 or Rat
-Bright_field = False
+Bright_field = True
 q5value = 70
 
 ###### Mirax format parametes
@@ -65,8 +71,8 @@ mrx_maskthresh = 20
 
 ###### Czi format parameters
 czi_mlevel = 6
-czi_blevel = 1
-czi_alevel = 4
+czi_blevel = 3
+czi_alevel = 5
 
 
 """#Blob_size shown on Neuro Detection step
@@ -87,7 +93,7 @@ num_rows = 5
 ########################################## 
 ## Registration 
 ########################################## 
-ACC_DF = 1                  #Accelarating factor for ardent registration. Downscales both images by this factor to speed up the registration process
+ACC_DF = 1                 #Accelarating factor for ardent registration. Downscales both images by this factor to speed up the registration process
 TEMP_DF = 1               #Approximate ratio between the source image and the target image
 TARG_DF = 1
 source_resolution = 100

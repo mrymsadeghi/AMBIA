@@ -6,12 +6,14 @@ import os,sys
 from AMBIA_M1_CellDetection import pool_cell_detection,MoG_detection,calculate_colocalized_blobs,calc_new_coords,cfos_detection
 from multiprocessing import Pool
 import cv2 as cv
+import cv2
 import multiprocessing
 from collections import Counter
 from math import sqrt
 from easysettings import EasySettings
 from utils.img_processing import equalize_img
 import utils.img_processing as imgprc
+import utils.U2Net as ut2net
 from utils.reading_czi import CZI, czi_channel_regulator,histogram_equalization
 import Switches_Static as st_switches
 import Switches_Dynamic as dy_switches
@@ -291,28 +293,70 @@ class Slide_Operator:
                 section_blevel=cv.rotate(section_blevel, cv.ROTATE_90_CLOCKWISE)
             section_alevel = czi_channel_regulator(section_alevel)
             section_blevel = czi_channel_regulator(section_blevel)  #st_switches.num_channels)
+            if st_switches.Bright_field and  not st_switches.enable_image_enhancements: 
+                section_alevel_eq=section_alevel
+                section_blevel_eq=section_blevel
+            else:
+                section_alevel_eq = histogram_equalization(section_alevel)
+                section_blevel_eq = histogram_equalization(section_blevel) 
 
-            section_alevel_eq = histogram_equalization(section_alevel)
-            section_blevel_eq = histogram_equalization(section_blevel) 
-            section_alevel_eq_gr0 = cv.cvtColor(section_alevel_eq, cv.COLOR_BGR2GRAY)
-            section_alevel_eq_gr = cv.convertScaleAbs(section_alevel_eq_gr0, alpha=(255.0/65535.0))
-            section_blevel_eq_gr0=cv.cvtColor(section_blevel_eq, cv.COLOR_BGR2GRAY) 
-
-            section_blevel_eq_gr=cv.convertScaleAbs(section_blevel_eq_gr0, alpha=(255.0/65535.0))
-            _, alevel_mask = cv.threshold(section_alevel_eq_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
+            if st_switches.enable_image_enhancements:
+                section_alevel_eq_gr0 = cv.cvtColor(section_alevel_eq, cv.COLOR_BGR2GRAY)
+                section_alevel_eq_gr = cv.convertScaleAbs(section_alevel_eq_gr0, alpha=(255.0/65535.0))
+                 
+            else :
+                section_alevel_eq_gr0 = cv.cvtColor(section_alevel_eq, cv.COLOR_BGR2GRAY)
+                section_alevel_eq_gr = section_alevel_eq_gr0
             
-            _, blevel_mask = cv.threshold(section_blevel_eq_gr, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
-            cv.imwrite (os.path.join(self.section_savepath,"blevel_test.png"),blevel_mask)
+            #FOR DEGBUGGING
+            cv.imwrite (os.path.join(self.section_savepath,"alevel_test.png"),section_alevel_eq_gr)
+            
+            if st_switches.enable_image_enhancements:
+                section_blevel_eq_gr0=cv.cvtColor(section_blevel_eq, cv.COLOR_BGR2GRAY)
+                section_blevel_eq_gr=cv.convertScaleAbs(section_blevel_eq_gr0, alpha=(255.0/65535.0))
+            else:
+                section_blevel_eq_gr0=cv.cvtColor(section_blevel_eq, cv.COLOR_BGR2GRAY)
+                section_blevel_eq_gr=section_blevel_eq_gr0
+
+            if st_switches.set_white_to_black:
+                section_alevel_eq_gr[section_alevel_eq_gr==255]=0
+                section_blevel_eq_gr[section_blevel_eq_gr==255]=0
+            #FOR DEGBUGGING
+            cv.imwrite (os.path.join(self.section_savepath,"blevel_test.png"),section_blevel_eq_gr)
+            if st_switches.set_white_to_black:
+                section_alevel_eq_gr[section_alevel_eq_gr==255]=0
+                section_blevel_eq_gr[section_blevel_eq_gr==255]=0
+
+            if st_switches.U2NET_bg_removal:
+                tmp=np.expand_dims(section_alevel_eq_gr,2)
+                logits,alevel_mask,alevel_mask_binary=ut2net.background_removal(tmp)
+                blevel_mask,blevel_mask_binary=ut2net.post_process(logits,section_blevel_eq)
+
+                alevel_mask=alevel_mask.astype("uint8")
+                blevel_mask=blevel_mask.astype("uint8")
+
+                alevel_mask_binary=alevel_mask_binary.astype("uint8")
+                blevel_mask_binary=blevel_mask_binary.astype("uint8")
+            
+
+            else:
+                _, alevel_mask = cv.threshold(section_alevel_eq_gr, ALEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
+            
+                _, blevel_mask = cv.threshold(section_blevel_eq_gr, BLEVEL_MASK_THRESH, 255, cv.THRESH_BINARY)
+            #exit()
             alevel_mask_fixed = self.remove_edge_blob(alevel_mask, 20000)
             blevel_mask_fixed = self.remove_edge_blob(blevel_mask, 20000*(2**(self.alevel-self.blevel)))
+
             cv.imwrite(os.path.join(self.section_savepath,"alevel_mask_fixed.png"), alevel_mask_fixed)
             cv.imwrite(os.path.join(self.section_savepath,"blevel_mask_fixed.png"), blevel_mask_fixed)
             # alevel_mask_fixed =cv.morphologyEx(alevel_mask_fixed, cv.MORPH_CLOSE, kernel2)
             #ones=np.ones(section_alevel_eq.shape,dtype=np.uint8)#*50
-            section_alevel_eq=(section_alevel_eq*st_switches.alevel_gamma_factor).astype("uint16")
-            alevel_max=np.max(section_alevel_eq)
-            alevel_min=np.min(section_alevel_eq)
-            section_alevel_eq=(((section_alevel_eq-alevel_min)/alevel_max)*255).astype("uint8")
+            if st_switches.gamma_enhancement_flag:
+                section_alevel_eq=(section_alevel_eq*st_switches.alevel_gamma_factor).astype("uint16")
+                alevel_max=np.max(section_alevel_eq)
+                alevel_min=np.min(section_alevel_eq)
+                section_alevel_eq=(((section_alevel_eq-alevel_min)/alevel_max)*255).astype("uint8")
+            
             section_alevel_eq=cv.bitwise_and(section_alevel_eq,section_alevel_eq,mask=alevel_mask_fixed)
             """            print (section_alevel_eq[section_alevel_eq>255].shape,"dashagh")
             section_alevel_eq[section_alevel_eq>255]=255
@@ -337,7 +381,11 @@ class Slide_Operator:
             for index,channel in enumerate(st_switches.num_channels):
                 #channel_name = self.channel_types[channel]
                 #blevel_channel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.blevel, [channel], rect=None)
-                blevel_channel = section_blevel[..., index]
+                if st_switches.Bright_field:
+                    blevel_channel = cv2.cvtColor(section_blevel,cv2.COLOR_BGR2GRAY)
+                else:
+                
+                    blevel_channel = section_blevel[..., index]
                 if st_switches.gamma_enhancement_flag:
                     if st_switches.gammas[index]=="default":
                         gamma_corrected_image = imgprc.gamma_correction(blevel_channel)
@@ -354,15 +402,20 @@ class Slide_Operator:
                     cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(sharpened_image, cv.ROTATE_90_CLOCKWISE))
                     #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), cv.rotate(blevel_channel, cv.ROTATE_90_CLOCKWISE))"""
                 #else : 
-                cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), sharpened_image)
+                if st_switches.Bright_field:
+                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[0]}_{channel}.png"), sharpened_image)
+
+                else:
+                    cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), sharpened_image)
                 #cv.imwrite(os.path.join(self.section_savepath, f"blevel_{self.channel_types[channel]}.png"), blevel_channel)
             
-            section_blevel_eq = czi_channel_regulator(np.dstack(blevelstack))
-
-            """if st_switches.rotate_flag:
-                cv.imwrite (os.path.join(self.section_savepath,"blevel_eq.png"), cv.rotate(section_blevel_eq, cv.ROTATE_90_CLOCKWISE))
-            else :"""
-            cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq )
+            if st_switches.Bright_field:
+                section_blevel_eq=cv.bitwise_and(section_blevel_eq, section_blevel_eq, mask = blevel_mask)
+                cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq )
+                
+            else:
+                section_blevel_eq = czi_channel_regulator(np.dstack(blevelstack))
+                cv.imwrite(os.path.join(self.section_savepath,"blevel_eq.png"), section_blevel_eq )
 
         blob_detection_file_name = os.path.join(self.section_savepath,"blevel_eq.png")
         tissue_lm_detection_filename = os.path.join(self.section_savepath,"alevel_eq.png")
@@ -404,12 +457,19 @@ class Slide_Operator:
             num_sections = len(brainboundcoords)
             
             section_alevel = self.czi.czi_section_img(self.slidepath, brnum0, num_sections, self.alevel, st_switches.num_channels, rect=None)
+            
             if st_switches.rotate_flag:
                 section_alevel=cv.rotate(section_alevel, cv.ROTATE_90_CLOCKWISE)
-            section_alevel = czi_channel_regulator(section_alevel)
-
+            
+            #return section_alevel
             #section_alevel_eq = histogram_equalization(section_alevel)
-            return imgprc.gamma_correction(equalize_img(section_alevel),2)
+            if st_switches.Bright_field and  not st_switches.enable_image_enhancements:
+                print (section_alevel.shape,"shape2")
+                return czi_channel_regulator(section_alevel)
+            else :
+                section_alevel = czi_channel_regulator(section_alevel)
+                return imgprc.gamma_correction(equalize_img(section_alevel),2)
+                
     def funcBlobDetection(self, brnum, blobs_parameters):
         """ Returns blobs_log_r, blobs_log_g, colocalized_blobs:: list of blob coords (r,c) before 
         adding the blobs added/removed manually by user
@@ -451,6 +511,7 @@ class Slide_Operator:
                     
                     czi_images[j]=(-1)*czi_images[j]
                     czi_images[j]=(czi_images[j]-np.min(czi_images[j])).astype(np.uint8)
+                    
                     cv.imwrite(os.path.join(self.section_savepath, f'blevel_{j}_invert.png'), czi_images[j])
 
 
@@ -458,10 +519,22 @@ class Slide_Operator:
 
             kernel1 = np.ones((11,11), np.uint8)
             kernel2 = np.ones((11, 11), np.uint8)
-            for index,channel in enumerate(st_switches.num_channels):
-                name=self.channel_types[channel]
-                czi_images[index]=cv.imread(os.path.join(self.section_savepath, f'blevel_{name}.png'), 0)
-            #img_channel_r = cv.imread(os.path.join(self.section_savepath, 'blevel_2.png'), 0)
+            if st_switches.Bright_field:
+                brain_blevel = cv.imread(os.path.join(self.section_savepath, 'blevel_eq.png'))
+                brain_blevel=cv.cvtColor(brain_blevel,cv.COLOR_BGR2GRAY)
+                czi_images[0]=brain_blevel
+                name=self.channel_types[0]
+                
+                czi_images[0]=(-1)*czi_images[0]
+                czi_images[0]=(czi_images[0]+255).astype(np.uint8)
+                cv.imwrite(os.path.join(self.section_savepath, f'blevel_{name}_{0}_invert.png'), czi_images[0])
+                
+            else:
+                for index,channel in enumerate(st_switches.num_channels):
+
+                    name=self.channel_types[channel]
+                    czi_images[index]=cv.imread(os.path.join(self.section_savepath, f'blevel_{name}.png'), 0)
+                #img_channel_r = cv.imread(os.path.join(self.section_savepath, 'blevel_2.png'), 0)
             #img_channel_g = cv.imread(os.path.join(self.section_savepath, 'blevel_1.png'), 0)
 
         # brain_mask_temp = cv.copyMakeBorder(brain_mask_edge_removed, tempMARGIN, tempMARGIN, tempMARGIN, tempMARGIN, cv.BORDER_CONSTANT, value=(0, 0, 0))
@@ -478,10 +551,14 @@ class Slide_Operator:
 
 
         ### Parameters
-        params[0]=blobs_parameters["c0_blob_type"]
-        params[1]=blobs_parameters["c1_blob_type"]
-        for i in range(2,len (st_switches.num_channels)):
-            params[i]=st_switches.type_channels[i]
+        if st_switches.Bright_field:
+            params[0]=blobs_parameters["c0_blob_type"]
+        
+        else:
+            params[0]=blobs_parameters["c0_blob_type"]
+            params[1]=blobs_parameters["c1_blob_type"]
+            for i in range(2,len (st_switches.num_channels)):
+                params[i]=st_switches.type_channels[i]
 
         #red_blob_type = blobs_parameters["c0_blob_type"]
         #green_blob_type = blobs_parameters["c0_blob_type"]
@@ -533,7 +610,9 @@ class Slide_Operator:
                 img_channel_r_temp = czi_images[index]
                 # img_channel_r_temp = cv.convertScaleAbs(czi_images[index], alpha=ALPHA, beta=0)
                 # cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_enhanced.png"), img_channel_r_temp)
+                print (img_channel_r_temp.dtype)
                 _, ch_thresh = cv.threshold(img_channel_r_temp, r_thresh, 255, cv.THRESH_BINARY)
+                print (ch_thresh.shape,img_channel_r_temp.shape)
                 img_channel_r = cv.bitwise_and(img_channel_r_temp, img_channel_r_temp, mask = ch_thresh)
                 cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_blobmask.png"), ch_thresh)
                 cv.imwrite(os.path.join(self.section_savepath, f"zz_c{str(index)}_masked.png"), img_channel_r)
@@ -559,7 +638,12 @@ class Slide_Operator:
             pool.close()
             pool.join()
             del(pool)
-        match_counts,blob_locs_co = calculate_colocalized_blobs(self.blob_logs)#self.blobs_log_r, self.blobs_log_g)
+        if st_switches.Bright_field:
+            blob_locs_co=[]
+            match_counts=[]
+
+        else:
+            match_counts,blob_locs_co = calculate_colocalized_blobs(self.blob_logs)#self.blobs_log_r, self.blobs_log_g)
         # matchcount, blob_locs_co = calculate_colocalized_blobs(self.blob_logs)#self.blobs_log_r, self.blobs_log_g)
         
         
@@ -576,7 +660,11 @@ class Slide_Operator:
             img=czi_images[index].copy()
             for j in self.blob_logs[index]:
                 img=cv.circle(img,(j[1],j[0]),st_switches.blob_sizes[index],(255,255,255))
-            cv.imwrite(os.path.join(self.section_savepath,f"{self.channel_types[st_switches.num_channels[index]]}_blobs.png"),img)
+            if st_switches.Bright_field:
+                name=self.channel_types[0]
+            else :
+                name=self.channel_types[st_switches.num_channels[index]]
+            cv.imwrite(os.path.join(self.section_savepath,f"{name}_blobs.png"),img)
 
         return number_of_blobs, match_counts, screenimg_path, self.blob_logs, blob_locs_co
         #return number_of_blobs_r, number_of_blobs_g, matchcount, screenimg_path, self.blobs_log_r, self.blobs_log_g, blob_locs_co
@@ -593,11 +681,14 @@ class Slide_Operator:
 
         ### Parameters
         params={}
-        params[0]=blobs_parameters["c0_blob_type"]
-        params[1]=blobs_parameters["c1_blob_type"]
-        if len(st_switches.type_channels)>2:
-            for j in range(2,len(st_switches.type_channels)):
-                params[j]=st_switches.type_channels[j]
+        if st_switches.Bright_field:
+            params[0]=blobs_parameters["c0_blob_type"]
+        else:
+            params[0]=blobs_parameters["c0_blob_type"]
+            params[1]=blobs_parameters["c1_blob_type"]
+            if len(st_switches.type_channels)>2:
+                for j in range(2,len(st_switches.type_channels)):
+                    params[j]=st_switches.type_channels[j]
 
 
         regmargin = 5  #for color averaging
@@ -653,6 +744,8 @@ class Slide_Operator:
                 #try:
                 if coloc[coord][0]<0 or coloc[coord][1]<0:
                     blobs.remove((coloc[coord][0],coloc[coord][1]))
+            if st_switches.Bright_field:
+                break
         for i in range(len(st_switches.num_channels)):
             redpointcolors = []
             redpointtags = []
@@ -679,6 +772,7 @@ class Slide_Operator:
                     redpointtags.append((colorindex,1))  ## 1 for left side
                 if co2 > int(atlas_width/2):
                     redpointtags.append((colorindex,2))  ## 2 for right side
+            
             segcountedr = Counter(redpointtags)
             cv.imwrite(os.path.join(self.section_savepath, "zz_mappedatlas_unlabled_showimg.jpg"), mappedatlas_unlabled_showimg)
             reportfile.write(f"{len(blobs_coords[i])} blobs in {self.channel_types[st_switches.num_channels[i]]}({i})")#'{} Red Blobs in:\n'.format(len(blobs_coords[i])))
@@ -740,7 +834,8 @@ class Slide_Operator:
                 Report_subdf = Report_subdf._append(row_density, ignore_index=True)
                 increamenter+=1
             #blobs_coords_registered = blobs_coords#{'red': red_blobs_modified, 'green': green_blobs_modified, 'coloc': colocalized_blobs_coords}
-            
+            if st_switches.Bright_field:
+                break
 
 
 
@@ -972,6 +1067,8 @@ class Slide_Operator:
             blobs_fp_fn[b1] = [item for item in blobs_channel if item not in blobs_detected] 
             blobs_fp_fn[b2] = [item for item in blobs_detected  if item not in blobs_channel] 
             reportfile.write(f'\n {i} FP: {len(blobs_fp_fn[b2])} and FN: {len(blobs_fp_fn[b1])}')
+            if st_switches.Bright_field:
+                break
 
         reportfile.close()
         #blob_locs_r = np.array(red_blobs_modified2)

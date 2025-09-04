@@ -26,7 +26,8 @@ class CZI:
             brainboundcoords = np.append(brainboundcoords, [[int(-scene.rect[0]/dfm0), int(scene.rect[1]/dfm0), int(scene.rect[2]/dfm0), int(scene.rect[3]/dfm0)]], axis=0)
         return brainboundcoords
     def czi_section_img(self,path, section_num, num_sections, downsample_num, channels, rect=None):
-    
+        if st_switches.Bright_field:
+            channels=[0,1,2]#FIX ME
         image_number = num_sections - section_num
         scene = self.slide.get_scene(image_number)
         downrate = 2 ** downsample_num
@@ -55,9 +56,12 @@ class CZI:
                 image = np.dstack((image, chan3))
             if image.shape[2]>=4:
                 image = image[:,:,0:3]
-            img=(image/256).astype(np.uint8)
-            #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img_output = histogram_equalization(img)
+            if st_switches.Bright_field and  not st_switches.enable_image_enhancements:
+                img_output=image
+            else:
+                img=(image/256).astype(np.uint8)
+                #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                img_output = histogram_equalization(img)
             plt.imshow(img_output)
             plt.subplots_adjust(wspace=0.1, hspace=0.1)
             plt.savefig(savepath, facecolor='black')
@@ -102,19 +106,22 @@ class CZI:
 
 
 def czi_channel_regulator(image,num_channels=None):
-    if not num_channels:
-        if image.shape[2]==1:
-            chan2 = np.zeros_like(image[:,:,0])
-            chan3 = np.zeros_like(image[:,:,0])
-            image = np.dstack((image, chan2, chan3))
-        if image.shape[2]==2:
-            chan3 = np.zeros_like(image[:,:,0])
-            image = np.dstack((image, chan3))
-        if image.shape[2]>=4:
-            image = image[:,:,0:3]
+    if st_switches.Bright_field :
+        return image
     else :
-        image=image[:,:,num_channels]
-    return image
+        if not num_channels:
+            if image.shape[2]==1:
+                chan2 = np.zeros_like(image[:,:,0])
+                chan3 = np.zeros_like(image[:,:,0])
+                image = np.dstack((image, chan2, chan3))
+            elif image.shape[2]==2:
+                chan3 = np.zeros_like(image[:,:,0])
+                image = np.dstack((image, chan3))
+            elif image.shape[2]>=4:
+                image = image[:,:,0:3]
+        else:
+            image=image[:,:,num_channels]
+        return image
 
 
 
